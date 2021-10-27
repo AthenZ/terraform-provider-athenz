@@ -5,8 +5,7 @@ resource "athenz_role" "with_tags" {
   members = var.athenz_provider_foo-members
   audit_ref = var.athenz_provider_foo-audit_ref
   tags = {
-    (var.athenz_provider_foo-tags-0-key) = var.athenz_provider_foo-tags-0-values,
-    (var.athenz_provider_foo-tags-1-key) = var.athenz_provider_foo-tags-1-values
+    (var.athenz_provider_foo-tags-0-key) = var.athenz_provider_foo-tags-0-values
   }
 }
 

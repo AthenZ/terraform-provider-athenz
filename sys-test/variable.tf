@@ -24,14 +24,6 @@ variable "athenz_provider_foo-tags-0-values" {
   type = string
   description = "The tag values to use"
 }
-variable "athenz_provider_foo-tags-1-key" {
-  type = string
-  description = "The tag key to use"
-}
-variable "athenz_provider_foo-tags-1-values" {
-  type = string
-  description = "The tag values to use"
-}
 variable "athenz_provider_bar-members" {
   type = list(string)
   description = "The role members to use"

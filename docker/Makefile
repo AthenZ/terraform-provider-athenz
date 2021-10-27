@@ -1,13 +1,25 @@
 DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
-BASE_DIR=$(shell git rev-parse --show-toplevel)
+ifeq ($(SD_SOURCE_DIR),)
+	SD_SOURCE_DIR=$(shell git rev-parse --show-toplevel)
+endif
 
+deploy-test:
+	echo " SD_SOURCE_DIR is: $(SD_SOURCE_DIR)"
+	# generate self-signed certificates
+	set -x
+	
+	cp -R $(SD_SOURCE_DIR) /home/$(shell whoami)/
+	find /home/$(shell whoami)/terraform-provider-athenz
+	docker run --rm -t -v "/home/$(shell whoami)/terraform-provider-athenz:/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+	set +x
+	
 deploy-local:
 	# generate self-signed certificates
-	docker run --rm -t -v "$(BASE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh
+	docker run --rm -t -v "$(SD_SOURCE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh
 	# ZMS
-	docker run --rm -t -v "$(BASE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh
+	docker run --rm -t -v "$(SD_SOURCE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh
 	sh "./deploy-scripts/zms-deploy-local.sh"
-	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh
+	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(SD_SOURCE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh
 
 CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
 remove-all: remove-containers remove-networks remove-files
