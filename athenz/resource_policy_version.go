@@ -98,7 +98,7 @@ func resourcePolicyVersionRead(d *schema.ResourceData, meta interface{}) error {
 
 	activeVersion := getActiveVersionName(policyVersionList)
 	if activeVersion == "" {
-		return fmt.Errorf("not founed active version for the policy: %s", fullResourceName)
+		return fmt.Errorf("not found active version for the policy: %s", fullResourceName)
 	}
 	if err = d.Set("active_version", activeVersion); err != nil {
 		return err

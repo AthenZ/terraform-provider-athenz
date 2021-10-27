@@ -1,0 +1,1 @@
+athenz_provider_foo-group_members=["user.github-7654321"]

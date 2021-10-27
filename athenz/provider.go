@@ -31,6 +31,12 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_KEY", os.Getenv("HOME")+"/.athenz/key"),
 			},
+			"cacert": {
+				Type:        schema.TypeString,
+				Description: fmt.Sprintf("CA Certificate file path"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_CA_CERT", ""),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -61,12 +67,11 @@ func Provider() terraform.ResourceProvider {
 
 func configProvider(d *schema.ResourceData) (interface{}, error) {
 	zms := client.ZmsConfig{
-		Url:  d.Get("zms_url").(string),
-		Cert: d.Get("cert").(string),
-		Key:  d.Get("key").(string),
+		Url:    d.Get("zms_url").(string),
+		Cert:   d.Get("cert").(string),
+		Key:    d.Get("key").(string),
+		CaCert: d.Get("cacert").(string),
 	}
-	if zms.Url == "localhost" {
-		return client.AccTestZmsClient()
-	}
-	return client.NewClient(zms.Url, zms.Cert, zms.Key)
+
+	return client.NewClient(zms.Url, zms.Cert, zms.Key, zms.CaCert)
 }

@@ -15,6 +15,7 @@ import (
 )
 
 func TestAccGroupTopLevelDomainBasic(t *testing.T) {
+	t.Skip("Skipping domains creation in acc tests")
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Print("TF_ACC must be set for acceptance tests")
 		return
@@ -30,9 +31,9 @@ func TestAccGroupTopLevelDomainBasic(t *testing.T) {
 	ypmId := rInt % 1000000
 	topLevelDomainName := os.Getenv("TOP_LEVEL_DOMAIN")
 	adminUser := os.Getenv("ADMIN_USER")
-	resourceName := "athenz_top_level_domain.testTopLevelDomain"
+	resourceName := "athenz_top_level_domain.test_domain"
 	t.Cleanup(func() {
-		cleanAccTestTopLevelDomain(topLevelDomainName)
+		cleanAccTestDomain(topLevelDomainName)
 	})
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,7 +53,7 @@ func TestAccGroupTopLevelDomainBasic(t *testing.T) {
 	})
 }
 
-func cleanAccTestTopLevelDomain(domainName string) {
+func cleanAccTestDomain(domainName string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	_, err := zmsClient.GetDomain(domainName)
 	if err == nil {
@@ -104,7 +105,7 @@ func testAccCheckGroupTopLevelDomainDestroy(s *terraform.State) error {
 
 func testAccGroupTopLevelDomainConfigBasic(name, adminUser string, ypmId int) string {
 	return fmt.Sprintf(`
-resource "athenz_top_level_domain" "testTopLevelDomain" {
+resource "athenz_top_level_domain" "test_domain" {
   name = "%s"
   admin_users = ["%s"]
   ypm_id = %d

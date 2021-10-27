@@ -16,7 +16,7 @@ import (
 
 func TestAccGroupRoleBasic(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
-		log.Print("TF_ACC must be set for acceptance tests")
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
 		return
 	}
 	if v := os.Getenv("DOMAIN"); v == "" {

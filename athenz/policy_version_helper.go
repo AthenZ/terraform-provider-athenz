@@ -42,7 +42,7 @@ func flattenPolicyVersions(zmsPolicyVersions []*zms.Policy) []interface{} {
 
 func getActiveVersionName(policyVersions []*zms.Policy) string {
 	for _, version := range policyVersions {
-		if *version.Active == true {
+		if version.Active != nil && *version.Active == true {
 			return string(version.Version)
 		}
 	}
