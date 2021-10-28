@@ -11,8 +11,20 @@ deploy:
 	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
 	# ZMS
 	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
+	sh "./deploy-scripts/zms-deploy.sh"
+	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
+
+deploy-local:
+	cp -R $(SD_SOURCE_DIR) $(SD_DIND_SHARE_PATH)/
+	find $(SD_DIND_SHARE_PATH)
+
+	# generate self-signed certificates
+	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
+	# ZMS
+	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
 	sh "./deploy-scripts/zms-deploy-local.sh"
 	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
+
 
 CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
 remove-all: remove-containers remove-networks remove-files
