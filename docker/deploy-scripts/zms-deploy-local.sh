@@ -28,6 +28,10 @@ EOF
 
 # set up env.
 BASE_DIR="$(git rev-parse --show-toplevel)"
+echo "Setup environment : BASE_DIR: ${BASE_DIR}"
+BASE_DIR=${SD_SOURCE_DIR}
+echo "Setup environment : Setting BASE_DIR to : ${BASE_DIR}"
+
 . "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
 if [ -f "${DOCKER_DIR}/setup-scripts/dev-env-exports.sh" ]; then
@@ -62,14 +66,14 @@ docker run -d -h "${ZMS_DB_HOST}" \
     -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
     --name "${ZMS_DB_HOST}" athenz/athenz-zms-db:latest
 
-echo 'wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}'
+echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
 docker run --rm \
     --network="${DOCKER_NETWORK}" \
     --user mysql:mysql \
     -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
     -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-    --entrypoint '/bin/wait-for-mysql.sh' \
+    --entrypoint "sh athenz/athenz-zms-db:latest -c 'set -x ; /bin/wait-for-mysql.sh'" \
     --name wait-for-mysql athenz/athenz-zms-db:latest \
     --user='root' \
     --host="${ZMS_DB_HOST}" \

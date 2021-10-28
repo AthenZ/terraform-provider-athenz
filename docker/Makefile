@@ -6,8 +6,6 @@ endif
 deploy:
 	cp -R $(SD_SOURCE_DIR) $(SD_DIND_SHARE_PATH)/
 	find $(SD_DIND_SHARE_PATH)
-	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c "set -x ; find /bin"
-	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c "set -x ; ls -l /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh"
 
 	# generate self-signed certificates
 	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
