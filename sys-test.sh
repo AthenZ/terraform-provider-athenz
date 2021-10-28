@@ -36,44 +36,44 @@ ls /usr/local/bin
 terraform -v
 
 cd docker
-make deploy-test
-#cd ..
-#
-#EXIT_CODE=0
-#
-## create system test resources
-#cd sys-test
-#if ! terraform init ; then
-#    echo "terraform apply failed!"
-#    EXIT_CODE=1
-#fi
-#if ! terraform apply -auto-approve -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
-#    echo "terraform apply failed!"
-#    EXIT_CODE=1
-#fi
-#
-## run system test
-#if ! make acc_test ; then
-#    echo "acceptance test failed!"
-#    EXIT_CODE=1
-#fi
-#
-## run zms-cli against the sys test domain
-#${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
-#  -z https://localhost:4443/zms/v1 \
-#  -c ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/CAs/athenz_ca.pem \
-#  -key ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem \
-#  -cert ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem \
-#  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > ${SD_ROOT_DIR}/terraform-sys-test-results 
-#
-## make sure the expected domain is same as zms-cli result
-#if ! diff ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
-#    echo "expected domain is NOT same!"
-#    EXIT_CODE=1
-#fi
-#
-## destroy resources
-#terraform apply --destroy -auto-approve -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars"
-#
-#
-#exit $EXIT_CODE
+make deploy
+cd ..
+
+EXIT_CODE=0
+
+# create system test resources
+cd sys-test
+if ! terraform init ; then
+    echo "terraform apply failed!"
+    EXIT_CODE=1
+fi
+if ! terraform apply -auto-approve -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
+    echo "terraform apply failed!"
+    EXIT_CODE=1
+fi
+
+# run system test
+if ! make acc_test ; then
+    echo "acceptance test failed!"
+    EXIT_CODE=1
+fi
+
+# run zms-cli against the sys test domain
+${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
+  -z https://localhost:4443/zms/v1 \
+  -c ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/CAs/athenz_ca.pem \
+  -key ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem \
+  -cert ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem \
+  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > ${SD_ROOT_DIR}/terraform-sys-test-results 
+
+# make sure the expected domain is same as zms-cli result
+if ! diff ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
+    echo "expected domain is NOT same!"
+    EXIT_CODE=1
+fi
+
+# destroy resources
+terraform apply --destroy -auto-approve -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars"
+
+
+exit $EXIT_CODE
