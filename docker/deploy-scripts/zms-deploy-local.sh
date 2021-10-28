@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 set -eu
 set -o pipefail
@@ -61,7 +61,8 @@ docker run -d -h "${ZMS_DB_HOST}" \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf" \
     -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
     --name "${ZMS_DB_HOST}" athenz/athenz-zms-db:latest
-# wait for ZMS DB to be ready
+
+echo 'wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}'
 docker run --rm \
     --network="${DOCKER_NETWORK}" \
     --user mysql:mysql \
