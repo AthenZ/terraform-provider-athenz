@@ -25,9 +25,7 @@ jobs:
     steps:
       - install-deps: |
           set -e
-          yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-          yum -y install wget
-          yum install -y --setopt skip_missing_names_on_install=False docker-ce docker-ce-cli containerd.io
+          sd-cmd exec docker/install@1.0.13
           docker system info
       - run-tests: |
           ./sys-test.sh

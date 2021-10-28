@@ -7,10 +7,20 @@ deploy-test:
 	echo " SD_SOURCE_DIR is: $(SD_SOURCE_DIR)"
 	# generate self-signed certificates
 	set -x
-	
-	cp -R $(SD_SOURCE_DIR) /home/$(shell whoami)/
-	find /home/$(shell whoami)/terraform-provider-athenz
-	docker run --rm -t -v "/home/$(shell whoami)/terraform-provider-athenz:/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+	ls -l $(SD_SOURCE_DIR)
+#	docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock -v "$(SD_SOURCE_DIR):/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+#	docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock --mount src="$(SD_SOURCE_DIR)",target=/terraform-provider-athenz,type=bind --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+#	docker run --rm -t --mount src="$(SD_SOURCE_DIR)",target=/terraform-provider-athenz,type=bind --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+	docker run --rm -t -v "$(SD_SOURCE_DIR):/terraform-provider-athenz" -v /var/run/docker.sock:/var/run/docker.sock --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+
+#	chmod -R 777 $(SD_SOURCE_DIR)
+#	chmod -R 777 $(SD_ROOT_DIR)
+#	cp -R $(SD_SOURCE_DIR) $(SD_ROOT_DIR)
+#	find $(SD_ROOT_DIR)/terraform-provider-athenz 
+#	docker run --rm -t --mount src="$(SD_ROOT_DIR)",target=/terraform-provider-athenz,type=bind --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
+#	docker run --rm -t --mount src="$(SD_ROOT_DIR)",target=/terraform-provider-athenz,type=bind --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /"
+
+	docker run --rm -t -v "$(SD_ROOT_DIR)/terraform-provider-athenz:/terraform-provider-athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh -c "set -x ; find /terraform-provider-athenz"
 	set +x
 	
 deploy-local:
