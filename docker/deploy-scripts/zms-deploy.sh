@@ -60,18 +60,21 @@ docker run -d -h "${ZMS_DB_HOST}" \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf" \
     -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
     --name "${ZMS_DB_HOST}" athenz/athenz-zms-db:latest
-# wait for ZMS DB to be ready
-docker run --rm \
-    --network="${DOCKER_NETWORK}" \
-    --user mysql:mysql \
-    -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
-    -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
-    -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-    --entrypoint '/bin/wait-for-mysql.sh' \
-    --name wait-for-mysql athenz/athenz-zms-db:latest \
-    --user='root' \
-    --host="${ZMS_DB_HOST}" \
-    --port=3306
+
+echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
+
+sleep 15
+#docker run --rm -it \
+#    --network="${DOCKER_NETWORK}" \
+#    --user mysql:mysql \
+#    -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
+#    -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
+#    -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
+#    --entrypoint sh -c '/bin/wait-for-mysql.sh' \
+#    --name wait-for-mysql athenz/athenz-zms-db:latest \
+#    --user='root' \
+#    --host="${ZMS_DB_HOST}" \
+#    --port=3306
 
 echo '3. add zms_admin to ZMS DB' | colored_cat g
 # also, remove root user with wildcard host
