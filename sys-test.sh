@@ -36,7 +36,7 @@ ls /usr/local/bin
 terraform -v
 
 cd docker
-make deploy
+make deploy-local
 cd ..
 
 EXIT_CODE=0
