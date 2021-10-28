@@ -99,7 +99,7 @@ docker exec --user mysql:mysql \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
     --execute="SELECT user, host FROM user;"
 
-echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
+echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}, DOCKER_DNS: ${DOCKER_DNS}" | colored_cat g
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
@@ -116,6 +116,10 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest
+    
+echo "Trying to resolve ZMS_HOST: ${ZMS_HOST} : "
+host ${ZMS_HOST}
+
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \

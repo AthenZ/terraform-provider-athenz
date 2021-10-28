@@ -1,4 +1,7 @@
 DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
+DOCKER_DNS := $(if $(DOCKER_DNS),$(DOCKER_DNS),8.8.8.8)
+LOCAL_ENV_NS := $(shell ./local-nameserver.sh)
+
 ifeq ($(SD_SOURCE_DIR),)
 	SD_SOURCE_DIR=$(shell git rev-parse --show-toplevel)
 endif
