@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo 'Start wait-for-mysql.sh...'
+
 set -e
 
 until mysqladmin ping --silent "$@"; do

@@ -29,7 +29,7 @@ EOF
 # set up env.
 BASE_DIR="$(git rev-parse --show-toplevel)"
 echo "Setup environment : BASE_DIR: ${BASE_DIR}"
-BASE_DIR=${SD_DIND_SHARE_PATH}
+BASE_DIR=${SD_DIND_SHARE_PATH}/terraform-provider-athenz
 echo "Setup environment : Setting BASE_DIR to : ${BASE_DIR}"
 
 . "${BASE_DIR}/docker/env.sh"
@@ -74,7 +74,8 @@ docker run --rm -it \
     -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
     -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-    --entrypoint sh athenz/athenz-zms-db:latest -c 'set -x ; /bin/wait-for-mysql.sh' \
+    athenz/athenz-zms-db:latest \
+    --entrypoint sh -c 'set -x ; /bin/wait-for-mysql.sh' \
     --name wait-for-mysql athenz/athenz-zms-db:latest \
     --user='root' \
     --host="${ZMS_DB_HOST}" \
