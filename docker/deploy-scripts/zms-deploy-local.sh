@@ -54,6 +54,7 @@ echo '# Deploy ZMS' | colored_cat r
 
 echo '1. create docker network' | colored_cat g
 if ! docker network inspect "${DOCKER_NETWORK}" > /dev/null 2>&1; then
+    echo "create docker network. DOCKER_NETWORK_SUBNET: ${DOCKER_NETWORK_SUBNET}"
     docker network create --subnet "${DOCKER_NETWORK_SUBNET}" "${DOCKER_NETWORK}";
 fi
 
@@ -62,6 +63,7 @@ docker run -d -h "${ZMS_DB_HOST}" \
     -p "${ZMS_DB_PORT}:3306" \
     --network="${DOCKER_NETWORK}" \
     --user mysql:mysql \
+    -v/var/run/docker.sock:/var/run/docker.sock \
     -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/mysql/conf.d/zms-db.cnf" \
     -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
     --name "${ZMS_DB_HOST}" athenz/athenz-zms-db:latest
@@ -105,6 +107,7 @@ docker run -d -h "${ZMS_HOST}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     ${LOCAL_ENV_NS} \
+    -v/var/run/docker.sock:/var/run/docker.sock \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
     -v "${DOCKER_DIR}/zms/conf:/opt/athenz/zms/conf/zms_server" \
     -v "${DOCKER_DIR}/logs/zms:/opt/athenz/zms/logs/zms_server" \
@@ -117,12 +120,12 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest
     
-echo "Trying to resolve ZMS_HOST: ${ZMS_HOST} : "
-host ${ZMS_HOST}
+echo "wait for ZMS to be ready ZMS_HOST: ${ZMS_HOST} : "
 
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
+    -v/var/run/docker.sock:/var/run/docker.sock \
     --name athenz-curl athenz/athenz-setup-env:latest \
     -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
     ; do
