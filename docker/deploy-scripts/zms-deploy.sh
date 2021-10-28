@@ -94,7 +94,7 @@ docker exec --user mysql:mysql \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
     --execute="SELECT user, host FROM user;"
 
-echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}" | colored_cat g
+echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \

@@ -99,13 +99,12 @@ docker exec --user mysql:mysql \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
     --execute="SELECT user, host FROM user;"
 
-echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}" | colored_cat g
+echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     ${LOCAL_ENV_NS} \
-    --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
     -v "${DOCKER_DIR}/zms/conf:/opt/athenz/zms/conf/zms_server" \
     -v "${DOCKER_DIR}/logs/zms:/opt/athenz/zms/logs/zms_server" \
@@ -118,14 +117,13 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest
 # wait for ZMS to be ready
-#until docker run --rm --entrypoint curl \
-#    --network="${DOCKER_NETWORK}" \
-#    --user "$(id -u):$(id -g)" \
-#    --name athenz-curl athenz/athenz-setup-env:latest \
-#    -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
-#    ; do
-#    echo 'ZMS is unavailable - will sleep 3s...'
-#    sleep 3
-#done
+until docker run --rm --entrypoint curl \
+    --network="${DOCKER_NETWORK}" \
+    --name athenz-curl athenz/athenz-setup-env:latest \
+    -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
+    ; do
+    echo 'ZMS is unavailable - will sleep 3s...'
+    sleep 3
+done
 
 echo 'ZMS is up!' | colored_cat g
