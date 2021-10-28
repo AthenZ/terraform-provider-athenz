@@ -118,14 +118,14 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest
 # wait for ZMS to be ready
-until docker run --rm --entrypoint curl \
-    --network="${DOCKER_NETWORK}" \
-    --user "$(id -u):$(id -g)" \
-    --name athenz-curl athenz/athenz-setup-env:latest \
-    -k -vvv "https://localhost:${ZMS_PORT}/zms/v1/status" \
-    ; do
-    echo 'ZMS is unavailable - will sleep 3s...'
-    sleep 3
-done
+#until docker run --rm --entrypoint curl \
+#    --network="${DOCKER_NETWORK}" \
+#    --user "$(id -u):$(id -g)" \
+#    --name athenz-curl athenz/athenz-setup-env:latest \
+#    -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
+#    ; do
+#    echo 'ZMS is unavailable - will sleep 3s...'
+#    sleep 3
+#done
 
 echo 'ZMS is up!' | colored_cat g

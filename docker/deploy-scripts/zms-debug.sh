@@ -38,10 +38,10 @@ alias llm="less ${DOCKER_DIR}/logs/zms/server.log"
 llm | tail | colored_cat w
 
 # NOT necessary if inside docker network
-# echo 'add ZMS host' | colored_cat y
-# {
-#     grep "${ZMS_HOST}" /etc/hosts && echo '/etc/hosts already set' || sudo sed -i "$ a\127.0.0.1 ${ZMS_HOST}" /etc/hosts
-# } | colored_cat w
+ echo 'add ZMS host' | colored_cat y
+ {
+     grep "${ZMS_HOST}" /etc/hosts && echo '/etc/hosts already set' || sudo sed -i "$ a\127.0.0.1 ${ZMS_HOST}" /etc/hosts
+ } | colored_cat w
 
 echo 'ZMS health check' | colored_cat y
 {
