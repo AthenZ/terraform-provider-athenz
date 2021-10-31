@@ -70,7 +70,7 @@ sleep 15
 #      -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
 #      -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
 #      -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-#      --entrypoint sh -c '/bin/wait-for-mysql.sh' \
+#      --entrypoint '/bin/wait-for-mysql.sh' \
 #      --name wait-for-mysql athenz/athenz-zms-db:latest \
 #      --user='root' \
 #      --host="${ZMS_DB_HOST}" \
@@ -97,7 +97,7 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
-docker run -it -h "${ZMS_HOST}" \
+docker run -t -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
@@ -111,7 +111,9 @@ docker run -it -h "${ZMS_HOST}" \
     -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
-    --name "${ZMS_HOST}" athenz/athenz-zms-db:latest
+    -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
+    --name "${ZMS_HOST}" athenz/athenz-zms-db:latest \
+    2>&1 | sed 's/^/DOCKER: /' &
     
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
