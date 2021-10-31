@@ -14,6 +14,7 @@ import (
 )
 
 func TestAccGroupUserDomainBasic(t *testing.T) {
+	t.Skip("Skipping domains creation in acc tests")
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Print("TF_ACC must be set for acceptance tests")
 		return

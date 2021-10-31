@@ -2,7 +2,9 @@ package client
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -54,9 +56,10 @@ type Client struct {
 }
 
 type ZmsConfig struct {
-	Url  string
-	Cert string
-	Key  string
+	Url    string
+	Cert   string
+	Key    string
+	CaCert string
 }
 
 func (c Client) GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error) {
@@ -236,8 +239,8 @@ func (c Client) DeleteMembership(domain string, roleMember string, member zms.Me
 	return zmsClient.DeleteMembership(zms.DomainName(domain), zms.EntityName(roleMember), member, auditRef)
 }
 
-func NewClient(url string, certFile string, keyFile string) (*Client, error) {
-	tlsConfig, err := GetTLSConfigFromFiles(certFile, keyFile)
+func NewClient(url string, certFile string, keyFile string, caCert string) (*Client, error) {
+	tlsConfig, err := getTLSConfigFromFiles(certFile, keyFile, caCert)
 	if err != nil {
 		return nil, err
 	}
@@ -251,14 +254,25 @@ func NewClient(url string, certFile string, keyFile string) (*Client, error) {
 	return client, err
 }
 
-func GetTLSConfigFromFiles(certFile, keyFile string) (*tls.Config, error) {
+func getTLSConfigFromFiles(certFile, keyFile string, caCert string) (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to formulate clientCert from key and cert bytes, error: %v", err)
 	}
+
 	config := &tls.Config{}
 	config.Certificates = make([]tls.Certificate, 1)
 	config.Certificates[0] = cert
+
+	if caCert != "" {
+		caCertPem, err := ioutil.ReadFile(caCert)
+		if err != nil {
+			return nil, fmt.Errorf("unable to cacert file, error: %v", err)
+		}
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(caCertPem)
+		config.RootCAs = certPool
+	}
 
 	// Set Renegotiation explicitly
 	config.Renegotiation = tls.RenegotiateOnceAsClient

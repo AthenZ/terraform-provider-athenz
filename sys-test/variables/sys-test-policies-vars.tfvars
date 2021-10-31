@@ -1,0 +1,8 @@
+athenz_provider_foo-assertion-0-effect="ALLOW"
+athenz_provider_foo-assertion-0-action="*"
+athenz_provider_foo-assertion-0-role="athenz_provider_foo"
+athenz_provider_foo-assertion-0-resource="athenz_provider_foo"
+athenz_provider_foo-assertion-1-effect="DENY"
+athenz_provider_foo-assertion-1-action="play1"
+athenz_provider_foo-assertion-1-role="athenz_provider_bar"
+athenz_provider_foo-assertion-1-resource="athenz_provider_bar"
