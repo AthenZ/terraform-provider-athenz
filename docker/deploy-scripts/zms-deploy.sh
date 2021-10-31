@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eu
+set -eux
 set -o pipefail
 
 # to script directory
@@ -64,17 +64,19 @@ docker run -d -h "${ZMS_DB_HOST}" \
 echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
 
 sleep 15
-#docker run --rm -it \
-#    --network="${DOCKER_NETWORK}" \
-#    --user mysql:mysql \
-#    -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
-#    -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
-#    -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-#    --entrypoint sh -c '/bin/wait-for-mysql.sh' \
-#    --name wait-for-mysql athenz/athenz-zms-db:latest \
-#    --user='root' \
-#    --host="${ZMS_DB_HOST}" \
-#    --port=3306
+#if ! timeout 30 docker run --rm -it \
+#      --network="${DOCKER_NETWORK}" \
+#      --user mysql:mysql \
+#      -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
+#      -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
+#      -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
+#      --entrypoint sh -c '/bin/wait-for-mysql.sh' \
+#      --name wait-for-mysql athenz/athenz-zms-db:latest \
+#      --user='root' \
+#      --host="${ZMS_DB_HOST}" \
+#      --port=3306 ; then
+#   echo "couldn't wait to zms db container"
+#fi      
 
 echo '3. add zms_admin to ZMS DB' | colored_cat g
 # also, remove root user with wildcard host
@@ -95,9 +97,8 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
-docker run -d -h "${ZMS_HOST}" \
+docker run -it -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
-    --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
@@ -111,6 +112,7 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-db:latest
+    
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
