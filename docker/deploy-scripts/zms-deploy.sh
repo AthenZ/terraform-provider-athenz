@@ -22,10 +22,9 @@ cat <<'EOF' | colored_cat c
 EOF
 
 # set up env.
-BASE_DIR="$(git rev-parse --show-toplevel)"
-echo "Setup environment : BASE_DIR: ${BASE_DIR}"
-BASE_DIR=${SD_DIND_SHARE_PATH}/terraform-provider-athenz
-echo "Setup environment : Setting BASE_DIR to : ${BASE_DIR}"
+export BASE_DIR=${SD_DIND_SHARE_PATH}/terraform-provider-athenz
+export DOCKER_DIR=${BASE_DIR}/docker
+echo "Setup environment : Setting BASE_DIR to : ${BASE_DIR}, DOCKER_DIR: ${DOCKER_DIR}"
 
 . "${BASE_DIR}/docker/env.sh"
 echo "Done loading ENV. from ${BASE_DIR}/docker/env.sh" | colored_cat p
@@ -63,20 +62,17 @@ docker run -d -h "${ZMS_DB_HOST}" \
 
 echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
 
-sleep 15
-#if ! timeout 30 docker run --rm -it \
-#      --network="${DOCKER_NETWORK}" \
-#      --user mysql:mysql \
-#      -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
-#      -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
-#      -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
-#      --entrypoint '/bin/wait-for-mysql.sh' \
-#      --name wait-for-mysql athenz/athenz-zms-db:latest \
-#      --user='root' \
-#      --host="${ZMS_DB_HOST}" \
-#      --port=3306 ; then
-#   echo "couldn't wait to zms db container"
-#fi      
+docker run --rm -it \
+      --network="${DOCKER_NETWORK}" \
+      --user mysql:mysql \
+      -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
+      -v "${DOCKER_DIR}/db/zms/zms-db.cnf:/etc/my.cnf" \
+      -e "MYSQL_PWD=${ZMS_DB_ROOT_PASS}" \
+      --entrypoint '/bin/wait-for-mysql.sh' \
+      --name wait-for-mysql athenz/athenz-zms-db:latest \
+      --user='root' \
+      --host="${ZMS_DB_HOST}" \
+      --port=3306
 
 echo '3. add zms_admin to ZMS DB' | colored_cat g
 # also, remove root user with wildcard host
@@ -111,9 +107,8 @@ docker run -t -h "${ZMS_HOST}" \
     -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
-    -e "MYSQL_ROOT_PASSWORD=${ZMS_DB_ROOT_PASS}" \
-    --name "${ZMS_HOST}" athenz/athenz-zms-db:latest \
-    2>&1 | sed 's/^/DOCKER: /' &
+    --name "${ZMS_HOST}" athenz/athenz-zms-server:latest \
+    2>&1 | sed 's/^/ZMS-DOCKER: /' &
     
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \

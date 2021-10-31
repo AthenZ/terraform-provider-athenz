@@ -4,8 +4,11 @@ set -u
 set -o pipefail
 
 # Base dirs
-export BASE_DIR="$(git rev-parse --show-toplevel)"
+if [[ -z "${BASE_DIR}" ]] ; then
+  export BASE_DIR="$(git rev-parse --show-toplevel)"
+fi
 export DOCKER_DIR="${BASE_DIR}/docker"
+
 export JARS_DIR="${DOCKER_DIR}/jars"
 mkdir -p "${JARS_DIR}"
 
