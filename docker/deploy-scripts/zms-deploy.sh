@@ -110,6 +110,8 @@ docker run -t -h "${ZMS_HOST}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest \
     2>&1 | sed 's/^/ZMS-DOCKER: /' &
     
+echo "wait for ZMS to be ready ZMS_HOST: ${ZMS_HOST} : "
+
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \

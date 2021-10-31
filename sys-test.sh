@@ -48,9 +48,9 @@ if ! terraform init ; then
     EXIT_CODE=1
 fi
 
-SYS_TEST_CA_CERT="${SD_SOURCE_DIR}/docker/sample/CAs/athenz_ca.pem"
-SYS_TEST_CERT="${SD_SOURCE_DIR}/docker/sample/domain-admin/domain_admin_cert.pem"
-SYS_TEST_KEY="${SD_SOURCE_DIR}/docker/sample/domain-admin/domain_admin_key.pem"
+SYS_TEST_CA_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/CAs/athenz_ca.pem"
+SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem"
+SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
 
 if ! terraform apply -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
     echo "terraform apply failed!"
