@@ -66,10 +66,10 @@ fi
 # run zms-cli against the sys test domain
 ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
   -z https://localhost:4443/zms/v1 \
-  -c ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/CAs/athenz_ca.pem \
-  -key ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem \
-  -cert ~/dev/terraform/opensource/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem \
-  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > ${SD_ROOT_DIR}/terraform-sys-test-results 
+  -c ${SYS_TEST_CA_CERT} \
+  -key ${SYS_TEST_KEY} \
+  -cert ${SYS_TEST_CERT} \
+  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > ${SD_ROOT_DIR}/terraform-sys-test-results
 
 echo 'Terraform results: '
 cat ${SD_ROOT_DIR}/terraform-sys-test-results
