@@ -36,5 +36,5 @@ jobs:
   pull-request:
     requires: [~pr]
     steps:
-      - install-deps: |
+      - unit-test: |
           make unit
