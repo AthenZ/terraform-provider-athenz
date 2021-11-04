@@ -45,21 +45,21 @@ export SYS_TEST_CA_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/
 export SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem"
 export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
 
-# First, run terraform acceptance tests
-if ! make acc_test ; then
-    echo "acceptance test failed!"
-    EXIT_CODE=1
-fi
-
-# Then run several tests using the latest terraform provider
+# Fist, create the sys test domain and run several tests using the latest terraform provider
 cd sys-test
 if ! terraform init ; then
     echo "terraform apply failed!"
     EXIT_CODE=1
 fi
-
 if ! terraform apply -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
     echo "terraform apply failed!"
+    EXIT_CODE=1
+fi
+cd ..
+
+# First, run terraform acceptance tests
+if ! make acc_test ; then
+    echo "acceptance test failed!"
     EXIT_CODE=1
 fi
 
@@ -75,6 +75,7 @@ echo 'Terraform results: '
 cat ${SD_ROOT_DIR}/terraform-sys-test-results
 echo 'Expected results: '
 cat sys-test/expected-terraform-sys-test-results
+
 # make sure the expected domain is same as zms-cli result
 if ! diff ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
     echo "expected domain is NOT same!"
@@ -82,7 +83,7 @@ if ! diff ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-
 fi
 
 # destroy resources
+cd sys-test
 terraform apply --destroy -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars"
-
 
 exit $EXIT_CODE
