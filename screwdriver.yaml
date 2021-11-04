@@ -10,7 +10,7 @@ shared:
     USER_SHELL_BIN: bash
 
 jobs:
-  pull-request:
+  certify-provider:
     annotations:
       screwdriver.cd/cpu: 8
       screwdriver.cd/ram: 16
@@ -31,3 +31,10 @@ jobs:
           ls -la $SD_DIND_SHARE_PATH
       - run-tests: |
           ./sys-test.sh
+
+
+  pull-request:
+    requires: [~pr]
+    steps:
+      - install-deps: |
+          make unit
