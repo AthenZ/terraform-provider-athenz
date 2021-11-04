@@ -1,7 +1,8 @@
 DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
 DOCKER_DNS := $(if $(DOCKER_DNS),$(DOCKER_DNS),8.8.8.8)
 LOCAL_ENV_NS := $(shell ./local-nameserver.sh)
-
+BASE_DIR=$(shell git rev-parse --show-toplevel)
+	
 ifeq ($(SD_SOURCE_DIR),)
 	SD_SOURCE_DIR=$(shell git rev-parse --show-toplevel)
 endif
@@ -18,15 +19,13 @@ deploy:
 	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
 
 deploy-local:
-	cp -R $(SD_SOURCE_DIR) $(SD_DIND_SHARE_PATH)/
-	find $(SD_DIND_SHARE_PATH)
-
+	echo "BASE_DIR : $(BASE_DIR)"
 	# generate self-signed certificates
-	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
+	docker run --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
 	# ZMS
-	docker run --rm -it -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
+	docker run --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
 	sh "./deploy-scripts/zms-deploy-local.sh"
-	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(SD_DIND_SHARE_PATH)/terraform-provider-athenz:/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
+	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
 
 
 CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')

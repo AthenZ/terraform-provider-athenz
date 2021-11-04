@@ -9,7 +9,7 @@ terraform {
 
 provider "athenz" {
   zms_url = var.zms_url
-  cacert = "../docker/sample/CAs/athenz_ca.pem"
-  cert = "../docker/sample/domain-admin/domain_admin_cert.pem"
-  key = "../docker/sample/domain-admin/domain_admin_key.pem"
+  cacert = var.cacert
+  cert = var.cert
+  key = var.key
 }

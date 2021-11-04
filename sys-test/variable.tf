@@ -7,6 +7,18 @@ variable "sys_test_domain" {
   type = string
   description = "The domain name to use"
 }
+variable "cacert" {
+  type = string
+  description = "cacert for systest"
+}
+variable "cert" {
+  type = string
+  description = "cert for systest"
+}
+variable "key" {
+  type = string
+  description = "key for systest"
+}
 # ------------------ roles variables --------------------
 variable "athenz_provider_foo-members" {
   type = list(string)
