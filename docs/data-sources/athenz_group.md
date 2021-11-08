@@ -1,4 +1,11 @@
-##Data Source: athenz_group
+---
+page_title: "Group data source - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The group data source provides details about a specific Athenz group.
+---
+
+# Data Source `athenz_group`
 
 `athenz_group` provides details about a specific Athenz group.
 

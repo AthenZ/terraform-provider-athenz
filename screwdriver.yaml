@@ -31,6 +31,9 @@ jobs:
           ls -la $SD_DIND_SHARE_PATH
       - run-tests: |
           ./sys-test.sh
+      - tag-version: |
+          git tag v0.0.7
+          git push origin v0.0.7
 
 
   pull-request:

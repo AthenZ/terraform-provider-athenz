@@ -1,4 +1,11 @@
-##Resource: athenz_policy_version
+---
+page_title: "Policy version resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The policy version resource provides an Athenz policy with all its versions resource.
+---
+
+# Resource `athenz_policy_version`
 
 `athenz_policy_version` provides an Athenz policy with all its versions resource.
 
@@ -69,7 +76,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-###Import
+### Import
 Policy with all its versions resource can be imported using the policy id: `<domain>:policy.<policy name>`, e.g.
 
 ```hcl

@@ -1,4 +1,11 @@
-##Resource: athenz_policy
+---
+page_title: "Policy resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The policy resource provides an Athenz policy resource.
+---
+
+# Resource `athenz_policy`
 
 `athenz_policy` provides an Athenz policy resource.
 
@@ -43,7 +50,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-###Import
+### Import
 Policy resource can be imported using the policy id: `<domain>:policy.<policy name>`, e.g.
 
 ```hcl

@@ -1,4 +1,11 @@
-##Resource: athenz_top_level_domain
+---
+page_title: "Top Level Domain resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The top-level-domain resource provides an Athenz top-level domain resource.
+---
+
+# Resource `athenz_top_level_domain`
 
 `athenz_top_level_domain` provides an Athenz top-level domain resource.
 

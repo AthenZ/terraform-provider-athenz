@@ -1,3 +1,12 @@
+---
+page_title: "Policy version data source - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The policy version data source provides details about a specific Athenz policy.
+---
+
+# Data Source `athenz_policy_version`
+
 `athenz_policy_version` provides details about a specific Athenz policy with all its versions.
 
 ### Example Usage
