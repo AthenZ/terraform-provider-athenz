@@ -1,4 +1,11 @@
-##Resource: athenz_service
+---
+page_title: "Service resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The role resource provides an Athenz service resource.
+---
+
+# Resource `athenz_service`
 
 `athenz_service` provides an Athenz service resource.
 
@@ -46,7 +53,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-###Import
+### Import
 Service resource can be imported using the service id: `<domain>.<service name>`, e.g.
 
 ```hcl

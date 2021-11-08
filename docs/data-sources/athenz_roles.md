@@ -1,4 +1,11 @@
-##Data Source: athenz_roles
+---
+page_title: "Roles data source - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The roles data source provides details about all roles in a domain with optional flag whether or not include members.
+---
+
+# Data Source `athenz_roles`
 
 `athenz_roles` This Data Source you can get the list of all roles in a domain with optional flag whether or not include members
 

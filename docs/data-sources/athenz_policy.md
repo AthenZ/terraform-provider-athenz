@@ -1,4 +1,11 @@
-##Data Source: athenz_policy
+---
+page_title: "Policy data source - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The policy data source provides details about a specific Athenz policy.
+---
+
+# Data Source `athenz_policy`
 
 `athenz_policy` provides details about a specific Athenz policy.
 

@@ -1,4 +1,13 @@
-#Background
+---
+page_title: "Provider: Athenz"
+subcategory: ""
+description: |-
+Athenz Terraform provider for interacting with Athenz API.
+---
+
+# Athenz Provider
+
+## Background
 
 As a part of simplifying and improving Athenz user experience, we would like to offer our customers Infrastructure As Code capability.
 
@@ -6,17 +15,37 @@ Terraform relies on plugins called "providers" to interact with cloud providers,
 
 Each provider adds a set of resource types and/or data sources that Terraform can manage. Every resource type is implemented by a provider; without providers, Terraform can't manage any kind of infrastructure.
 
-Very good example can be found ![here](https://www.hashicorp.com/blog/managing-google-calendar-with-terraform): 
-
-![Terraform Architecture](images/terraform_arch.png)
-
-#Concepts
+## Concepts
 Each provider adds a set of resource types and/or data sources that Terraform can manage.
 Every resource type is implemented by a provider; without providers, Terraform can't manage any kind of infrastructure.
 
-##Data source
+## Data source
 Data sources allow Terraform use information defined outside of Terraform, defined by another separate Terraform configuration, or modified by functions.
 
-##Resources
+## Resources
 Resources are the most important element in the Terraform language. Each resource block describes one or more infrastructure objects.
 
+## Example Usage
+
+Do not keep your authentication password in HCL for production environments, use Terraform environment variables.
+
+```terraform
+provider "athenz" {
+  zms_url = "https://athenz.url"
+  cacert = "<ca-cert-path>"
+  cert = "<certificate-path>"
+  key = "<key-path>"
+}
+```
+
+## Schema
+
+### Required
+
+- **zms_url** (String) Athenz API URL
+- **cert** (String) Certificate path - required for the zms client
+- **key** (String) Key path - required for the zms client
+
+### Optional
+
+- **cacert** (String, Optional) CA Certificate path - relevant in some cases for the zms client

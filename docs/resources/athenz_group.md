@@ -1,4 +1,11 @@
-##Resource: athenz_group
+---
+page_title: "Group resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The group resource provides an Athenz group resource.
+---
+
+# Resource `athenz_group`
 
 `athenz_group` provides an Athenz group resource.
 
@@ -29,7 +36,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number
 
 
-###Import
+### Import
 Group resource can be imported using the group id: `<domain>:group.<group name>`, e.g.
 
 ```hcl

@@ -1,4 +1,11 @@
-##Data Source: athenz_role
+---
+page_title: "Role data source - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The role data source provides details about a specific Athenz role.
+---
+
+# Data Source `athenz_role`
 
 `athenz_role` provides details about a specific Athenz role.
 

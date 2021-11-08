@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     athenz = {
-      source = "dvirguttman/athenz"
-      version = "0.0.3"
+      source = "AthenZ/athenz"
+      version = ">= 0.0.3"
     }
   }
 }

@@ -1,4 +1,11 @@
-##Resource: athenz_role
+---
+page_title: "Role resource - terraform-provider-athenz"
+subcategory: ""
+description: |-
+The role resource provides an Athenz role resource.
+---
+
+# Resource `athenz_role`
 
 `athenz_role` provides an Athenz role resource.
 
@@ -37,7 +44,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-###Import
+### Import
 Role resource can be imported using the role id: `<domain>:role.<role name>`, e.g.
 
 ```hcl
