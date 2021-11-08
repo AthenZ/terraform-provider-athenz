@@ -32,12 +32,12 @@ jobs:
       - run-tests: |
           ./sys-test.sh
       - tag-version: |
-          git tag v0.0.7
-          git push origin v0.0.7
+          echo "about to create new version tag"
 
 
   pull-request:
     requires: [~pr]
     steps:
       - unit-test: |
-          make unit
+          ./git-tag.sh -r patch -t true
+          #make unit
