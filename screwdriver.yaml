@@ -22,6 +22,8 @@ jobs:
     requires: [~commit]
     environment:
       USER_SHELL_BIN: bash
+    secrets:
+      - SD_DEPLOY_KEY
     steps:
       - install-deps: |
           set -e
@@ -29,15 +31,18 @@ jobs:
           yum -y install wget docker-ce-cli
           docker system info
           ls -la $SD_DIND_SHARE_PATH
-      - run-tests: |
+      - tag-prerelease-version: |
+          ./git-tag.sh -r prerelease -t true
+      - run-tests-prerelease-version: |
+          PRERELEASE_VERSION=$(meta get git.version)
+          ./provider-version-update.sh $PRERELEASE_VERSION
           ./sys-test.sh
-      - tag-version: |
-          git tag v0.0.7
-          git push origin v0.0.7
-
+      - tag-certify-version: |
+          ./git-tag.sh -r patch -t true
 
   pull-request:
     requires: [~pr]
     steps:
       - unit-test: |
           make unit
+          
