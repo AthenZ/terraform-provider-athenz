@@ -32,12 +32,16 @@ jobs:
       - run-tests: |
           ./sys-test.sh
       - tag-version: |
-          git tag v0.0.7
-          git push origin v0.0.7
+          ./git-tag.sh -r patch -t true
 
 
   pull-request:
     requires: [~pr]
     steps:
       - unit-test: |
-          make unit
+          ./git-tag.sh -r prerelease -t true
+          GIT_VERSION=$(meta get git.version)
+          echo "Tag created: $GIT_VERSION"
+          #make unit
+    secrets:
+      - SD_DEPLOY_KEY
