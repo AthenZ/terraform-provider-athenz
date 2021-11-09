@@ -91,10 +91,11 @@ eval "$(ssh-agent -s)"
 chmod 600 ~/.ssh/terraform-provider-athenz_deploy_key
 echo "Adding terraform-provider-athenz_deploy_key ssh key"
 ssh-add /root/.ssh/terraform-provider-athenz_deploy_key
-rm /root/.ssh/terraform-provider-athenz_deploy_key
 
 if [ "$TAG" = true ]; then
   echo "Pushing the new tag to Git"
   git remote -v
   GIT_CURL_VERBOSE=1 git push sd --tags
 fi
+
+rm /root/.ssh/terraform-provider-athenz_deploy_key
