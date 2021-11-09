@@ -98,4 +98,6 @@ if [ "$TAG" = true ]; then
   GIT_CURL_VERBOSE=1 git push sd --tags
 fi
 
+echo "Cleanup"
+git remote remove sd
 rm /root/.ssh/terraform-provider-athenz_deploy_key
