@@ -8,5 +8,5 @@ sed -i "s/version = \"x.x.x\"/version = \"$PRERELEASE_VERSION\"/g" $SD_SOURCE_DI
 
 cat $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
 
-echo "About to sleep for 12 minutes until version will be published to terraform registry"
-sleep 12m
+echo "About to sleep for 15 minutes until version will be published to terraform registry"
+sleep 15m
