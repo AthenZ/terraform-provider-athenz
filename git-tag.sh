@@ -76,6 +76,14 @@ $GIT_VERSION --prefix "$PREFIX" bump $RELEASE_TYPE | tee VERSION
 /opt/sd/meta set git.version `cat VERSION`
 echo "New version is: $(cat VERSION)"
 
+if [[ "$RELEASE_TYPE" != "prerelease" ]]; then
+  PRERELEASE_TAG="$(cat VERSION)"
+  PATCH_TAG="${PRERELEASE_TAG/-*/}"
+  git tag --delete "$PRERELEASE_TAG"
+  git tag "$PATCH_TAG"
+  echo "Created new tag: $PATCH_TAG"
+fi
+
 touch /root/.ssh/known_hosts
 ssh-keyscan -H github.com >> /root/.ssh/known_hosts
 chmod 600 /root/.ssh/known_hosts
@@ -91,7 +99,7 @@ ssh-add /root/.ssh/terraform-provider-athenz_deploy_key
 if [ "$TAG" = true ]; then
   echo "Pushing the new tag to Git"
   git remote -v
-  GIT_CURL_VERBOSE=1 git push sd --tags
+  git push sd --tags
 fi
 
 echo "Cleanup"
