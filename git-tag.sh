@@ -60,16 +60,12 @@ if [ -z $RELEASE_TYPE ]; then
 fi
 
 echo "Downloading gitversion"
-go get -t github.com/screwdriver-cd/gitversion
-ls -l ~/go/bin
-GIT_VERSION=~/go/bin/gitversion
+yum install -y wget
+wget -q -O - https://github.com/screwdriver-cd/gitversion/releases/latest \
+  | egrep -o '/screwdriver-cd/gitversion/releases/download/v[0-9.]*/gitversion_linux_amd64' \
+  | wget --base=http://github.com/ -i - -O /tmp/gitversion
+GIT_VERSION=/tmp/gitversion
 chmod +x $GIT_VERSION
-
-# requires wget
-#wget -q -O - https://github.com/screwdriver-cd/gitversion/releases/latest \
-#  | egrep -o '/screwdriver-cd/gitversion/releases/download/v[0-9.]*/gitversion_linux_amd64' \
-#  | wget --base=http://github.com/ -i - -O /tmp/gitversion
-#chmod +x $GIT_VERSION
     
 echo "Getting previous git tag version"
 $GIT_VERSION --prefix "$PREFIX" show | tee PREVIOUS_VERSION
