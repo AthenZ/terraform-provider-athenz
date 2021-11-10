@@ -13,7 +13,7 @@ TIMEOUT_TIME="$(( $( date "+%s" ) + ( TIMEOUT_MINUTES * 60 ) ))"
 echo "$(date) - Waiting for version to become available in GitHub"
 while true ; do
   VERSION_EXISTS="$(
-    curl -s -o /dev/null -w "%{http_code}" "https://github.com/AthenZ/terraform-provider-athenz/releases/download/$PRERELEASE_VERSION_PREFIX/terraform-provider-athenz_${PRERELEASE_VERSION}_darwin_amd64.zip"
+    curl -s -o /dev/null -w "%{http_code}" "https://github.com/AthenZ/terraform-provider-athenz/releases/download/$PRERELEASE_VERSION_WITH_PREFIX/terraform-provider-athenz_${PRERELEASE_VERSION}_darwin_amd64.zip"
   )"
   if [[ "$VERSION_EXISTS" == 302 ]] ; then
     break
