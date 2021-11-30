@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/AthenZ/terraform-provider-athenz/athenz"
-	"github.com/hashicorp/terraform-plugin-sdk/plugin"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
 func main() {

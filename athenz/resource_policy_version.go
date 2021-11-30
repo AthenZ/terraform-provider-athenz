@@ -8,7 +8,7 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ResourcePolicyVersion() *schema.Resource {

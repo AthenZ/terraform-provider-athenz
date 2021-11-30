@@ -6,7 +6,7 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/golang/mock/gomock"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	ast "gotest.tools/assert"
 )
 
