@@ -39,9 +39,9 @@ func TestAccGroupRoleBasic(t *testing.T) {
 		cleanAllAccTestRoles(domainName, []string{roleName})
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupRoleDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupRoleConfig(roleName, domainName, member1),

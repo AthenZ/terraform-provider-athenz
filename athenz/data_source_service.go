@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func dataSourceService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceServiceRead,
+		ReadContext: dataSourceServiceRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:     schema.TypeString,
@@ -24,7 +25,7 @@ func dataSourceService() *schema.Resource {
 	}
 }
 
-func dataSourceServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(client.ZmsClient)
 
 	domainName := d.Get("domain").(string)
@@ -36,12 +37,12 @@ func dataSourceServiceRead(d *schema.ResourceData, meta interface{}) error {
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz Service %s not found, update your data source query", fullResourceName)
+			return diag.Errorf("athenz Service %s not found, update your data source query", fullResourceName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz Service: %s", v)
+			return diag.Errorf("error retrieving Athenz Service: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(fullResourceName)
 

@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourcePolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourcePolicyRead,
+		ReadContext: dataSourcePolicyRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:     schema.TypeString,
@@ -49,7 +50,7 @@ func DataSourcePolicy() *schema.Resource {
 	}
 }
 
-func dataSourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn := d.Get("domain").(string)
 	pn := d.Get("name").(string)
@@ -58,12 +59,12 @@ func dataSourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz Policy %s not found, update your data source query", fullResourceName)
+			return diag.Errorf("athenz Policy %s not found, update your data source query", fullResourceName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz Policy: %s", v)
+			return diag.Errorf("error retrieving Athenz Policy: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(fullResourceName)
 	if len(policy.Assertions) > 0 {

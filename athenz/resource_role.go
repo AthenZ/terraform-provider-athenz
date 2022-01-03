@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
 
@@ -15,12 +16,12 @@ import (
 
 func ResourceRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRoleCreate,
-		Read:   resourceRoleRead,
-		Update: resourceRoleUpdate,
-		Delete: resourceRoleDelete,
+		CreateContext: resourceRoleCreate,
+		ReadContext:   resourceRoleRead,
+		UpdateContext: resourceRoleUpdate,
+		DeleteContext: resourceRoleDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -58,7 +59,7 @@ func ResourceRole() *schema.Resource {
 	}
 }
 
-func resourceRoleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn := d.Get("domain").(string)
 	rn := d.Get("name").(string)
@@ -81,33 +82,33 @@ func resourceRoleCreate(d *schema.ResourceData, meta interface{}) error {
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	case nil:
 		if roleCheck != nil {
-			return fmt.Errorf("the role %s is already exists in the domain %s use terraform import command", rn, dn)
+			return diag.Errorf("the role %s is already exists in the domain %s use terraform import command", rn, dn)
 		} else {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	d.SetId(fullResourceName)
 
-	return resourceRoleRead(d, meta)
+	return resourceRoleRead(ctx, d, meta)
 }
 
-func resourceRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
 	dn, rn := fullResourceName[0], fullResourceName[1]
 	if err := d.Set("domain", dn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", rn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	role, err := zmsClient.GetRole(dn, rn)
 	switch v := err.(type) {
@@ -117,31 +118,31 @@ func resourceRoleRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
+		return diag.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if role == nil {
-		return fmt.Errorf("error retrieving Athenz Role - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Role - Make sure your cert/key are valid")
 	}
 
 	if len(role.RoleMembers) > 0 {
 		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	// added for role tag
 	if len(role.Tags) > 0 {
 		if err = d.Set("tags", flattenTag(role.Tags)); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	return nil
 }
 
-func resourceRoleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
 	dn, rn := fullResourceName[0], fullResourceName[1]
@@ -152,33 +153,33 @@ func resourceRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 		add := expandRoleMembers(ns.Difference(os).List())
 		err := updateRoleMembers(dn, rn, remove, add, auditRef, zmsClient)
 		if err != nil {
-			return fmt.Errorf("error updating group membership: %s", err)
+			return diag.Errorf("error updating group membership: %s", err)
 		}
 	}
 	if d.HasChange("tags") {
 		role, err := zmsClient.GetRole(dn, rn)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		_, n := d.GetChange("tags")
 		tags := expandRoleTags(n.(map[string]interface{}))
 		role.Tags = tags
 		err = zmsClient.PutRole(dn, rn, auditRef, role)
 		if err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return diag.Errorf("error updating tags: %s", err)
 		}
 	}
-	return resourceRoleRead(d, meta)
+	return resourceRoleRead(ctx, d, meta)
 }
 
-func resourceRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
 	dn, rn := fullResourceName[0], fullResourceName[1]
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteRole(dn, rn, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

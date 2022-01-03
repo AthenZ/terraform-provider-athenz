@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourceAllDomainDetails() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAllDomainDetailsRead,
+		ReadContext: dataSourceAllDomainDetailsRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -44,51 +45,51 @@ func DataSourceAllDomainDetails() *schema.Resource {
 	}
 }
 
-func dataSourceAllDomainDetailsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Get("name").(string)
 	domain, err := zmsClient.GetDomain(domainName)
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz domain %s not found, update your data source query", domainName)
+			return diag.Errorf("athenz domain %s not found, update your data source query", domainName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz domain: %s", v)
+			return diag.Errorf("error retrieving Athenz domain: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	if domain == nil {
-		return fmt.Errorf("error retrieving Athenz domain: %s", domainName)
+		return diag.Errorf("error retrieving Athenz domain: %s", domainName)
 	}
 	d.SetId(string(domain.Name))
 	roleList, err := zmsClient.GetRoleList(domainName, nil, "")
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("role_list", convertEntityNameListToStringList(roleList.Names)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	policyList, err := zmsClient.GetPolicyList(domainName, nil, "")
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("policy_list", convertEntityNameListToStringList(policyList.Names)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	serviceList, err := zmsClient.GetServiceIdentityList(domainName, nil, "")
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("service_list", convertEntityNameListToStringList(serviceList.Names)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	groupList, err := zmsClient.GetGroups(domainName, nil)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("group_list", getGroupsNames(groupList.List)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

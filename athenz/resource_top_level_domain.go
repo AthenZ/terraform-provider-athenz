@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -12,11 +13,11 @@ import (
 
 func ResourceTopLevelDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTopLevelDomainCreate,
-		Read:   resourceTopLevelDomainRead,
-		Delete: resourceTopLevelDomainDelete,
+		CreateContext: resourceTopLevelDomainCreate,
+		ReadContext:   resourceTopLevelDomainRead,
+		DeleteContext: resourceTopLevelDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,7 +49,7 @@ func ResourceTopLevelDomain() *schema.Resource {
 	}
 }
 
-func resourceTopLevelDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceTopLevelDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Get("name").(string)
 	auditRef := d.Get("audit_ref").(string)
@@ -61,16 +62,16 @@ func resourceTopLevelDomainCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	topLevelDomain, err := zmsClient.PostTopLevelDomain(auditRef, &topLevelDomainDetail)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if topLevelDomain == nil {
-		return fmt.Errorf("error creating Top Level Domain: %s", err)
+		return diag.Errorf("error creating Top Level Domain: %s", err)
 	}
 	d.SetId(domainName)
-	return resourceTopLevelDomainRead(d, meta)
+	return resourceTopLevelDomainRead(ctx, d, meta)
 }
 
-func resourceTopLevelDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceTopLevelDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Id()
 	topLevelDomain, err := zmsClient.GetDomain(domainName)
@@ -81,38 +82,38 @@ func resourceTopLevelDomainRead(d *schema.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Top level Domain: %s", v)
+		return diag.Errorf("error retrieving Athenz Top level Domain: %s", v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if topLevelDomain == nil {
-		return fmt.Errorf("error retrieving Athenz Top Level Domain - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Top Level Domain - Make sure your cert/key are valid")
 	}
 	if err = d.Set("name", domainName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	adminRole, err := zmsClient.GetRole(domainName, "admin")
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	adminUsers := flattenRoleMembers(adminRole.RoleMembers)
 	if err = d.Set("admin_users", adminUsers); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("ypm_id", int(*topLevelDomain.YpmId)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceTopLevelDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceTopLevelDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Id()
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteTopLevelDomain(domainName, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

@@ -32,9 +32,9 @@ func TestAccGroupUserDomainBasic(t *testing.T) {
 		cleanAccTestUserDomain(shortId)
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupUserDomainDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupUserDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupUserDomainConfigBasic(shortId),

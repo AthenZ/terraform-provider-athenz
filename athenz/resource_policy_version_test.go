@@ -32,13 +32,28 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 	version1 := "test_version_1"
 	version2 := "test_version_2"
 	version3 := "test_version_3"
+	role1 := "acctest_role1"
+	role2 := "acctest_role2"
+	role3 := "acctest_role3"
+	resourceRole1 := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, role1, role1, domainName)
+	resourceRole2 := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, role2, role2, domainName)
+	resourceRole3 := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, role3, role3, domainName)
 	t.Cleanup(func() {
-		cleanAllAccTestPoliciesVersion(domainName, []string{name})
+		cleanAllAccTestPoliciesVersion(domainName, []string{name}, []string{role1, role2, role3})
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupPolicyVersionsDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupPolicyVersionsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupPolicyVersionConfigBasic(name, domainName, version1, version1),
@@ -50,7 +65,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigAddAssertion(name, domainName, version1, version1),
+				Config: testAccGroupPolicyVersionConfigAddAssertion(resourceRole1, name, domainName, version1, version1, role1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -59,7 +74,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigAddNonActiveVersion(name, domainName, version1, version1, version2),
+				Config: testAccGroupPolicyVersionConfigAddNonActiveVersion(resourceRole1, resourceRole2, name, domainName, version1, version1, version2, role1, role2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -68,7 +83,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigChangeActiveVersion(name, domainName, version2, version1, version2),
+				Config: testAccGroupPolicyVersionConfigChangeActiveVersion(resourceRole1, resourceRole2, name, domainName, version2, version1, version2, role1, role2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -77,7 +92,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigAddActiveVersion(name, domainName, version3, version1, version2, version3),
+				Config: testAccGroupPolicyVersionConfigAddActiveVersion(resourceRole1, resourceRole2, resourceRole3, name, domainName, version3, version1, version2, version3, role1, role2, role3),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2, version3}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -87,7 +102,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigRemoveNonActiveVersion(name, domainName, version3, version1, version3),
+				Config: testAccGroupPolicyVersionConfigRemoveNonActiveVersion(resourceRole1, resourceRole3, name, domainName, version3, version1, version3, role1, role3),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version3}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -96,7 +111,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(name, domainName, version1, version1),
+				Config: testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(resourceRole1, name, domainName, version1, version1, role1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1}),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -109,13 +124,21 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 	})
 }
 
-func cleanAllAccTestPoliciesVersion(domain string, policies []string) {
+func cleanAllAccTestPoliciesVersion(domain string, policies []string, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, policyName := range policies {
 		_, err := zmsClient.GetPolicy(domain, policyName)
 		if err == nil {
 			if err = zmsClient.DeletePolicy(domain, policyName, AUDIT_REF); err != nil {
 				log.Printf("error deleting Policy %s: %s", policyName, err)
+			}
+		}
+	}
+	for _, roleName := range roles {
+		_, err := zmsClient.GetRole(domain, roleName)
+		if err == nil {
+			if err = zmsClient.DeleteRole(domain, roleName, AUDIT_REF); err != nil {
+				log.Printf("error deleting Role %s: %s", roleName, err)
 			}
 		}
 	}
@@ -178,8 +201,9 @@ versions{
 	}
 }`, name, domain, activeVersion, version1)
 }
-func testAccGroupPolicyVersionConfigAddAssertion(name, domain, activeVersion, version1 string) string {
+func testAccGroupPolicyVersionConfigAddAssertion(role1, name, domain, activeVersion, version1, resource1Name string) string {
 	return fmt.Sprintf(`
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -189,14 +213,16 @@ versions {
   assertion = [{
     effect = "ALLOW"
     action = "*"
-    role = "mendi_role1"
+    role =  role="${athenz_role.%s.name}"
     resource = "mendi_resource1"
   }]
 }
-}`, name, domain, activeVersion, version1)
+}`, role1, name, domain, activeVersion, version1, resource1Name)
 }
-func testAccGroupPolicyVersionConfigAddNonActiveVersion(name, domain, activeVersion, version1, version2 string) string {
+func testAccGroupPolicyVersionConfigAddNonActiveVersion(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
 	return fmt.Sprintf(`
+%s
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -206,7 +232,7 @@ versions {
   assertion = [{
     effect = "ALLOW"
     action = "*"
-    role = "mendi_role1"
+    role="${athenz_role.%s.name}"
     resource = "mendi_resource1"
   }]
 }
@@ -216,22 +242,24 @@ versions {
   assertion  = [{
     effect = "ALLOW"
     action = "*"
-    role = "mendi_role2"
+	role="${athenz_role.%s.name}"
     resource = "mendi_resource2"
   },
 	{
-    role = "mendi_role2"
+	role="${athenz_role.%s.name}"
     effect = "DENY"
     action = "play"
     resource = "mendi_resource2"
   }]
 }
 }
-`, name, domain, activeVersion, version1, version2)
+`, role1, role2, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name)
 }
 
-func testAccGroupPolicyVersionConfigChangeActiveVersion(name, domain, activeVersion, version1, version2 string) string {
+func testAccGroupPolicyVersionConfigChangeActiveVersion(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
 	return fmt.Sprintf(`
+%s
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -239,34 +267,37 @@ active_version = "%s"
 versions {
  version_name = "%s"
  assertion = [{
-   effect = "ALLOW"
-   action = "*"
-   role = "mendi_role1"
-   resource = "mendi_resource1"
+	effect = "ALLOW"
+	action = "*"
+	role="${athenz_role.%s.name}"
+	resource = "mendi_resource1"
  }]
 }
 
 versions {
  version_name = "%s"
  assertion  = [{
-   effect = "ALLOW"
-   action = "*"
-   role = "mendi_role2"
-   resource = "mendi_resource2"
+	effect = "ALLOW"
+	action = "*"
+	role="${athenz_role.%s.name}"
+	resource = "mendi_resource2"
  },
  {
-   role = "mendi_role2"
-   effect = "DENY"
-   action = "play"
-   resource = "mendi_resource2"
+	role="${athenz_role.%s.name}"
+	effect = "DENY"
+	action = "play"
+	resource = "mendi_resource2"
  }]
 }
 }
-`, name, domain, activeVersion, version1, version2)
+`, role1, role2, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name)
 }
 
-func testAccGroupPolicyVersionConfigAddActiveVersion(name, domain, activeVersion, version1, version2, version3 string) string {
+func testAccGroupPolicyVersionConfigAddActiveVersion(role1, role2, role3, name, domain, activeVersion, version1, version2, version3, resource1Name, resource2Name, resource3Name string) string {
 	return fmt.Sprintf(`
+%s
+%s
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -278,7 +309,7 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role1"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource1"
       }]
   },
@@ -288,11 +319,11 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role2"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource2"
       },
 		{
-		 role = "mendi_role2"
+	    role="${athenz_role.%s.name}"
 		 effect = "DENY"
 		 action = "play"
 		 resource = "mendi_resource2"
@@ -305,23 +336,25 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role3"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource3"
       },
       {
-        role = "mendi_role3"
-        effect = "DENY"
+	    role="${athenz_role.%s.name}"
+		effect = "DENY"
         action = "play"
         resource = "mendi_resource3"
       }]
   }
 ]
 }
-`, name, domain, activeVersion, version1, version2, version3)
+`, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name, version3, resource3Name, resource3Name)
 }
 
-func testAccGroupPolicyVersionConfigRemoveNonActiveVersion(name, domain, activeVersion, version1, version3 string) string {
+func testAccGroupPolicyVersionConfigRemoveNonActiveVersion(role1, role3, name, domain, activeVersion, version1, version3, resource1Name, resource3Name string) string {
 	return fmt.Sprintf(`
+%s
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -333,7 +366,7 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role1"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource1"
       }]
   },
@@ -343,11 +376,11 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role3"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource3"
       },
       {
-        role = "mendi_role3"
+	    role="${athenz_role.%s.name}"
         effect = "DENY"
         action = "play"
         resource = "mendi_resource3"
@@ -355,11 +388,12 @@ versions = [
   }
 ]
 }
-`, name, domain, activeVersion, version1, version3)
+`, role1, role3, name, domain, activeVersion, version1, resource1Name, version3, resource3Name, resource3Name)
 }
 
-func testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(name, domain, activeVersion, version1 string) string {
+func testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(role1, name, domain, activeVersion, version1, resource1Name string) string {
 	return fmt.Sprintf(`
+%s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
@@ -371,11 +405,11 @@ versions = [
       {
         effect = "ALLOW"
         action = "*"
-        role = "mendi_role1"
+	    role="${athenz_role.%s.name}"
         resource = "mendi_resource1"
       }]
   }
 ]
 }
-`, name, domain, activeVersion, version1)
+`, role1, name, domain, activeVersion, version1, resource1Name)
 }

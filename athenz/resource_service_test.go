@@ -30,9 +30,9 @@ func TestAccGroupServiceBasic(t *testing.T) {
 		cleanAllAccTestServices(domain, []string{serviceName})
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupServiceDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupServiceConfigBasic(serviceName, domain),

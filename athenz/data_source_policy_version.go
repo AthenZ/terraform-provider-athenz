@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourcePolicyVersion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourcePolicyVersionRead,
+		ReadContext: dataSourcePolicyVersionRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:        schema.TypeString,
@@ -50,7 +51,7 @@ func DataSourcePolicyVersion() *schema.Resource {
 	}
 }
 
-func dataSourcePolicyVersionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn := d.Get("domain").(string)
 	pn := d.Get("name").(string)
@@ -59,25 +60,25 @@ func dataSourcePolicyVersionRead(d *schema.ResourceData, meta interface{}) error
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz Policy %s not found, update your data source query", fullResourceName)
+			return diag.Errorf("athenz Policy %s not found, update your data source query", fullResourceName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz Policy: %s", v)
+			return diag.Errorf("error retrieving Athenz Policy: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(fullResourceName)
 	if policyVersionList == nil {
-		return fmt.Errorf("error retrieving Athenz Policy - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Policy - Make sure your cert/key are valid")
 	}
 
 	activeVersion := getActiveVersionName(policyVersionList)
 	if err = d.Set("active_version", activeVersion); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("versions", flattenPolicyVersions(policyVersionList)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
