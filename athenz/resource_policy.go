@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
 
@@ -16,12 +17,12 @@ import (
 
 func ResourcePolicy() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourcePolicyRead,
-		Create: resourcePolicyCreate,
-		Update: resourcePolicyUpdate,
-		Delete: resourcePolicyDelete,
+		ReadContext:   resourcePolicyRead,
+		CreateContext: resourcePolicyCreate,
+		UpdateContext: resourcePolicyUpdate,
+		DeleteContext: resourcePolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"domain": {
@@ -78,17 +79,17 @@ func ResourcePolicy() *schema.Resource {
 	}
 }
 
-func resourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
 	dn := fullResourceName[0]
 	pn := fullResourceName[1]
 
 	if err := d.Set("domain", dn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", pn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	policy, err := zmsClient.GetPolicy(dn, pn)
 	switch v := err.(type) {
@@ -98,23 +99,23 @@ func resourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Policy %s: %s", d.Id(), v)
+		return diag.Errorf("error retrieving Athenz Policy %s: %s", d.Id(), v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if policy == nil {
-		return fmt.Errorf("error retrieving Athenz Policy - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Policy - Make sure your cert/key are valid")
 	}
 	if len(policy.Assertions) > 0 {
 		if err = d.Set("assertion", flattenPolicyAssertion(policy.Assertions)); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	return nil
 }
 
-func resourcePolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn := d.Get("domain").(string)
 	pn := d.Get("name").(string)
@@ -136,23 +137,23 @@ func resourcePolicyCreate(d *schema.ResourceData, meta interface{}) error {
 			auditRef := d.Get("audit_ref").(string)
 			err = zmsClient.PutPolicy(dn, pn, auditRef, &policy)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	case nil:
 		if policyCheck != nil {
-			return fmt.Errorf("the policy %s is already exists in the domain %s use terraform import command", pn, dn)
+			return diag.Errorf("the policy %s is already exists in the domain %s use terraform import command", pn, dn)
 		} else {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	d.SetId(fullResourceName)
 
-	return resourcePolicyRead(d, meta)
+	return resourcePolicyRead(ctx, d, meta)
 }
-func resourcePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
 	dn := fullResourceName[0]
@@ -160,7 +161,7 @@ func resourcePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	policy, err := zmsClient.GetPolicy(dn, pn)
 	if err != nil {
-		return fmt.Errorf("error retrieving Athenz Policy: %s", err)
+		return diag.Errorf("error retrieving Athenz Policy: %s", err)
 	}
 	if d.HasChange("assertion") {
 		_, newVal := d.GetChange("assertion")
@@ -172,13 +173,13 @@ func resourcePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 		auditRef := d.Get("audit_ref").(string)
 		err = zmsClient.PutPolicy(dn, pn, auditRef, policy)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
-	return resourcePolicyRead(d, meta)
+	return resourcePolicyRead(ctx, d, meta)
 }
 
-func resourcePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
 	dn := fullResourceName[0]
@@ -187,7 +188,7 @@ func resourcePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeletePolicy(dn, pn, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

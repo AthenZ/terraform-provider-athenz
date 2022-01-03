@@ -36,9 +36,9 @@ func TestAccGroupSubDomainBasic(t *testing.T) {
 		cleanAccTestSubDomain(parentDomain, subDomainName)
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupSubDomainDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupSubDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupSubDomainConfigBasic(subDomainName, parentDomain, adminUser),

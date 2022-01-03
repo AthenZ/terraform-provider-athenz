@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceGroupRead,
+		ReadContext: dataSourceGroupRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:     schema.TypeString,
@@ -31,7 +32,7 @@ func DataSourceGroup() *schema.Resource {
 	}
 }
 
-func dataSourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	domainName := d.Get("domain").(string)
@@ -42,12 +43,12 @@ func dataSourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz group %s not found, update your data source query", fullResourceName)
+			return diag.Errorf("athenz group %s not found, update your data source query", fullResourceName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz Group: %s", v)
+			return diag.Errorf("error retrieving Athenz Group: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(fullResourceName)
 

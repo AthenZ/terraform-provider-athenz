@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -12,9 +13,9 @@ import (
 
 func ResourceSubDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSubDomainCreate,
-		Read:   resourceSubDomainRead,
-		Delete: resourceSubDomainDelete,
+		CreateContext: resourceSubDomainCreate,
+		ReadContext:   resourceSubDomainRead,
+		DeleteContext: resourceSubDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +56,7 @@ func getSubDomainSchemaAttributes(d *schema.ResourceData) (adminUsers []interfac
 	return
 }
 
-func resourceSubDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	parentDomainName := d.Get("parent_name").(string)
 	domainName := shortName(parentDomainName, d.Get("name").(string), SUB_DOMAIN_SEPARATOR)
@@ -71,27 +72,27 @@ func resourceSubDomainCreate(d *schema.ResourceData, meta interface{}) error {
 		if v.Code == 404 {
 			subDomain, err := zmsClient.PostSubDomain(parentDomainName, auditRef, &subDomainDetail)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 			if subDomain == nil {
-				return fmt.Errorf("error creating Sub Domain: %s", err)
+				return diag.Errorf("error creating Sub Domain: %s", err)
 			}
 
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	case nil:
 		if subDomainCheck != nil {
-			return fmt.Errorf("the sub-domain %s is already exists, use terraform import command", domainName)
+			return diag.Errorf("the sub-domain %s is already exists, use terraform import command", domainName)
 		} else {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	d.SetId(parentDomainName + SUB_DOMAIN_SEPARATOR + domainName)
-	return resourceSubDomainRead(d, meta)
+	return resourceSubDomainRead(ctx, d, meta)
 }
 
-func resourceSubDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullyQualifiedName := d.Id()
 	parentDomainName, domainName := splitServiceId(fullyQualifiedName)
@@ -104,39 +105,39 @@ func resourceSubDomainRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Sub Domain: %s", v)
+		return diag.Errorf("error retrieving Athenz Sub Domain: %s", v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if subDomain == nil {
-		return fmt.Errorf("error retrieving Athenz Sub Domain - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Sub Domain - Make sure your cert/key are valid")
 	}
 
 	adminRole, err := zmsClient.GetRole(fullyQualifiedName, "admin")
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	adminUsers := flattenRoleMembers(adminRole.RoleMembers)
 	if err = d.Set("admin_users", adminUsers); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("parent_name", parentDomainName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("name", domainName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceSubDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSubDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	parentDomainName, subDomainName := splitSubDomainId(d.Id())
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteSubDomain(parentDomainName, subDomainName, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

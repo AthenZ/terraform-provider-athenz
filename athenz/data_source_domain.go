@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourceDomain() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDomainRead,
+		ReadContext: dataSourceDomainRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -20,22 +21,22 @@ func DataSourceDomain() *schema.Resource {
 	}
 }
 
-func dataSourceDomainRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Get("name").(string)
 	domain, err := zmsClient.GetDomain(domainName)
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz domain %s not found, update your data source query", domainName)
+			return diag.Errorf("athenz domain %s not found, update your data source query", domainName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz domain: %s", v)
+			return diag.Errorf("error retrieving Athenz domain: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	if domain == nil {
-		return fmt.Errorf("error retrieving Athenz domain: %s", domainName)
+		return diag.Errorf("error retrieving Athenz domain: %s", domainName)
 	}
 	d.SetId(string(domain.Name))
 

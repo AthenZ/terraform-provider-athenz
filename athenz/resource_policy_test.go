@@ -33,12 +33,12 @@ func TestAccGroupPolicyBasic(t *testing.T) {
   			domain = "%s"
 		}`, resourceRoleName, name, domainName)
 	t.Cleanup(func() {
-		cleanAllAccTestPolicies(domainName, []string{name})
+		cleanAllAccTestPolicies(domainName, []string{name}, []string{name})
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupPolicyDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupPolicyConfigBasic(name, domainName),
@@ -80,13 +80,21 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 	})
 }
 
-func cleanAllAccTestPolicies(domain string, policies []string) {
+func cleanAllAccTestPolicies(domain string, policies, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, policyName := range policies {
 		_, err := zmsClient.GetPolicy(domain, policyName)
 		if err == nil {
 			if err = zmsClient.DeletePolicy(domain, policyName, AUDIT_REF); err != nil {
 				log.Printf("error deleting Policy %s: %s", policyName, err)
+			}
+		}
+	}
+	for _, roleName := range roles {
+		_, err := zmsClient.GetRole(domain, roleName)
+		if err == nil {
+			if err = zmsClient.DeletePolicy(domain, roleName, AUDIT_REF); err != nil {
+				log.Printf("error deleting Role %s: %s", roleName, err)
 			}
 		}
 	}

@@ -36,9 +36,9 @@ func TestAccGroupTopLevelDomainBasic(t *testing.T) {
 		cleanAccTestDomain(topLevelDomainName)
 	})
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGroupTopLevelDomainDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupTopLevelDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupTopLevelDomainConfigBasic(topLevelDomainName, adminUser, ypmId),

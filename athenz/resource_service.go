@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -12,12 +13,12 @@ import (
 
 func ResourceService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServiceCreate,
-		Read:   resourceServiceRead,
-		Update: resourceServiceUpdate,
-		Delete: resourceServiceDelete,
+		CreateContext: resourceServiceCreate,
+		ReadContext:   resourceServiceRead,
+		UpdateContext: resourceServiceUpdate,
+		DeleteContext: resourceServiceDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -64,7 +65,7 @@ func ResourceService() *schema.Resource {
 	}
 }
 
-func resourceServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	domainName := d.Get("domain").(string)
@@ -89,33 +90,33 @@ func resourceServiceCreate(d *schema.ResourceData, meta interface{}) error {
 			err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, &detail)
 
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	case nil:
 		if serviceCheck != nil {
-			return fmt.Errorf("the service %s is already exists in the domain %s use terraform import command", serviceName, domainName)
+			return diag.Errorf("the service %s is already exists in the domain %s use terraform import command", serviceName, domainName)
 		} else {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	d.SetId(longName)
 
-	return resourceServiceRead(d, meta)
+	return resourceServiceRead(ctx, d, meta)
 }
 
-func resourceServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	domainName, shortName := splitServiceId(d.Id())
 
 	if err := d.Set("domain", domainName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", shortName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	service, err := zmsClient.GetServiceIdentity(domainName, shortName)
 
@@ -126,27 +127,27 @@ func resourceServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Service: %s", v)
+		return diag.Errorf("error retrieving Athenz Service: %s", v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if service == nil {
-		return fmt.Errorf("error retrieving Athenz Service - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Service - Make sure your cert/key are valid")
 	}
 	if err = d.Set("description", service.Description); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if len(service.PublicKeys) > 0 {
 		if err = d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	return nil
 }
 
-func resourceServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	domainName := d.Get("domain").(string)
@@ -167,19 +168,19 @@ func resourceServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 		detail.Description = description
 		err := zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
 		if err != nil {
-			return fmt.Errorf("error updating service membership: %s", err)
+			return diag.Errorf("error updating service membership: %s", err)
 		}
 	}
-	return resourceServiceRead(d, meta)
+	return resourceServiceRead(ctx, d, meta)
 }
 
-func resourceServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName, serviceName := splitServiceId(d.Id())
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

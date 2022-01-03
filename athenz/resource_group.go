@@ -1,7 +1,9 @@
 package athenz
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
 
@@ -15,12 +17,12 @@ import (
 
 func ResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceGroupCreate,
-		Read:   resourceGroupRead,
-		Update: resourceGroupUpdate,
-		Delete: resourceGroupDelete,
+		CreateContext: resourceGroupCreate,
+		ReadContext:   resourceGroupRead,
+		UpdateContext: resourceGroupUpdate,
+		DeleteContext: resourceGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -61,7 +63,7 @@ func ResourceGroup() *schema.Resource {
 	}
 }
 
-func resourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn := d.Get("domain").(string)
@@ -82,33 +84,33 @@ func resourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 			auditRef := d.Get("audit_ref").(string)
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	case nil:
 		if groupCheck != nil {
-			return fmt.Errorf("the group %s is already exists in the domain %s use terraform import command", gn, dn)
+			return diag.Errorf("the group %s is already exists in the domain %s use terraform import command", gn, dn)
 		} else {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 	d.SetId(fullResourceName)
 
-	return resourceGroupRead(d, meta)
+	return resourceGroupRead(ctx, d, meta)
 }
 
-func resourceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
 	dn, gn := fullResourceName[0], fullResourceName[1]
 	if err := d.Set("domain", dn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err := d.Set("name", gn); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	group, err := zmsClient.GetGroup(dn, gn)
@@ -119,13 +121,13 @@ func resourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz Group %s: %s", d.Id(), v)
+		return diag.Errorf("error retrieving Athenz Group %s: %s", d.Id(), v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if group == nil {
-		return fmt.Errorf("error retrieving Athenz Group - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz Group - Make sure your cert/key are valid")
 	}
 
 	if len(group.GroupMembers) > 0 {
@@ -135,7 +137,7 @@ func resourceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
@@ -146,20 +148,20 @@ func resourceGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 		oldVal, newVal := d.GetChange("members")
 		err := updateGroupMembers(dn, gn, oldVal, newVal, zmsClient, auditRef)
 		if err != nil {
-			return fmt.Errorf("error updating group membership: %s", err)
+			return diag.Errorf("error updating group membership: %s", err)
 		}
 	}
-	return resourceGroupRead(d, meta)
+	return resourceGroupRead(ctx, d, meta)
 }
 
-func resourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
 	dn, gn := fullResourceName[0], fullResourceName[1]
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteGroup(dn, gn, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

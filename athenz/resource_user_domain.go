@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -12,11 +13,11 @@ import (
 
 func ResourceUserDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceUserDomainCreate,
-		Read:   resourceUserDomainRead,
-		Delete: resourceUserDomainDelete,
+		CreateContext: resourceUserDomainCreate,
+		ReadContext:   resourceUserDomainRead,
+		DeleteContext: resourceUserDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -36,7 +37,7 @@ func ResourceUserDomain() *schema.Resource {
 	}
 }
 
-func resourceUserDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceUserDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Get("name").(string)
 	auditRef := d.Get("audit_ref").(string)
@@ -45,16 +46,16 @@ func resourceUserDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	userDomain, err := zmsClient.PostUserDomain(domainName, auditRef, &userDomainDetail)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if userDomain == nil {
-		return fmt.Errorf("error creating User Domain: %s", err)
+		return diag.Errorf("error creating User Domain: %s", err)
 	}
 	d.SetId(PREFIX_USER_DOMAIN + domainName)
-	return resourceUserDomainRead(d, meta)
+	return resourceUserDomainRead(ctx, d, meta)
 }
 
-func resourceUserDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Id()
 	shortDomainName := shortName("", domainName, PREFIX_USER_DOMAIN)
@@ -66,27 +67,27 @@ func resourceUserDomainRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error retrieving Athenz User Domain: %s", v)
+		return diag.Errorf("error retrieving Athenz User Domain: %s", v)
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 
 	if userDomain == nil {
-		return fmt.Errorf("error retrieving Athenz User Domain - Make sure your cert/key are valid")
+		return diag.Errorf("error retrieving Athenz User Domain - Make sure your cert/key are valid")
 	}
 	if err = d.Set("name", shortDomainName); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func resourceUserDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceUserDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := shortName("", d.Id(), PREFIX_USER_DOMAIN)
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteUserDomain(domainName, auditRef)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	return nil
 }

@@ -1,7 +1,8 @@
 package athenz
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -10,7 +11,7 @@ import (
 
 func DataSourceRole() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceRoleRead,
+		ReadContext: dataSourceRoleRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:     schema.TypeString,
@@ -36,7 +37,7 @@ func DataSourceRole() *schema.Resource {
 	}
 }
 
-func dataSourceRoleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn := d.Get("domain").(string)
@@ -48,12 +49,12 @@ func dataSourceRoleRead(d *schema.ResourceData, meta interface{}) error {
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			return fmt.Errorf("athenz Role %s not found, update your data source query", fullResourceName)
+			return diag.Errorf("athenz Role %s not found, update your data source query", fullResourceName)
 		} else {
-			return fmt.Errorf("error retrieving Athenz Role: %s", v)
+			return diag.Errorf("error retrieving Athenz Role: %s", v)
 		}
 	case rdl.Any:
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId(fullResourceName)
 
