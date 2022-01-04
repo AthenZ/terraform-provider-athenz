@@ -52,7 +52,7 @@ if ! terraform init ; then
     EXIT_CODE=1
 fi
 if ! terraform apply -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
-    echo "terraform apply failed!"
+    echo "terraform init failed!"
     EXIT_CODE=1
 fi
 cd ..
