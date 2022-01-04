@@ -213,7 +213,7 @@ versions {
   assertion = [{
     effect = "ALLOW"
     action = "*"
-    role =  role="${athenz_role.%s.name}"
+    role = "${athenz_role.%s.name}"
     resource = "mendi_resource1"
   }]
 }
@@ -322,13 +322,13 @@ versions = [
 	    role="${athenz_role.%s.name}"
         resource = "mendi_resource2"
       },
-		{
-	    role="${athenz_role.%s.name}"
+      {
+	     role="${athenz_role.%s.name}"
 		 effect = "DENY"
 		 action = "play"
 		 resource = "mendi_resource2"
       }
-]
+	]
   },
   {
     version_name = "%s"
