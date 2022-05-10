@@ -1,6 +1,6 @@
 module github.com/AthenZ/terraform-provider-athenz
 
-go 1.15
+go 1.18
 
 require (
 	github.com/AthenZ/athenz v1.10.38
