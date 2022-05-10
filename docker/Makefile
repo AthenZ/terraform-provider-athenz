@@ -2,7 +2,7 @@ DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
 DOCKER_DNS := $(if $(DOCKER_DNS),$(DOCKER_DNS),8.8.8.8)
 LOCAL_ENV_NS := $(shell ./local-nameserver.sh)
 BASE_DIR=$(shell git rev-parse --show-toplevel)
-	
+
 ifeq ($(SD_SOURCE_DIR),)
 	SD_SOURCE_DIR=$(shell git rev-parse --show-toplevel)
 endif
@@ -47,7 +47,7 @@ remove-files:
 	rm -rf ./zts
 	rm -rf ./ui
 	rm -rf ./zms/var
-	
+
 clean: remove-all
 	docker image rm athenz/athenz-setup-env || true
 	docker image rm athenz/athenz-zms-db || true

@@ -39,6 +39,6 @@ while true ; do
   echo "$(date) - Version not found in terraform registry - keep waiting..."
   sleep 15
 done
-  
+
 echo "About to sleep for 1 minute to make sure version exists"
 sleep 1m

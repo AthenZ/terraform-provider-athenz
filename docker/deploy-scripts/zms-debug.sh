@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eu
+set -eux
 set -o pipefail
 
 # to script directory
@@ -34,8 +34,6 @@ fi
 
 ### ----------------------------------------------------------------
 echo 'Debug ZMS' | colored_cat g
-alias llm="less ${DOCKER_DIR}/logs/zms/server.log"
-llm | tail | colored_cat w
 
 # NOT necessary if inside docker network
 # echo 'add ZMS host' | colored_cat y
@@ -58,3 +56,5 @@ echo 'get domains' | colored_cat y
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \
         "${ZMS_URL}/zms/v1/domain"; echo '';
 } | colored_cat w
+
+cat "${DOCKER_DIR}/logs/zms/server.log" | colored_cat w
