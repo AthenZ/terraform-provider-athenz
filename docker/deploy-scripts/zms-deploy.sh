@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -eux
 set -o pipefail
@@ -8,6 +8,11 @@ cd "$(dirname "$0")"
 
 # import functions
 . ../setup-scripts/common/color-print.sh
+
+# import local nameserver config
+. ../local-nameserver.sh
+
+echo "\"${LOCAL_ENV_NS}\" will be added to docker run command for ZMS container"
 
 #################################################
 ### ZMS Deploy
@@ -80,7 +85,7 @@ docker exec --user mysql:mysql \
     "${ZMS_DB_HOST}" mysql \
     --database=zms_server \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
-    --execute="CREATE USER 'zms_admin'@'${ZMS_HOST}.${DOCKER_NETWORK}' IDENTIFIED BY '${ZMS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'${ZMS_HOST}.${DOCKER_NETWORK}'; FLUSH PRIVILEGES;"
+    --execute="CREATE USER 'zms_admin'@'%' IDENTIFIED BY '${ZMS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'%'; FLUSH PRIVILEGES;"
 docker exec --user mysql:mysql \
     "${ZMS_DB_HOST}" mysql \
     --database=mysql \
@@ -92,10 +97,12 @@ docker exec --user mysql:mysql \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
     --execute="SELECT user, host FROM user;"
 
-echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, DOCKER_NETWORK: ${DOCKER_NETWORK}" | colored_cat g
+echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}, DOCKER_DNS: ${DOCKER_DNS}" | colored_cat g
 docker run -t -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
+    --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
+    ${LOCAL_ENV_NS} \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
     -v "${DOCKER_DIR}/zms/conf:/opt/athenz/zms/conf/zms_server" \
@@ -109,7 +116,7 @@ docker run -t -h "${ZMS_HOST}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest \
     2>&1 | sed 's/^/ZMS-DOCKER: /' &
-    
+
 echo "wait for ZMS to be ready ZMS_HOST: ${ZMS_HOST} : "
 
 # wait for ZMS to be ready
