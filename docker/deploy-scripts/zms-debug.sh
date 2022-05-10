@@ -34,8 +34,6 @@ fi
 
 ### ----------------------------------------------------------------
 echo 'Debug ZMS' | colored_cat g
-alias llm="less ${DOCKER_DIR}/logs/zms/server.log"
-llm | tail | colored_cat w
 
 # NOT necessary if inside docker network
 # echo 'add ZMS host' | colored_cat y
@@ -52,9 +50,11 @@ echo 'ZMS health check' | colored_cat y
 echo 'get domains' | colored_cat y
 {
     ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
-    curl --silent --fail --show-error \
+    curl -vvv --fail --show-error \
         --cacert "${ATHENZ_CA_PATH}" \
         --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
         --cert "${DOMAIN_ADMIN_CERT_PATH}" \
         "${ZMS_URL}/zms/v1/domain"; echo '';
 } | colored_cat w
+
+cat "${DOCKER_DIR}/logs/zms/server.log" | colored_cat w
