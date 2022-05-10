@@ -77,7 +77,7 @@ echo 'Expected results: '
 cat sys-test/expected-terraform-sys-test-results
 
 # make sure the expected domain is same as zms-cli result
-if ! diff ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
+if ! diff -w ${SD_ROOT_DIR}/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
     echo "expected domain is NOT same!"
     EXIT_CODE=1
 fi
