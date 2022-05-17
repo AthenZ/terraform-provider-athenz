@@ -1,6 +1,7 @@
 package athenz
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -70,22 +71,15 @@ func Test_expandRoleMembers(t *testing.T) {
 }
 
 func Test_flattenPolicyAssertion(t *testing.T) {
-	roleName := dName + ":role.foo"
+	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(roleName, resourceName)), getFlattedAssertions("foo", "foo_"))
+	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName)), getFlattedAssertions(roleName, resourceName))
 }
 
 func Test_expandPolicyAssertions(t *testing.T) {
-
-	// case: fully qualified name
-	roleName := dName + ":role.foo"
+	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(roleName, resourceName))
-
-	// case: short name
-	shortRoleName := "foo"
-	shortResourceName := "foo_"
-	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(shortRoleName, shortResourceName)), getZmsAssertions(roleName, resourceName))
+	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName))
 }
 
 func Test_getShortName(t *testing.T) {
@@ -138,4 +132,18 @@ func Test_convertToKeyBase64(t *testing.T) {
 
 func Test_convertToDecodedKey(t *testing.T) {
 	ast.Equal(t, convertToDecodedKey(getKeyBase64()), getDecodedKey())
+}
+
+func Test_validateResourceNameWithinAssertion(t *testing.T) {
+	fullyQualifiedName := "athens:resource1"
+	ast.NilError(t, validateResourceNameWithinAssertion(fullyQualifiedName))
+	illegalName := "resource1"
+	assert.NotNil(t, validateResourceNameWithinAssertion(illegalName))
+}
+
+func Test_validateRoleNameWithinAssertion(t *testing.T) {
+	roleName := "admin"
+	ast.NilError(t, validateRoleNameWithinAssertion(roleName))
+	illegalFullyQualifiedName := "athens" + ROLE_SEPARATOR + roleName
+	assert.NotNil(t, validateRoleNameWithinAssertion(illegalFullyQualifiedName))
 }

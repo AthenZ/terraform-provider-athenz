@@ -177,15 +177,15 @@ name = "%s"
     effect="ALLOW"
     action="*"
     role="${athenz_role.forPolicyTest.name}"
-    resource="service.ows"
+    resource="%sservice.ows"
   },{
     effect="DENY"
     action="play"
     role="${athenz_role.%s.name}"
-    resource="service.ows"
+    resource="%sservice.ows"
   }]
 }
-`, resourceRole, name, domain, resourceRoleName)
+`, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
 }
 
 func testAccGroupConfigRemoveAssertion(resourceRole, name, domain, resourceRoleName string) string {
@@ -198,8 +198,8 @@ name = "%s"
     effect="DENY"
     action="*"
     role="${athenz_role.%s.name}"
-    resource="service.ows"
+    resource="%sservice.ows"
   }]
 }
-`, resourceRole, name, domain, resourceRoleName)
+`, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)
 }

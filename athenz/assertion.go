@@ -34,6 +34,14 @@ func policyVersionAssertionSchema() *schema.Schema {
 						errors = append(errors, fmt.Errorf("assertion: %v is invalid. the asserion key must matchs one of the follwoing: %v", assertionMap, validKeys))
 					}
 				}
+				err := validateRoleNameWithinAssertion(assertionMap["role"].(string))
+				if err != nil {
+					errors = append(errors, err)
+				}
+				err = validateResourceNameWithinAssertion(assertionMap["resource"].(string))
+				if err != nil {
+					errors = append(errors, err)
+				}
 				return
 			},
 			Elem: &schema.Schema{Type: schema.TypeString, Required: true},
@@ -45,16 +53,9 @@ func expandPolicyAssertions(dn string, configured []interface{}) []*zms.Assertio
 	assertions := make([]*zms.Assertion, 0, len(configured))
 	for _, aRaw := range configured {
 		data := aRaw.(map[string]interface{})
-		role := data["role"].(string)
-		if !strings.Contains(role, ROLE_SEPARATOR) {
-			role = dn + ROLE_SEPARATOR + role
-		}
+		role := dn + ROLE_SEPARATOR + data["role"].(string)
 		resource := data["resource"].(string)
-		if !strings.Contains(resource, RESOURCE_SEPARATOR) {
-			resource = dn + RESOURCE_SEPARATOR + resource
-		}
-
-		var effect = zms.NewAssertionEffect(strings.ToUpper(data["effect"].(string)))
+		effect := zms.NewAssertionEffect(strings.ToUpper(data["effect"].(string)))
 
 		a := &zms.Assertion{
 			Role:     role,
@@ -73,7 +74,7 @@ func flattenPolicyAssertion(list []*zms.Assertion) []interface{} {
 	policyAssertions := make([]interface{}, 0, len(list))
 	for _, a := range list {
 		role := strings.Split(a.Role, ROLE_SEPARATOR)[1]
-		resource := strings.Split(a.Resource, RESOURCE_SEPARATOR)[1]
+		resource := a.Resource
 		effect := a.Effect.String()
 		action := a.Action
 

@@ -62,10 +62,24 @@ func ResourcePolicy() *schema.Resource {
 						"role": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
+								err := validateRoleNameWithinAssertion(i.(string))
+								if err != nil {
+									errors = append(errors, err)
+								}
+								return
+							},
 						},
 						"resource": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
+								err := validateResourceNameWithinAssertion(i.(string))
+								if err != nil {
+									errors = append(errors, err)
+								}
+								return
+							},
 						},
 					},
 				},
