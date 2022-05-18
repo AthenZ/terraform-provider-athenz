@@ -214,10 +214,10 @@ versions {
     effect = "ALLOW"
     action = "*"
     role = "${athenz_role.%s.name}"
-    resource = "mendi_resource1"
+    resource = "%smendi_resource1"
   }]
 }
-}`, role1, name, domain, activeVersion, version1, resource1Name)
+}`, role1, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR)
 }
 func testAccGroupPolicyVersionConfigAddNonActiveVersion(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
 	return fmt.Sprintf(`
@@ -233,7 +233,7 @@ versions {
     effect = "ALLOW"
     action = "*"
     role="${athenz_role.%s.name}"
-    resource = "mendi_resource1"
+    resource = "%smendi_resource1"
   }]
 }
 
@@ -243,17 +243,17 @@ versions {
     effect = "ALLOW"
     action = "*"
 	role="${athenz_role.%s.name}"
-    resource = "mendi_resource2"
+    resource = "%smendi_resource2"
   },
 	{
 	role="${athenz_role.%s.name}"
     effect = "DENY"
     action = "play"
-    resource = "mendi_resource2"
+    resource = "%smendi_resource2"
   }]
 }
 }
-`, role1, role2, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name)
+`, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
 }
 
 func testAccGroupPolicyVersionConfigChangeActiveVersion(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
@@ -270,7 +270,7 @@ versions {
 	effect = "ALLOW"
 	action = "*"
 	role="${athenz_role.%s.name}"
-	resource = "mendi_resource1"
+	resource = "%smendi_resource1"
  }]
 }
 
@@ -280,17 +280,17 @@ versions {
 	effect = "ALLOW"
 	action = "*"
 	role="${athenz_role.%s.name}"
-	resource = "mendi_resource2"
+	resource = "%smendi_resource2"
  },
  {
 	role="${athenz_role.%s.name}"
 	effect = "DENY"
 	action = "play"
-	resource = "mendi_resource2"
+	resource = "%smendi_resource2"
  }]
 }
 }
-`, role1, role2, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name)
+`, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
 }
 
 func testAccGroupPolicyVersionConfigAddActiveVersion(role1, role2, role3, name, domain, activeVersion, version1, version2, version3, resource1Name, resource2Name, resource3Name string) string {
@@ -310,7 +310,7 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource1"
+        resource = "%smendi_resource1"
       }]
   },
   {
@@ -320,13 +320,13 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource2"
+        resource = "%smendi_resource2"
       },
       {
 	     role="${athenz_role.%s.name}"
 		 effect = "DENY"
 		 action = "play"
-		 resource = "mendi_resource2"
+		 resource = "%smendi_resource2"
       }
 	]
   },
@@ -337,18 +337,18 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource3"
+        resource = "%smendi_resource3"
       },
       {
 	    role="${athenz_role.%s.name}"
 		effect = "DENY"
         action = "play"
-        resource = "mendi_resource3"
+        resource = "%smendi_resource3"
       }]
   }
 ]
 }
-`, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, version2, resource2Name, resource2Name, version3, resource3Name, resource3Name)
+`, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR, version3, resource3Name, domain+RESOURCE_SEPARATOR, resource3Name, domain+RESOURCE_SEPARATOR)
 }
 
 func testAccGroupPolicyVersionConfigRemoveNonActiveVersion(role1, role3, name, domain, activeVersion, version1, version3, resource1Name, resource3Name string) string {
@@ -367,7 +367,7 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource1"
+        resource = "%smendi_resource1"
       }]
   },
   {
@@ -377,18 +377,18 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource3"
+        resource = "%smendi_resource3"
       },
       {
 	    role="${athenz_role.%s.name}"
         effect = "DENY"
         action = "play"
-        resource = "mendi_resource3"
+        resource = "%smendi_resource3"
       }]
   }
 ]
 }
-`, role1, role3, name, domain, activeVersion, version1, resource1Name, version3, resource3Name, resource3Name)
+`, role1, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version3, resource3Name, domain+RESOURCE_SEPARATOR, resource3Name, domain+RESOURCE_SEPARATOR)
 }
 
 func testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(role1, name, domain, activeVersion, version1, resource1Name string) string {
@@ -406,10 +406,10 @@ versions = [
         effect = "ALLOW"
         action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "mendi_resource1"
+        resource = "%smendi_resource1"
       }]
   }
 ]
 }
-`, role1, name, domain, activeVersion, version1, resource1Name)
+`, role1, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR)
 }

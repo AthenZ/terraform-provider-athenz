@@ -24,7 +24,7 @@ resource "athenz_policy_version" "policy_with_version" {
           effect = "ALLOW"
           action = "*"
           role = "role1"
-          resource = "resource1"
+          resource = "some_domain:resource1"
         }]
     },
     {
@@ -34,13 +34,13 @@ resource "athenz_policy_version" "policy_with_version" {
           effect = "ALLOW"
           action = "*"
           role = "role2"
-          resource = "resource2"
+          resource = "some_domain:resource2"
         },
         {
           effect = "DENY"
           action = "play"
           role = "role2"
-          resource = "resource2"
+          resource = "some_domain:resource2"
         }]
     }
   ]
@@ -66,11 +66,11 @@ The following arguments are supported:
 
         - `effect` - (Required) The value effect must be either ALLOW or DENY.
 
-        - `role` - (Required) The name of the role this assertion applies to.
+        - `role` - (Required) The name of the role this assertion applies to. MUST be the role name only (without the prefix <domain name/>:role.).
 
         - `action` - (Required) The action is the domain administrator defined action available for the resource (e.g. read, write, delete).
 
-        - `resource` - (Required) The resource is the YRN of the resource this assertion applies to.
+        - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name (<domain name/>:<resource name/>).
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.

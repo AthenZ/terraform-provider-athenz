@@ -192,3 +192,19 @@ func handleChange(d *schema.ResourceData, key string) (*schema.Set, *schema.Set)
 	ns := n.(*schema.Set)
 	return os, ns
 }
+
+// validate that provides only role name (not fully qualified name)
+func validateRoleNameWithinAssertion(roleName string) error {
+	if strings.Contains(roleName, ROLE_SEPARATOR) {
+		return fmt.Errorf("please provide only the role name without the domain prefix. the role is: %s", roleName)
+	}
+	return nil
+}
+
+// validate that provides fully qualified name
+func validateResourceNameWithinAssertion(resourceName string) error {
+	if !strings.Contains(resourceName, RESOURCE_SEPARATOR) {
+		return fmt.Errorf("you must specify the fully qualified name for resource: %s", resourceName)
+	}
+	return nil
+}

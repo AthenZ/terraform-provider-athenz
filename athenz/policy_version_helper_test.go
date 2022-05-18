@@ -27,7 +27,7 @@ func getZmsPolicy(policyName, versionName, activeVersion string, assertions []*z
 }
 func getZmsAssertion(role, resource, action string, effect zms.AssertionEffect) zms.Assertion {
 	return zms.Assertion{
-		Resource: "some_domain" + RESOURCE_SEPARATOR + resource,
+		Resource: resource,
 		Role:     "some_domain" + ROLE_SEPARATOR + role,
 		Action:   action,
 		Effect:   &effect,
@@ -65,7 +65,7 @@ func TestFlattenPolicyVersions(t *testing.T) {
 	version1, version2 := "version_1", "version_2"
 	effect1, effect2 := zms.DENY, zms.ALLOW
 	role := "test"
-	resource := "test"
+	resource := "some_domain" + RESOURCE_SEPARATOR + "test"
 	action := "play_premium"
 	zmsVersionList := getZmsPolicyVersionsList("", version1, version2, "", role, resource, action, effect1, effect2)
 	versionList := getPolicyVersions(version1, version2, role, resource, action, effect1, effect2)

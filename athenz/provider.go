@@ -1,7 +1,9 @@
 package athenz
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"os"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -60,17 +62,17 @@ func Provider() *schema.Provider {
 			"athenz_top_level_domain": ResourceTopLevelDomain(),
 		},
 
-		ConfigureFunc: configProvider,
+		ConfigureContextFunc: configProvider,
 	}
 }
 
-func configProvider(d *schema.ResourceData) (interface{}, error) {
+func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	zms := client.ZmsConfig{
 		Url:    d.Get("zms_url").(string),
 		Cert:   d.Get("cert").(string),
 		Key:    d.Get("key").(string),
 		CaCert: d.Get("cacert").(string),
 	}
-
-	return client.NewClient(zms.Url, zms.Cert, zms.Key, zms.CaCert)
+	c, err := client.NewClient(zms.Url, zms.Cert, zms.Key, zms.CaCert)
+	return c, diag.FromErr(err)
 }
