@@ -2,11 +2,9 @@ package athenz
 
 import (
 	"context"
+	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
-	"strings"
-
-	"github.com/AthenZ/athenz/clients/go/zms"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 
@@ -102,12 +100,14 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
-	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
-	dn, rn := fullResourceName[0], fullResourceName[1]
-	if err := d.Set("domain", dn); err != nil {
+	dn, rn, err := splitRoleId(d.Id())
+	if err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("name", rn); err != nil {
+	if err = d.Set("domain", dn); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("name", rn); err != nil {
 		return diag.FromErr(err)
 	}
 	role, err := zmsClient.GetRole(dn, rn)
@@ -144,8 +144,10 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 
 func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
-	dn, rn := fullResourceName[0], fullResourceName[1]
+	dn, rn, err := splitRoleId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	auditRef := d.Get("audit_ref").(string)
 	if d.HasChange("members") {
 		os, ns := handleChange(d, "members")
@@ -174,10 +176,12 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 
 func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), ROLE_SEPARATOR)
-	dn, rn := fullResourceName[0], fullResourceName[1]
+	dn, rn, err := splitRoleId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeleteRole(dn, rn, auditRef)
+	err = zmsClient.DeleteRole(dn, rn, auditRef)
 	if err != nil {
 		return diag.FromErr(err)
 	}

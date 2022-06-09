@@ -3,14 +3,12 @@ package athenz
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"log"
-	"strings"
-
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
 )
 
 func ResourcePolicyVersion() *schema.Resource {
@@ -72,9 +70,11 @@ func ResourcePolicyVersion() *schema.Resource {
 
 func resourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
-	dn := fullResourceName[0]
-	pn := fullResourceName[1]
+	dn, pn, err := splitPolicyId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	if err := d.Set("domain", dn); err != nil {
 		return diag.FromErr(err)
 	}
@@ -100,7 +100,7 @@ func resourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta
 
 	activeVersion := getActiveVersionName(policyVersionList)
 	if activeVersion == "" {
-		return diag.Errorf("not found active version for the policy: %s", fullResourceName)
+		return diag.Errorf("not found active version for the policy: %s", d.Id())
 	}
 	if err = d.Set("active_version", activeVersion); err != nil {
 		return diag.FromErr(err)
@@ -177,8 +177,10 @@ func validateSchema(activeVersion string, versions []interface{}) error {
 }
 func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	dn := d.Get("domain").(string)
-	pn := d.Get("name").(string)
+	dn, pn, err := splitPolicyId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	policyVersionList, err := getAllPolicyVersions(zmsClient, dn, pn)
 	if err != nil {
 		return diag.Errorf("error retrieving Athenz Policy vrsions: %s", err)
@@ -249,11 +251,12 @@ func findPolicyVersion(policyVersions []*zms.Policy, lookingVersion string) *zms
 
 func resourcePolicyVersionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	dn := d.Get("domain").(string)
-	pn := d.Get("name").(string)
-	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeletePolicy(dn, pn, auditRef)
+	dn, pn, err := splitPolicyId(d.Id())
 	if err != nil {
+		return diag.FromErr(err)
+	}
+	auditRef := d.Get("audit_ref").(string)
+	if err := zmsClient.DeletePolicy(dn, pn, auditRef); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
