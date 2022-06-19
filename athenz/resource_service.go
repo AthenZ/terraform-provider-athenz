@@ -156,21 +156,27 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	shortName := shortName(domainName, serviceName, SERVICE_SEPARATOR)
 	longName := domainName + SERVICE_SEPARATOR + shortName
 	auditRef := d.Get("audit_ref").(string)
+	detail := zms.NewServiceIdentity()
+	detail.Description = description
+	detail.Name = zms.ServiceName(longName)
+
 	if d.HasChange("public_keys") {
 		_, newVal := d.GetChange("public_keys")
 		if newVal == nil {
 			newVal = new(schema.Set)
 		}
 		newPublicKeyList := convertToPublicKeyEntryList(newVal.(*schema.Set).List())
-		detail := zms.NewServiceIdentity()
-		detail.Name = zms.ServiceName(longName)
 		detail.PublicKeys = newPublicKeyList
-		detail.Description = description
-		err := zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
-		if err != nil {
-			return diag.Errorf("error updating service membership: %s", err)
-		}
+	} else {
+		publicKeyList := d.Get("public_keys").(*schema.Set).List()
+		detail.PublicKeys = convertToPublicKeyEntryList(publicKeyList)
 	}
+
+	err := zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
+	if err != nil {
+		return diag.Errorf("error updating service membership: %s", err)
+	}
+
 	return resourceServiceRead(ctx, d, meta)
 }
 

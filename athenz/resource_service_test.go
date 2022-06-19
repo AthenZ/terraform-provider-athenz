@@ -40,6 +40,7 @@ func TestAccGroupServiceBasic(t *testing.T) {
 					testAccCheckGroupServiceExists(resourceName, &service),
 					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
 			},
 			{
@@ -48,6 +49,7 @@ func TestAccGroupServiceBasic(t *testing.T) {
 					testAccCheckGroupServiceExists(resourceName, &service),
 					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
 					resource.TestCheckResourceAttr(resourceName, "public_keys.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
 			},
 			{
@@ -56,6 +58,15 @@ func TestAccGroupServiceBasic(t *testing.T) {
 					testAccCheckGroupServiceExists(resourceName, &service),
 					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
 					resource.TestCheckResourceAttr(resourceName, "public_keys.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+				),
+			},
+			{
+				Config: testAccGroupServiceConfigChangeDescription(serviceName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					resource.TestCheckResourceAttr(resourceName, "description", "this service is for acc test"),
 				),
 			},
 		},
@@ -157,6 +168,16 @@ func testAccGroupServiceConfigRemovePublicKey(name, domain string) string {
 resource "athenz_service" "serviceTest" {
   name = "%s"
   domain = "%s"
+}
+`, name, domain)
+}
+
+func testAccGroupServiceConfigChangeDescription(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+  name = "%s"
+  domain = "%s"
+  description = "this service is for acc test"
 }
 `, name, domain)
 }
