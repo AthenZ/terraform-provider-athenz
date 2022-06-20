@@ -110,15 +110,18 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
-	domainName, shortName := splitServiceId(d.Id())
+	domainName, serviceName, err := splitServiceId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	if err := d.Set("domain", domainName); err != nil {
+	if err = d.Set("domain", domainName); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("name", shortName); err != nil {
+	if err = d.Set("name", serviceName); err != nil {
 		return diag.FromErr(err)
 	}
-	service, err := zmsClient.GetServiceIdentity(domainName, shortName)
+	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
 
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -150,8 +153,10 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
-	domainName := d.Get("domain").(string)
-	serviceName := d.Get("name").(string)
+	domainName, serviceName, err := splitServiceId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	description := d.Get("description").(string)
 	shortName := shortName(domainName, serviceName, SERVICE_SEPARATOR)
 	longName := domainName + SERVICE_SEPARATOR + shortName
@@ -176,9 +181,12 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 
 func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	domainName, serviceName := splitServiceId(d.Id())
+	domainName, serviceName, err := splitServiceId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
+	err = zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
 	if err != nil {
 		return diag.FromErr(err)
 	}

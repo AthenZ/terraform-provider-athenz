@@ -115,15 +115,41 @@ func Test_splitServiceId(t *testing.T) {
 	serviceName := "openhouse"
 	//simple case:
 	serviceId := dName + SERVICE_SEPARATOR + serviceName
-	dn, sn := splitServiceId(serviceId)
+	dn, sn, err := splitServiceId(serviceId)
+	ast.NilError(t, err)
 	ast.Equal(t, dName, dn)
 	ast.Equal(t, serviceName, sn)
 	//complex case:
 	domainName := "home.yahoo.sport.soccer"
 	serviceId = domainName + SERVICE_SEPARATOR + serviceName
-	dn, sn = splitServiceId(serviceId)
+	dn, sn, err = splitServiceId(serviceId)
+	ast.NilError(t, err)
 	ast.Equal(t, domainName, dn)
 	ast.Equal(t, serviceName, sn)
+}
+
+func Test_splitRoleId(t *testing.T) {
+	roleId := "some_domain" + ROLE_SEPARATOR + "some_role"
+	dn, rn, err := splitRoleId(roleId)
+	ast.NilError(t, err)
+	ast.Equal(t, "some_domain", dn)
+	ast.Equal(t, "some_role", rn)
+}
+
+func Test_splitPolicyId(t *testing.T) {
+	policyId := "some_domain" + POLICY_SEPARATOR + "some_policy"
+	dn, pn, err := splitPolicyId(policyId)
+	ast.NilError(t, err)
+	ast.Equal(t, "some_domain", dn)
+	ast.Equal(t, "some_policy", pn)
+}
+
+func Test_splitGroupId(t *testing.T) {
+	groupId := "some_domain" + GROUP_SEPARATOR + "some_group"
+	dn, gn, err := splitGroupId(groupId)
+	ast.NilError(t, err)
+	ast.Equal(t, "some_domain", dn)
+	ast.Equal(t, "some_group", gn)
 }
 
 func Test_convertToKeyBase64(t *testing.T) {
@@ -146,4 +172,16 @@ func Test_validateRoleNameWithinAssertion(t *testing.T) {
 	ast.NilError(t, validateRoleNameWithinAssertion(roleName))
 	illegalFullyQualifiedName := "athens" + ROLE_SEPARATOR + roleName
 	assert.NotNil(t, validateRoleNameWithinAssertion(illegalFullyQualifiedName))
+}
+
+func Test_splitId(t *testing.T) {
+	validId := "some_domain" + ROLE_SEPARATOR + "some_role"
+	dn, r, err := splitId(validId, ROLE_SEPARATOR)
+	ast.NilError(t, err)
+	assert.Equal(t, "some_domain", dn)
+	assert.Equal(t, "some_role", r)
+
+	inValidId := "some_domain" + "some_role"
+	_, _, err = splitId(inValidId, ROLE_SEPARATOR)
+	assert.NotNil(t, err)
 }

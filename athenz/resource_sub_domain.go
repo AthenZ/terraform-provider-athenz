@@ -95,8 +95,10 @@ func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta i
 func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	fullyQualifiedName := d.Id()
-	parentDomainName, domainName := splitServiceId(fullyQualifiedName)
-
+	parentDomainName, domainName, err := splitSubDomainId(fullyQualifiedName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	subDomain, err := zmsClient.GetDomain(fullyQualifiedName)
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -133,10 +135,12 @@ func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta int
 
 func resourceSubDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	parentDomainName, subDomainName := splitSubDomainId(d.Id())
-	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeleteSubDomain(parentDomainName, subDomainName, auditRef)
+	parentDomainName, subDomainName, err := splitSubDomainId(d.Id())
 	if err != nil {
+		return diag.FromErr(err)
+	}
+	auditRef := d.Get("audit_ref").(string)
+	if err = zmsClient.DeleteSubDomain(parentDomainName, subDomainName, auditRef); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil

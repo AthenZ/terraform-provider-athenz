@@ -34,19 +34,34 @@ func shortName(domainName string, en string, separator string) string {
 	return shortName
 }
 
-func splitServiceId(serviceId string) (string, string) {
+func splitServiceId(serviceId string) (string, string, error) {
 	return splitId(serviceId, SERVICE_SEPARATOR)
 }
 
-func splitSubDomainId(subDomainId string) (string, string) {
+func splitSubDomainId(subDomainId string) (string, string, error) {
 	return splitId(subDomainId, SUB_DOMAIN_SEPARATOR)
 }
 
-func splitId(id, separator string) (string, string) {
-	indexOfPrefixEnd := strings.LastIndex(id, separator)
+func splitRoleId(roleId string) (string, string, error) {
+	return splitId(roleId, ROLE_SEPARATOR)
+}
+
+func splitPolicyId(policyId string) (string, string, error) {
+	return splitId(policyId, POLICY_SEPARATOR)
+}
+
+func splitGroupId(policyId string) (string, string, error) {
+	return splitId(policyId, GROUP_SEPARATOR)
+}
+
+func splitId(id, separator string) (string, string, error) {
+	indexOfPrefixEnd := strings.LastIndex(id, separator) // it used for all resource id (e.g. service), so we're looking for last index
+	if indexOfPrefixEnd == -1 {
+		return "", "", fmt.Errorf("id pattern mismatch. expected: <domain_name>%s<resource_name>", separator)
+	}
 	prefix := id[:indexOfPrefixEnd]
-	shortName := id[indexOfPrefixEnd+1:]
-	return prefix, shortName
+	shortName := id[indexOfPrefixEnd+len(separator):]
+	return prefix, shortName, nil
 }
 
 // adapted from https://github.com/yahoo/athenz/blob/master/libs/go/zmscli/utils.go

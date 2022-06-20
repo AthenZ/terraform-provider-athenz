@@ -95,9 +95,10 @@ func ResourcePolicy() *schema.Resource {
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
-	dn := fullResourceName[0]
-	pn := fullResourceName[1]
+	dn, pn, err := splitPolicyId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	if err := d.Set("domain", dn); err != nil {
 		return diag.FromErr(err)
@@ -169,9 +170,10 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 }
 func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
-	dn := fullResourceName[0]
-	pn := fullResourceName[1]
+	dn, pn, err := splitPolicyId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	policy, err := zmsClient.GetPolicy(dn, pn)
 	if err != nil {
@@ -195,13 +197,13 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 
 func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), POLICY_SEPARATOR)
-	dn := fullResourceName[0]
-	pn := fullResourceName[1]
+	dn, pn, err := splitPolicyId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeletePolicy(dn, pn, auditRef)
-	if err != nil {
+	if err := zmsClient.DeletePolicy(dn, pn, auditRef); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil

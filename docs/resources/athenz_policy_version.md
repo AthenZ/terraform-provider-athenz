@@ -66,11 +66,11 @@ The following arguments are supported:
 
         - `effect` - (Required) The value effect must be either ALLOW or DENY.
 
-        - `role` - (Required) The name of the role this assertion applies to. MUST be the role name only (without the prefix <domain name/>:role.).
+        - `role` - (Required) The name of the role this assertion applies to. MUST be the role name only (without the prefix `<domain name>:role`).
 
         - `action` - (Required) The action is the domain administrator defined action available for the resource (e.g. read, write, delete).
 
-        - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name (<domain name/>:<resource name/>).
+        - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name: `<domain name>:<resource name>`
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.

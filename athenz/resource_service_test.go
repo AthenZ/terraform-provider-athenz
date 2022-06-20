@@ -85,7 +85,10 @@ func testAccCheckGroupServiceExists(n string, s *zms.ServiceIdentity) resource.T
 			return fmt.Errorf("no Athenz Group ID is set")
 		}
 
-		dn, sn := splitServiceId(rs.Primary.ID)
+		dn, sn, err := splitServiceId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		zmsClient := testAccProvider.Meta().(client.ZmsClient)
 		service, err := zmsClient.GetServiceIdentity(dn, sn)
@@ -108,9 +111,11 @@ func testAccCheckGroupServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		dn, sn := splitServiceId(rs.Primary.ID)
-
-		_, err := zmsClient.GetServiceIdentity(dn, sn)
+		dn, sn, err := splitServiceId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		_, err = zmsClient.GetServiceIdentity(dn, sn)
 
 		if err == nil {
 			return fmt.Errorf("athenz Group still exists")

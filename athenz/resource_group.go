@@ -104,12 +104,14 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
-	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
-	dn, gn := fullResourceName[0], fullResourceName[1]
-	if err := d.Set("domain", dn); err != nil {
+	dn, gn, err := splitGroupId(d.Id())
+	if err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("name", gn); err != nil {
+	if err = d.Set("domain", dn); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("name", gn); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -140,8 +142,10 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
-	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
-	dn, gn := fullResourceName[0], fullResourceName[1]
+	dn, gn, err := splitGroupId(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	auditRef := d.Get("audit_ref").(string)
 	if d.HasChange("members") {
@@ -156,11 +160,12 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 
 func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	fullResourceName := strings.Split(d.Id(), GROUP_SEPARATOR)
-	dn, gn := fullResourceName[0], fullResourceName[1]
-	auditRef := d.Get("audit_ref").(string)
-	err := zmsClient.DeleteGroup(dn, gn, auditRef)
+	dn, gn, err := splitGroupId(d.Id())
 	if err != nil {
+		return diag.FromErr(err)
+	}
+	auditRef := d.Get("audit_ref").(string)
+	if err = zmsClient.DeleteGroup(dn, gn, auditRef); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
