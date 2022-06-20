@@ -177,7 +177,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		detail.PublicKeys = convertToPublicKeyEntryList(publicKeyList)
 	}
 
-	err := zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
+	err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
 	if err != nil {
 		return diag.Errorf("error updating service membership: %s", err)
 	}
