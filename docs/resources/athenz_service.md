@@ -39,9 +39,9 @@ The following arguments are supported:
 
 - `name` - (Required) The service name.
 
-
 - `domain` - (Required) The Athenz domain name.
 
+- `description` - (Optional) The service description.
 
 - `public_keys` - (Optional) Set of maps of public keys. Each map consists the following arguments:  
 
