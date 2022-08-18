@@ -2,9 +2,10 @@ package athenz
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
@@ -154,6 +155,8 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 			if err != nil {
 				return diag.FromErr(err)
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

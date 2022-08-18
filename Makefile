@@ -6,6 +6,10 @@ BINARY=terraform-provider-athenz
 FMT_LOG=/tmp/fmt.log
 GOIMPORTS_LOG=/tmp/goimports.log
 
+# parameters for local build only - change it if needed
+OS_ARCH=darwin_arm64
+VERSION=1.0.9
+
 vet:
 	go vet $(GOPKGNAME)/...
 
@@ -25,6 +29,11 @@ build_mac:
 
 build_linux:
 	GOOS=linux go install -v $(GOPKGNAME)/...
+
+install_local:
+	GOOS=darwin GOARCH=arm64 go build -o ${BINARY}
+	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
+	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 
 unit: vet fmt
 	export TF_ACC=false ; go test -v $(GOPKGNAME)/...

@@ -3,9 +3,10 @@ package athenz
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 
@@ -86,6 +87,8 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
 				return diag.FromErr(err)
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

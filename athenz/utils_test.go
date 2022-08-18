@@ -1,8 +1,9 @@
 package athenz
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	ast "gotest.tools/assert"

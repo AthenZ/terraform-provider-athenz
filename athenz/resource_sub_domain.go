@@ -2,8 +2,9 @@ package athenz
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -77,7 +78,8 @@ func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta i
 			if subDomain == nil {
 				return diag.Errorf("error creating Sub Domain: %s", err)
 			}
-
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

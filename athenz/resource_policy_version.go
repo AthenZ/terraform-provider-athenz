@@ -3,12 +3,13 @@ package athenz
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 func ResourcePolicyVersion() *schema.Resource {
@@ -149,6 +150,8 @@ func resourcePolicyVersionCreate(ctx context.Context, d *schema.ResourceData, me
 					return diag.FromErr(err)
 				}
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

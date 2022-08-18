@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
