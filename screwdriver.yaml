@@ -6,8 +6,6 @@ shared:
     email:
       addresses: [athenz@yahooinc.com]
       statuses: [SUCCESS, FAILURE]
-  environment:
-    USER_SHELL_BIN: bash
 
 jobs:
   certify-provider:
