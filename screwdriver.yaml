@@ -46,13 +46,8 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
-          go version
-          which go
-          LATEST_GO_VERSION="$(curl --silent https://go.dev/VERSION?m=text)";
-          LATEST_GO_DOWNLOAD_URL="https://golang.org/dl/${LATEST_GO_VERSION}.linux-amd64.tar.gz"
-          wget ${LATEST_GO_DOWNLOAD_URL}
-          rm -rf /usr/local/go && tar -C /usr/local -xzf go*.linux-amd64.tar.gz
-          export PATH=$PATH:/usr/local/go/bin
-          go version
+          yum install epel-release
+          yum update
+          yum update -y golang
       - unit-test: |
           make unit
