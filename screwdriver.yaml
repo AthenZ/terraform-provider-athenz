@@ -46,6 +46,10 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
-          yum update -y golang
+          sudo yum -y install wget
+          wget https://storage.googleapis.com/golang/getgo/installer_linux
+          chmod +x ./installer_linux
+          ./installer_linux 
+          source ~/.bash_profile
       - unit-test: |
           make unit
