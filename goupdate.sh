@@ -13,5 +13,6 @@ wget ${LATEST_GO_DOWNLOAD_URL}
 tar -C /usr/local -xzf go*.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 sudo bash -c "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /etc/bashrc"
-sudo bash -c "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /etc/shrc"
+sudo bash -c "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /etc/profile"
+
 go version
