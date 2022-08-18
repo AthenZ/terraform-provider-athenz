@@ -61,7 +61,7 @@ func convertTagComponentValueListToStringList(list []zms.TagCompoundValue) []str
 	return finalList
 }
 
-//return all the values that exists in arr1 and not in arr2
+// return all the values that exists in arr1 and not in arr2
 func allElementsNotContained(arr1 []string, arr2 []string) []string {
 	finalArr := []string{}
 	check := false

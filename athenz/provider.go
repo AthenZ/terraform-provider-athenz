@@ -3,8 +3,9 @@ package athenz
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"os"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

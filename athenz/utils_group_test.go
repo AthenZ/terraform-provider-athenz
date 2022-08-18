@@ -23,9 +23,9 @@ func Test_updateGroupMembers(t *testing.T) {
 	clientMock.EXPECT().GetRole(gomock.Any(), gomock.Any()).Return(&zms.Role{Name: "test"}, nil).AnyTimes()
 	clientMock.EXPECT().PutRole(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	//_ = args{
-	//	zmsClient: clientMock,
-	//}
+	// _ = args{
+	// 	zmsClient: clientMock,
+	// }
 }
 
 func getFlattedGroupMembers() []interface{} {
@@ -38,10 +38,10 @@ func getZmsGroupMembers() []*zms.GroupMember {
 }
 
 func Test_expandGroupMembers(t *testing.T) {
-	//case: regular test
+	// case: regular test
 	ast.DeepEqual(t, expandGroupMembers(getFlattedGroupMembers()), getZmsGroupMembers())
 
-	//case: empty string test
+	// case: empty string test
 	ast.DeepEqual(t, expandGroupMembers([]interface{}{""}), []*zms.GroupMember{})
 }
 

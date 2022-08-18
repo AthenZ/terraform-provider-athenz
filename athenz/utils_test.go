@@ -1,8 +1,9 @@
 package athenz
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	ast "gotest.tools/assert"
@@ -92,7 +93,7 @@ func Test_getShortName(t *testing.T) {
 	ast.Equal(t, serviceName, shortName(dName, fullServiceName, SERVICE_SEPARATOR))
 	ast.Equal(t, roleName, shortName(dName, fullRoleName, ROLE_SEPARATOR))
 
-	//case short name
+	// case short name
 	ast.Equal(t, serviceName, shortName(dName, serviceName, SERVICE_SEPARATOR))
 	ast.Equal(t, roleName, shortName(dName, roleName, ROLE_SEPARATOR))
 }
@@ -113,13 +114,13 @@ func Test_convertToPublicKeyEntryList(t *testing.T) {
 
 func Test_splitServiceId(t *testing.T) {
 	serviceName := "openhouse"
-	//simple case:
+	// simple case:
 	serviceId := dName + SERVICE_SEPARATOR + serviceName
 	dn, sn, err := splitServiceId(serviceId)
 	ast.NilError(t, err)
 	ast.Equal(t, dName, dn)
 	ast.Equal(t, serviceName, sn)
-	//complex case:
+	// complex case:
 	domainName := "home.yahoo.sport.soccer"
 	serviceId = domainName + SERVICE_SEPARATOR + serviceName
 	dn, sn, err = splitServiceId(serviceId)

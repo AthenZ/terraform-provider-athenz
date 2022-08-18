@@ -2,8 +2,9 @@ package athenz
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -86,12 +87,12 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 				Description: description,
 				PublicKeys:  publicKeyList,
 			}
-
 			err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, &detail)
-
 			if err != nil {
 				return diag.FromErr(err)
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

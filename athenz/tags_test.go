@@ -32,7 +32,7 @@ func Test_makeTagsValue(t *testing.T) {
 	ast.DeepEqual(t, makeTagsValue(""), &zms.TagValueList{List: []zms.TagCompoundValue{}})
 }
 
-//works if changing in line 59 from .(*schema.Set).List() to .([]interface)
+// works if changing in line 59 from .(*schema.Set).List() to .([]interface)
 func Test_expandRoleTags(t *testing.T) {
 	actual := expandRoleTags(map[string]interface{}{"key1": "v1k1,v2k1", "key2": "v1k2,v2k2,v3k2"})
 	expected := buildMapForSchemaTest([]string{"key1", "key2"}, []int{2, 3}, []string{"v1k1", "v2k1", "v1k2", "v2k2", "v3k2"})
@@ -104,7 +104,7 @@ func makeTagsSchemaArr(keys []string, sizes []int, values []string) []interface{
 		count = count + sizes[valLocation]
 		valLocation += 1
 		newMap["key"] = key
-		//newMap["values"] = newArr
+		// newMap["values"] = newArr
 
 		f := schema.SchemaSetFunc(func(interface{}) int { return rand.Int() })
 		newMap["values"] = schema.NewSet(f, newArr)

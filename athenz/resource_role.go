@@ -2,9 +2,10 @@ package athenz
 
 import (
 	"context"
+	"log"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"log"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 
@@ -82,6 +83,8 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			if err != nil {
 				return diag.FromErr(err)
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)

@@ -66,7 +66,7 @@ func expandPolicyVersion(policyVersion interface{}, domainName string) (string, 
 	return versionName, versionAssertion
 }
 
-//return all version names that existing in old version but not in the new versions
+// return all version names that existing in old version but not in the new versions
 func getVersionsNamesToRemove(oldVersions, newVersions []interface{}) []string {
 	toReturn := make([]string, 0)
 	var exist bool

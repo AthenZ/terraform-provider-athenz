@@ -3,12 +3,13 @@ package athenz
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 )
 
 func ResourcePolicyVersion() *schema.Resource {
@@ -142,13 +143,15 @@ func resourcePolicyVersionCreate(ctx context.Context, d *schema.ResourceData, me
 				}
 				policyVersions = append(policyVersions, policyVersion)
 			}
-			//must put the active version first
+			// must put the active version first
 			policyVersions[0], policyVersions[activeVersionIndex] = policyVersions[activeVersionIndex], policyVersions[0]
 			for _, policyVersion := range policyVersions {
 				if err := zmsClient.PutPolicy(dn, pn, auditRef, &policyVersion); err != nil {
 					return diag.FromErr(err)
 				}
 			}
+		} else {
+			return diag.FromErr(err)
 		}
 	case rdl.Any:
 		return diag.FromErr(err)
@@ -204,7 +207,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 					zmsPolicyVersion = zms.NewPolicy()
 					zmsPolicyVersion.Name = zms.ResourceName(dn + POLICY_SEPARATOR + pn)
 					zmsPolicyVersion.Version = zms.SimpleName(versionName)
-					//at first, each new version is added as inactive
+					// at first, each new version is added as inactive
 					active := false
 					zmsPolicyVersion.Active = &active
 				}

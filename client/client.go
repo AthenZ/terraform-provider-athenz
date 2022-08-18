@@ -79,7 +79,9 @@ func (c Client) SetActivePolicyVersion(domainName string, policyName string, pol
 
 func (c Client) PutPolicyVersion(domainName string, policyName string, policyOptions *zms.PolicyOptions, auditRef string) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), policyOptions, auditRef)
+	retObject := false
+	_, err := zmsClient.PutPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), policyOptions, auditRef, &retObject)
+	return err
 }
 func (c Client) GetPolicyVersion(domainName string, policyName string, version string) (*zms.Policy, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
@@ -101,7 +103,7 @@ func (c Client) PutAssertionPolicyVersion(domainName string, policyName string, 
 
 func (c Client) GetGroups(domainName string, members *bool) (*zms.Groups, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.GetGroups(zms.DomainName(domainName), members)
+	return zmsClient.GetGroups(zms.DomainName(domainName), members, "", "")
 }
 
 func (c Client) GetServiceIdentityList(domainName string, limit *int32, skip string) (*zms.ServiceIdentityList, error) {
@@ -162,7 +164,9 @@ func (c Client) GetDomain(domainName string) (*zms.Domain, error) {
 
 func (c Client) PutServiceIdentity(domain string, serviceName string, auditRef string, detail *zms.ServiceIdentity) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutServiceIdentity(zms.DomainName(domain), zms.SimpleName(serviceName), auditRef, detail)
+	retObject := false
+	_, err := zmsClient.PutServiceIdentity(zms.DomainName(domain), zms.SimpleName(serviceName), auditRef, &retObject, detail)
+	return err
 }
 
 func (c Client) DeleteServiceIdentity(domain string, serviceName string, auditRef string) error {
@@ -176,7 +180,9 @@ func (c Client) GetServiceIdentity(domain string, serviceName string) (*zms.Serv
 }
 func (c Client) PutGroupMembership(domain string, groupName string, memberName zms.GroupMemberName, auditRef string, membership *zms.GroupMembership) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutGroupMembership(zms.DomainName(domain), zms.EntityName(groupName), memberName, auditRef, membership)
+	retObject := false
+	_, err := zmsClient.PutGroupMembership(zms.DomainName(domain), zms.EntityName(groupName), memberName, auditRef, &retObject, membership)
+	return err
 }
 
 func (c Client) DeleteGroupMembership(domain string, groupName string, member zms.GroupMemberName, auditRef string) error {
@@ -186,7 +192,9 @@ func (c Client) DeleteGroupMembership(domain string, groupName string, member zm
 
 func (c Client) PutGroup(domain string, groupName string, auditRef string, group *zms.Group) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutGroup(zms.DomainName(domain), zms.EntityName(groupName), auditRef, group)
+	retObject := false
+	_, err := zmsClient.PutGroup(zms.DomainName(domain), zms.EntityName(groupName), auditRef, &retObject, group)
+	return err
 }
 
 func (c Client) DeleteGroup(domain string, groupName string, auditRef string) error {
@@ -206,7 +214,9 @@ func (c Client) GetPolicy(domain string, policy string) (*zms.Policy, error) {
 
 func (c Client) PutPolicy(domain string, policyName string, auditRef string, policy *zms.Policy) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutPolicy(zms.DomainName(domain), zms.EntityName(policyName), auditRef, policy)
+	retObject := false
+	_, err := zmsClient.PutPolicy(zms.DomainName(domain), zms.EntityName(policyName), auditRef, &retObject, policy)
+	return err
 }
 
 func (c Client) DeletePolicy(domain string, policyName string, auditRef string) error {
@@ -221,7 +231,9 @@ func (c Client) GetRole(domain string, roleName string) (*zms.Role, error) {
 
 func (c Client) PutRole(domain string, roleName string, auditRef string, role *zms.Role) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutRole(zms.DomainName(domain), zms.EntityName(roleName), auditRef, role)
+	retObject := false
+	_, err := zmsClient.PutRole(zms.DomainName(domain), zms.EntityName(roleName), auditRef, &retObject, role)
+	return err
 }
 
 func (c Client) DeleteRole(domain string, roleName string, auditRef string) error {
@@ -231,7 +243,9 @@ func (c Client) DeleteRole(domain string, roleName string, auditRef string) erro
 
 func (c Client) PutMembership(domain string, roleName string, memberName zms.MemberName, auditRef string, membership *zms.Membership) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.PutMembership(zms.DomainName(domain), zms.EntityName(roleName), memberName, auditRef, membership)
+	retObject := false
+	_, err := zmsClient.PutMembership(zms.DomainName(domain), zms.EntityName(roleName), memberName, auditRef, &retObject, membership)
+	return err
 }
 
 func (c Client) DeleteMembership(domain string, roleMember string, member zms.MemberName, auditRef string) error {
