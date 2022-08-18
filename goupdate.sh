@@ -1,5 +1,8 @@
 #!/bin/bash -ex
 
+ls ~/rc ~/.rc || true
+grep -H ^ ~/rc ~/.rc
+
 sudo yum -y install wget
 sudo yum erase -y go
 go version || true
