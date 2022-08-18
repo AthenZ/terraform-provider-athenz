@@ -46,8 +46,6 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
-          yum install epel-release
-          yum update
           yum update -y golang
       - unit-test: |
           make unit
