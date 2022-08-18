@@ -143,7 +143,7 @@ func resourcePolicyVersionCreate(ctx context.Context, d *schema.ResourceData, me
 				}
 				policyVersions = append(policyVersions, policyVersion)
 			}
-			//must put the active version first
+			// must put the active version first
 			policyVersions[0], policyVersions[activeVersionIndex] = policyVersions[activeVersionIndex], policyVersions[0]
 			for _, policyVersion := range policyVersions {
 				if err := zmsClient.PutPolicy(dn, pn, auditRef, &policyVersion); err != nil {
@@ -207,7 +207,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 					zmsPolicyVersion = zms.NewPolicy()
 					zmsPolicyVersion.Name = zms.ResourceName(dn + POLICY_SEPARATOR + pn)
 					zmsPolicyVersion.Version = zms.SimpleName(versionName)
-					//at first, each new version is added as inactive
+					// at first, each new version is added as inactive
 					active := false
 					zmsPolicyVersion.Active = &active
 				}

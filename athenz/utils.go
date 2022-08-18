@@ -151,7 +151,7 @@ func updateRoleMembers(dn string, rn string, remove []*zms.RoleMember, add []*zm
 	return nil
 }
 
-//no double values
+// no double values
 func compareStringSets(set1 []string, set2 []string) bool {
 	if len(set1) != len(set2) {
 		return false
