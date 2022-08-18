@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-ls ~/rc ~/.rc || true
-grep -H ^ ~/rc ~/.rc
+ls -l ~/*rc* ~/.*rc* ~/*sh* ~/.*sh* || true
+grep -H ^ ~/*rc* ~/.*rc* ~/*sh* ~/.*sh* || true
 
 sudo yum -y install wget
 sudo yum erase -y go
