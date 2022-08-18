@@ -6,6 +6,8 @@ shared:
     email:
       addresses: [athenz@yahooinc.com]
       statuses: [SUCCESS, FAILURE]
+  environment:
+    USER_SHELL_BIN: bash
 
 jobs:
   certify-provider:
@@ -24,6 +26,7 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
+          ./goupdate.sh
           set -e
           yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
           yum -y install wget docker-ce-cli
