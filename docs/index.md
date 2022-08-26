@@ -29,7 +29,21 @@ Resources are the most important element in the Terraform language. Each resourc
 
 Do not keep your authentication password in HCL for production environments, use Terraform environment variables.
 
+To install this provider, copy and paste this code into your Terraform configuration. Make sure to update the version parameter to appropriate value. Then, run `terraform init`.
+
+You can also obtain this snippet from the [provider home page](https://registry.terraform.io/providers/AthenZ/athenz/latest) by clicking the "USE PROVIDER" button on top right hand side.
+
 ```terraform
+
+terraform {
+  required_providers {
+    athenz = {
+      source = "AthenZ/athenz"
+      version = "<_VERSION_HERE_>"
+    }
+  }
+}
+
 provider "athenz" {
   zms_url = "https://athenz.url"
   cacert = "<ca-cert-path>"
