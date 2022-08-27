@@ -20,7 +20,7 @@ func policyVersionAssertionSchema() *schema.Schema {
 				if len(assertionMap) != 4 {
 					errors = append(errors, fmt.Errorf("assertion: %v is invalid. each assertion must be exactly 4 items", assertionMap))
 				}
-				validKeys := []string{"effect", "action", "role", "resource"}
+				validKeys := []string{"effect", "action", "role", "resource", "case_sensitive"}
 				var valid bool
 				for key := range assertionMap {
 					valid = false
@@ -56,12 +56,17 @@ func expandPolicyAssertions(dn string, configured []interface{}) []*zms.Assertio
 		role := dn + ROLE_SEPARATOR + data["role"].(string)
 		resource := data["resource"].(string)
 		effect := zms.NewAssertionEffect(strings.ToUpper(data["effect"].(string)))
+		var caseSensitive *bool
+		if cs, ok := data["case_sensitive"].(bool); ok {
+			caseSensitive = &cs
+		}
 
 		a := &zms.Assertion{
-			Role:     role,
-			Resource: resource,
-			Action:   data["action"].(string),
-			Effect:   &effect,
+			Role:          role,
+			Resource:      resource,
+			Action:        data["action"].(string),
+			Effect:        &effect,
+			CaseSensitive: caseSensitive,
 		}
 
 		assertions = append(assertions, a)
