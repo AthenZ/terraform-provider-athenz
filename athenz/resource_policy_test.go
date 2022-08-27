@@ -209,13 +209,13 @@ name = "%s"
     action="*"
     role="${athenz_role.forPolicyTest.name}"
     resource="%sservice.ows"
-	case_sensitive=true
+    case_sensitive=true
   },{
     effect="DENY"
     action="play"
     role="${athenz_role.%s.name}"
     resource="%sservice.ows"
-	case_sensitive=true
+    case_sensitive=true
   }]
 }
 `, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
