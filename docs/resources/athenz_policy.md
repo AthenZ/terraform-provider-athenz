@@ -46,7 +46,7 @@ The following arguments are supported:
       
     - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name: `<domain name>:<resource name>`
       
-    - `case-sensitive` - (Optional) If true, action and resource will be case-sensitive.
+    - `case_sensitive` - (Optional) If true, action and resource will be case-sensitive.
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.

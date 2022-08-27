@@ -74,7 +74,7 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
-					resource.TestCheckResourceAttr(resName, "case-sensitive", "true"),
+					resource.TestCheckResourceAttr(resName, "case_sensitive", "true"),
 				),
 			},
 			{
@@ -209,13 +209,13 @@ name = "%s"
     action="*"
     role="${athenz_role.forPolicyTest.name}"
     resource="%sservice.ows"
-	case-sensitive=true
+	case_sensitive=true
   },{
     effect="DENY"
     action="play"
     role="${athenz_role.%s.name}"
     resource="%sservice.ows"
-	case-sensitive=true
+	case_sensitive=true
   }]
 }
 `, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
