@@ -68,6 +68,16 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccGroupConfigAddAssertionWithCaseSensitivity(resourceRole, name, domainName, resourceRoleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyExists(resName, &policy),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resName, "case-sensitive", "true"),
+				),
+			},
+			{
 				Config: testAccGroupConfigRemoveAssertion(resourceRole, name, domainName, resourceRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyExists(resName, &policy),
@@ -183,6 +193,29 @@ name = "%s"
     action="play"
     role="${athenz_role.%s.name}"
     resource="%sservice.ows"
+  }]
+}
+`, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccGroupConfigAddAssertionWithCaseSensitivity(resourceRole, name, domain, resourceRoleName string) string {
+	return fmt.Sprintf(`
+%s
+resource "athenz_policy" "policyTest" {
+name = "%s"
+  domain = "%s"
+  assertion = [{
+    effect="ALLOW"
+    action="*"
+    role="${athenz_role.forPolicyTest.name}"
+    resource="%sservice.ows"
+	case-sensitive=true
+  },{
+    effect="DENY"
+    action="play"
+    role="${athenz_role.%s.name}"
+    resource="%sservice.ows"
+	case-sensitive=true
   }]
 }
 `, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
