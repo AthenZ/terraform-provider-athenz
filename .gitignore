@@ -35,3 +35,10 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+
+# auto generated files
+docker/sample/CAs/athenz_ca.pem
+docker/sample/domain-admin/domain_admin_cert.pem
+docker/sample/domain-admin/domain_admin_key.pem
+docker/zms/conf/zms.properties
+local-sys-test/
