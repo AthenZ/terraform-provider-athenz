@@ -118,14 +118,20 @@ docker run -t -h "${ZMS_HOST}" \
 echo "wait for ZMS to be ready ZMS_HOST: ${ZMS_HOST} : "
 
 # wait for ZMS to be ready
+RETRY=1
 until docker run --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --name athenz-curl athenz/athenz-setup-env:latest \
     -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
     ; do
-    echo 'ZMS is unavailable - will sleep 3s...'
-    sleep 3
+    if (( RETRY == 20 )) ; then
+        echo "failed to athenz-zms-server. please run make clean and try again"
+        exit 1
+    fi
+    RETRY=$(( RETRY + 1 ))
+    echo 'ZMS is unavailable - will sleep 5s...'
+    sleep 5
 done
 
 echo 'ZMS is up!' | colored_cat g
