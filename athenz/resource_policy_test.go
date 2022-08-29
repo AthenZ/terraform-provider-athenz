@@ -73,8 +73,9 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 					testAccCheckGroupPolicyExists(resName, &policy),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
+					resource.TestCheckResourceAttr(resName, "assertion.0.case_sensitive", "true"),
+					resource.TestCheckResourceAttr(resName, "assertion.1.case_sensitive", "true"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
-					resource.TestCheckResourceAttr(resName, "case_sensitive", "true"),
 				),
 			},
 			{

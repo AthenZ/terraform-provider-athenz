@@ -82,6 +82,11 @@ func ResourcePolicy() *schema.Resource {
 								return
 							},
 						},
+						"case_sensitive": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},

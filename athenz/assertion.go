@@ -56,9 +56,9 @@ func expandPolicyAssertions(dn string, configured []interface{}) []*zms.Assertio
 		role := dn + ROLE_SEPARATOR + data["role"].(string)
 		resource := data["resource"].(string)
 		effect := zms.NewAssertionEffect(strings.ToUpper(data["effect"].(string)))
-		var caseSensitive *bool
+		var caseSensitive bool = false
 		if cs, ok := data["case_sensitive"].(bool); ok {
-			caseSensitive = &cs
+			caseSensitive = cs
 		}
 
 		a := &zms.Assertion{
@@ -66,7 +66,7 @@ func expandPolicyAssertions(dn string, configured []interface{}) []*zms.Assertio
 			Resource:      resource,
 			Action:        data["action"].(string),
 			Effect:        &effect,
-			CaseSensitive: caseSensitive,
+			CaseSensitive: &caseSensitive,
 		}
 
 		assertions = append(assertions, a)
@@ -82,12 +82,17 @@ func flattenPolicyAssertion(list []*zms.Assertion) []interface{} {
 		resource := a.Resource
 		effect := a.Effect.String()
 		action := a.Action
+		caseSensitive := false
+		if a.CaseSensitive != nil {
+			caseSensitive = *a.CaseSensitive
+		}
 
 		a := map[string]interface{}{
-			"role":     role,
-			"resource": resource,
-			"action":   action,
-			"effect":   effect,
+			"role":           role,
+			"resource":       resource,
+			"action":         action,
+			"effect":         effect,
+			"case_sensitive": caseSensitive,
 		}
 		policyAssertions = append(policyAssertions, a)
 	}
