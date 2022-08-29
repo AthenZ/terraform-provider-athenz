@@ -45,19 +45,19 @@ export SYS_TEST_CA_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/
 export SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem"
 export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
 
-# Fist, create the sys test domain and run several tests using the latest terraform provider
+# First, create the sys test domain and run several tests using the latest terraform provider
 cd sys-test
 if ! terraform init ; then
-    echo "terraform apply failed!"
+    echo "terraform init failed!"
     EXIT_CODE=1
 fi
 if ! terraform apply -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars" ; then
-    echo "terraform init failed!"
+    echo "terraform apply failed!"
     EXIT_CODE=1
 fi
 cd ..
 
-# First, run terraform acceptance tests
+# Then, run terraform acceptance tests
 if ! make acc_test ; then
     echo "acceptance test failed!"
     EXIT_CODE=1

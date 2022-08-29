@@ -51,20 +51,31 @@ openssl rsa -pubout -in "${ZMS_PRIVATE_KEY_PATH}" -out "${ZMS_PUBLIC_KEY_PATH}"
 echo '4. create ZMS trust store for HTTPS connections' | colored_cat g
 rm -f "${ZMS_TRUSTSTORE_PATH}"
 
+set -x
 CERT_ALIAS='athenz_ca'
-openssl x509 -outform pem -in "${ATHENZ_CA_PATH}" | keytool -importcert -noprompt \
+while ! openssl x509 -outform pem -in "${ATHENZ_CA_PATH}" | timeout 3 keytool -importcert -noprompt \
     -keystore "${ZMS_TRUSTSTORE_PATH}" -storepass "${ZMS_TRUSTSTORE_PASS}" \
-    -storetype JKS -alias "${CERT_ALIAS}"
+    -storetype JKS -alias "${CERT_ALIAS}" ; do
+    echo "retry openssl x509 -outform pem -in ${ATHENZ_CA_PATH}"
+    sleep 3
+done    
 
 CERT_ALIAS='user_ca'
-openssl x509 -outform pem -in "${USER_CA_PATH}" | keytool -importcert -noprompt \
+while ! openssl x509 -outform pem -in "${USER_CA_PATH}" | timeout 3 keytool -importcert -noprompt \
     -keystore "${ZMS_TRUSTSTORE_PATH}" -storepass "${ZMS_TRUSTSTORE_PASS}" \
-    -storetype JKS -alias "${CERT_ALIAS}"
+    -storetype JKS -alias "${CERT_ALIAS}" ; do
+     echo "retry openssl x509 -outform pem -in ${USER_CA_PATH}"
+     sleep 3
+ done
 
 CERT_ALIAS='service_ca'
-openssl x509 -outform pem -in "${SERVICE_CA_PATH}" | keytool -importcert -noprompt \
+while ! openssl x509 -outform pem -in "${SERVICE_CA_PATH}" | timeout 3 keytool -importcert -noprompt \
     -keystore "${ZMS_TRUSTSTORE_PATH}" -storepass "${ZMS_TRUSTSTORE_PASS}" \
-    -storetype JKS -alias "${CERT_ALIAS}"
+    -storetype JKS -alias "${CERT_ALIAS}" ; do
+    echo "retry openssl x509 -outform pem -in ${CERT_ALIAS}"
+    sleep 3
+done
+set +x
 
 echo '5. create ZMS key store with ZMS server certificate' | colored_cat g
 openssl pkcs12 -export -noiter -nomaciter \
