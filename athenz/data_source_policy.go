@@ -22,31 +22,7 @@ func DataSourcePolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"assertion": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: false,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"effect": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"action": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"role": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"resource": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
+			"assertion": dataSourceAssertionSchema(),
 		},
 	}
 }

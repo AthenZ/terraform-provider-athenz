@@ -125,7 +125,7 @@ until docker run --rm --entrypoint curl \
     --name athenz-curl athenz/athenz-setup-env:latest \
     -k -vvv "https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/status" \
     ; do
-    if (( RETRY == 20 )) ; then
+    if (( RETRY == 36 )) ; then # wait for 3 minutes
         echo "failed to athenz-zms-server. please run make clean and try again"
         exit 1
     fi

@@ -80,6 +80,45 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupCreatePolicyWithAssertions(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	var policy zms.Policy
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	resName := "athenz_policy.policyTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	name := fmt.Sprintf("test%d", rInt)
+	resourceRoleName := "forPolicyTest"
+	resourceRole := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, resourceRoleName, name, domainName)
+	t.Cleanup(func() {
+		cleanAllAccTestPolicies(domainName, []string{name}, []string{name})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupConfigCreatePolicyWithAssertions(resourceRole, name, domainName, resourceRoleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyExists(resName, &policy),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestPolicies(domain string, policies, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, policyName := range policies {
@@ -202,4 +241,25 @@ name = "%s"
   }]
 }
 `, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccGroupConfigCreatePolicyWithAssertions(resourceRole, name, domain, resourceRoleName string) string {
+	return fmt.Sprintf(`
+%s
+resource "athenz_policy" "policyTest" {
+name = "%s"
+  domain = "%s"
+  assertion = [{
+    effect="ALLOW"
+    action="*"
+    role="${athenz_role.forPolicyTest.name}"
+    resource="%sservice.ows"
+  },{
+    effect="DENY"
+    action="play"
+    role="${athenz_role.%s.name}"
+    resource="%sservice.ows"
+  }]
+}
+`, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
 }

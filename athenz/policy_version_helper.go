@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // validate that the name of active version existing in version names
@@ -62,7 +61,7 @@ func getRelevantPolicyVersions(policies []*zms.Policy, policyName string) []*zms
 func expandPolicyVersion(policyVersion interface{}, domainName string) (string, []*zms.Assertion) {
 	data := policyVersion.(map[string]interface{})
 	versionName := data["version_name"].(string)
-	versionAssertion := expandPolicyAssertions(domainName, data["assertion"].(*schema.Set).List())
+	versionAssertion := expandPolicyAssertions(domainName, data["assertion"].([]interface{}))
 	return versionName, versionAssertion
 }
 
