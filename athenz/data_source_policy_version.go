@@ -39,7 +39,7 @@ func DataSourcePolicyVersion() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"assertion": policyVersionAssertionSchema(),
+						"assertion": dataSourceAssertionSchema(),
 					},
 				},
 			},

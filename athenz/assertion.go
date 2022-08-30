@@ -1,50 +1,87 @@
 package athenz
 
 import (
-	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func policyVersionAssertionSchema() *schema.Schema {
+func dataSourceAssertionSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:       schema.TypeSet,
 		ConfigMode: schema.SchemaConfigModeAttr,
 		Optional:   true,
-		Elem: &schema.Schema{
-			Type: schema.TypeMap,
-			ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
-				assertionMap := i.(map[string]interface{})
-				if len(assertionMap) != 4 {
-					errors = append(errors, fmt.Errorf("assertion: %v is invalid. each assertion must be exactly 4 items", assertionMap))
-				}
-				validKeys := []string{"effect", "action", "role", "resource"}
-				var valid bool
-				for key := range assertionMap {
-					valid = false
-					for _, validKay := range validKeys {
-						if key == validKay {
-							valid = true
-							break
-						}
-					}
-					if !valid {
-						errors = append(errors, fmt.Errorf("assertion: %v is invalid. the asserion key must matchs one of the follwoing: %v", assertionMap, validKeys))
-					}
-				}
-				err := validateRoleNameWithinAssertion(assertionMap["role"].(string))
-				if err != nil {
-					errors = append(errors, err)
-				}
-				err = validateResourceNameWithinAssertion(assertionMap["resource"].(string))
-				if err != nil {
-					errors = append(errors, err)
-				}
-				return
+		Computed:   false,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"effect": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"action": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"role": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"resource": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
 			},
-			Elem: &schema.Schema{Type: schema.TypeString, Required: true},
+		},
+	}
+}
+
+func resourceAssertionSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		Optional:   true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"effect": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"ALLOW",
+						"DENY",
+					}, false),
+					StateFunc: func(v interface{}) string {
+						return strings.ToUpper(v.(string))
+					},
+				},
+				"action": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"role": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
+						err := validateRoleNameWithinAssertion(i.(string))
+						if err != nil {
+							errors = append(errors, err)
+						}
+						return
+					},
+				},
+				"resource": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
+						err := validateResourceNameWithinAssertion(i.(string))
+						if err != nil {
+							errors = append(errors, err)
+						}
+						return
+					},
+				},
+			},
 		},
 	}
 }

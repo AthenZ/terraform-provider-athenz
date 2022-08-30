@@ -3,13 +3,12 @@ package athenz
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
 )
 
 func ResourcePolicyVersion() *schema.Resource {
@@ -56,7 +55,7 @@ func ResourcePolicyVersion() *schema.Resource {
 								return
 							},
 						},
-						"assertion": policyVersionAssertionSchema(),
+						"assertion": resourceAssertionSchema(),
 					},
 				},
 			},
@@ -211,7 +210,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 					active := false
 					zmsPolicyVersion.Active = &active
 				}
-				assertions := expandPolicyAssertions(dn, policyVersion["assertion"].(*schema.Set).List())
+				assertions := expandPolicyAssertions(dn, policyVersion["assertion"].([]interface{}))
 				zmsPolicyVersion.Assertions = assertions
 				if err = zmsClient.PutPolicy(dn, pn, auditRef, zmsPolicyVersion); err != nil {
 					return diag.FromErr(err)

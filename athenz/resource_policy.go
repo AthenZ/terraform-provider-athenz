@@ -2,12 +2,8 @@ package athenz
 
 import (
 	"context"
-	"log"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 
@@ -38,53 +34,7 @@ func ResourcePolicy() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"assertion": {
-				Type:       schema.TypeSet,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Optional:   true,
-				Computed:   false,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"effect": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"ALLOW",
-								"DENY",
-							}, false),
-							StateFunc: func(v interface{}) string {
-								return strings.ToUpper(v.(string))
-							},
-						},
-						"action": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"role": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
-								err := validateRoleNameWithinAssertion(i.(string))
-								if err != nil {
-									errors = append(errors, err)
-								}
-								return
-							},
-						},
-						"resource": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(i interface{}, s string) (ws []string, errors []error) {
-								err := validateResourceNameWithinAssertion(i.(string))
-								if err != nil {
-									errors = append(errors, err)
-								}
-								return
-							},
-						},
-					},
-				},
-			},
+			"assertion": resourceAssertionSchema(),
 			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -144,8 +94,8 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 				Name:     zms.ResourceName(fullResourceName),
 				Modified: nil,
 			}
-			if v, ok := d.GetOk("assertion"); ok && v.(*schema.Set).Len() > 0 {
-				policy.Assertions = expandPolicyAssertions(dn, v.(*schema.Set).List())
+			if v, ok := d.GetOk("assertion"); ok && len(v.([]interface{})) > 0 {
+				policy.Assertions = expandPolicyAssertions(dn, v.([]interface{}))
 			} else {
 				policy.Assertions = make([]*zms.Assertion, 0)
 			}
@@ -185,9 +135,9 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 	if d.HasChange("assertion") {
 		_, newVal := d.GetChange("assertion")
 		if newVal == nil {
-			newVal = new(schema.Set)
+			newVal = new([]interface{})
 		}
-		ns := newVal.(*schema.Set).List()
+		ns := newVal.([]interface{})
 		policy.Assertions = expandPolicyAssertions(dn, ns)
 		auditRef := d.Get("audit_ref").(string)
 		err = zmsClient.PutPolicy(dn, pn, auditRef, policy)
