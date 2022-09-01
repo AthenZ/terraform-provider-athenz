@@ -29,7 +29,7 @@ func DataSourcePolicyVersion() *schema.Resource {
 				Computed:    true,
 				Description: "The policy version that will be active",
 			},
-			"versions": {
+			"version": {
 				Type:       schema.TypeSet,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Computed:   true,
@@ -78,7 +78,7 @@ func dataSourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, me
 	if err = d.Set("active_version", activeVersion); err != nil {
 		return diag.FromErr(err)
 	}
-	if err = d.Set("versions", flattenPolicyVersions(policyVersionList)); err != nil {
+	if err = d.Set("version", flattenPolicyVersions(policyVersionList)); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil

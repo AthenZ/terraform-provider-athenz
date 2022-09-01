@@ -1,6 +1,7 @@
 package athenz
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,15 +22,15 @@ func getFlattedRoleMembers() []interface{} {
 	return []interface{}{"member1", "member2"}
 }
 
-func getZmsAssertions(roleName, resourceName string) []*zms.Assertion {
+func getZmsAssertions(roleName, resourceName string, caseSensitive bool) []*zms.Assertion {
 	effect := zms.ALLOW
 	return []*zms.Assertion{
-		{Role: roleName, Resource: resourceName, Action: "*", Effect: &effect},
+		{Role: roleName, Resource: resourceName, Action: "*", Effect: &effect, CaseSensitive: &caseSensitive},
 	}
 }
 func getFlattedAssertions(roleName, resourceName string) []interface{} {
 	return []interface{}{
-		map[string]interface{}{"action": "*", "effect": "ALLOW", "resource": resourceName, "role": roleName},
+		map[string]interface{}{"action": "*", "effect": "ALLOW", "resource": resourceName, "role": roleName, "case_sensitive": false},
 	}
 }
 
@@ -74,13 +75,42 @@ func Test_expandRoleMembers(t *testing.T) {
 func Test_flattenPolicyAssertion(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName)), getFlattedAssertions(roleName, resourceName))
+	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false)), getFlattedAssertions(roleName, resourceName))
 }
 
 func Test_expandPolicyAssertions(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName))
+	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false))
+}
+
+func Test_validateCaseSensitiveValue(t *testing.T) {
+	action := "PLAY"
+	resource := `dom:OWS`
+
+	// valid cases
+	ast.NilError(t, validateCaseSensitiveValue(true, action, resource))
+	ast.NilError(t, validateCaseSensitiveValue(true, strings.ToLower(action), resource))
+	ast.NilError(t, validateCaseSensitiveValue(true, action, strings.ToLower(resource)))
+	ast.NilError(t, validateCaseSensitiveValue(false, strings.ToLower(action), strings.ToLower(resource)))
+
+	//invalid cases
+	ast.NilError(t, validateCaseSensitiveValue(false, action, resource))
+	ast.NilError(t, validateCaseSensitiveValue(false, strings.ToLower(action), resource))
+	ast.NilError(t, validateCaseSensitiveValue(false, action, strings.ToLower(resource)))
+}
+
+func Test_inferCaseSensitiveValue(t *testing.T) {
+	action := "PLAY"
+	resource := `dom:OWS`
+
+	// false case
+	ast.Equal(t, false, inferCaseSensitiveValue(strings.ToLower(action), strings.ToLower(resource)))
+
+	// true cases
+	ast.Equal(t, true, inferCaseSensitiveValue(action, resource))
+	ast.Equal(t, true, inferCaseSensitiveValue(strings.ToLower(action), resource))
+	ast.Equal(t, true, inferCaseSensitiveValue(action, strings.ToLower(resource)))
 }
 
 func Test_getShortName(t *testing.T) {

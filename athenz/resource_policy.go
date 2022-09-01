@@ -2,10 +2,9 @@ package athenz
 
 import (
 	"context"
+	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
-
-	"github.com/AthenZ/athenz/clients/go/zms"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -41,12 +40,15 @@ func ResourcePolicy() *schema.Resource {
 				Default:  AUDIT_REF,
 			},
 		},
+		// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
+		CustomizeDiff: validateAssertion(),
 	}
 }
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, pn, err := splitPolicyId(d.Id())
+	d.Get("assertion")
 	if err != nil {
 		return diag.FromErr(err)
 	}
