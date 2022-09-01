@@ -11,17 +11,25 @@ The policy resource provides an Athenz policy resource.
 
 ### Example Usage
 
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax 
+
 ```hcl
 resource "athenz_policy" "foo_policy" {
   name = "foo"
   domain = "some_domain"
-  assertion = [
-    {
+  assertion {
       effect = "ALLOW"
       action = "some_action"
       role = "some_role_name"
       resource = "some_domain:some_resource"
-  }]
+  }
+  assertion {
+    effect = "ALLOW"
+    action = "SOME_ACTION"
+    role = "some_role_name"
+    resource = "some_domain:some_resource"
+    case_sensitive = true
+  }
   audit_ref = "create policy"
 }
 ```
@@ -45,6 +53,9 @@ The following arguments are supported:
     - `action` - (Required) The action is the domain administrator defined action available for the resource (e.g. read, write, delete).
       
     - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name: `<domain name>:<resource name>`
+  
+    - `case_sensitive` - (Optional Default = false) If true, action and resource will be case-sensitive.
+
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.

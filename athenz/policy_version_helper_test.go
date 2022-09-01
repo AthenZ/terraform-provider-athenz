@@ -1,6 +1,7 @@
 package athenz
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -11,7 +12,7 @@ import (
 func getZmsPolicyVersionsList(policyName, version1, version2, active, role, resource, action string, effect1, effect2 zms.AssertionEffect) []*zms.Policy {
 	assertion1 := getZmsAssertion(role, resource, action, effect1)
 	policy1 := getZmsPolicy(policyName, version1, active, []*zms.Assertion{&assertion1})
-	assertion2 := getZmsAssertion(role, resource, action, effect2)
+	assertion2 := getZmsAssertion(role, resource, strings.ToUpper(action), effect2)
 	policy2 := getZmsPolicy(policyName, version2, active, []*zms.Assertion{&assertion2})
 	return []*zms.Policy{&policy1, &policy2}
 }
@@ -36,10 +37,11 @@ func getZmsAssertion(role, resource, action string, effect zms.AssertionEffect) 
 func getPolicyVersions(versionName1, versionName2, roleName, resourceName, action string, effect1, effect2 zms.AssertionEffect) []interface{} {
 	assertionList1 := []interface{}{
 		map[string]interface{}{
-			"role":     roleName,
-			"resource": resourceName,
-			"action":   action,
-			"effect":   effect1.String(),
+			"role":           roleName,
+			"resource":       resourceName,
+			"action":         action,
+			"effect":         effect1.String(),
+			"case_sensitive": false,
 		},
 	}
 	version1 := map[string]interface{}{
@@ -48,10 +50,11 @@ func getPolicyVersions(versionName1, versionName2, roleName, resourceName, actio
 	}
 	assertionList2 := []interface{}{
 		map[string]interface{}{
-			"role":     roleName,
-			"resource": resourceName,
-			"action":   action,
-			"effect":   effect2.String(),
+			"role":           roleName,
+			"resource":       resourceName,
+			"action":         strings.ToUpper(action),
+			"effect":         effect2.String(),
+			"case_sensitive": true,
 		},
 	}
 	version2 := map[string]interface{}{

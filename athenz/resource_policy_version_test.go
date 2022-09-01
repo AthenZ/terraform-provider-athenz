@@ -60,7 +60,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version1),
-					resource.TestCheckResourceAttr(resName, "versions.#", "1"),
+					resource.TestCheckResourceAttr(resName, "version.#", "1"),
 				),
 			},
 			{
@@ -69,7 +69,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version1),
-					resource.TestCheckResourceAttr(resName, "versions.#", "1"),
+					resource.TestCheckResourceAttr(resName, "version.#", "1"),
 				),
 			},
 			{
@@ -78,7 +78,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version1),
-					resource.TestCheckResourceAttr(resName, "versions.#", "2"),
+					resource.TestCheckResourceAttr(resName, "version.#", "2"),
 				),
 			},
 			{
@@ -87,7 +87,7 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version2),
-					resource.TestCheckResourceAttr(resName, "versions.#", "2"),
+					resource.TestCheckResourceAttr(resName, "version.#", "2"),
 				),
 			},
 			{
@@ -96,27 +96,77 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2, version3}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version3),
-					resource.TestCheckResourceAttr(resName, "versions.#", "3"),
+					resource.TestCheckResourceAttr(resName, "version.#", "3"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigRemoveNonActiveVersion(resourceRole1, resourceRole3, name, domainName, version3, version1, version3, role1, role3),
+				Config: testAccGroupPolicyVersionConfigRemoveNonActiveVersion(resourceRole1, resourceRole2, resourceRole3, name, domainName, version3, version1, version3, role1, role3),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version3}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version3),
-					resource.TestCheckResourceAttr(resName, "versions.#", "2"),
+					resource.TestCheckResourceAttr(resName, "version.#", "2"),
 				),
 			},
 			{
-				Config: testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(resourceRole1, name, domainName, version1, version1, role1),
+				Config: testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(resourceRole1, resourceRole2, resourceRole3, name, domainName, version1, version1, role1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyVersionsExists(resName, []string{version1}),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "active_version", version1),
-					resource.TestCheckResourceAttr(resName, "versions.#", "1"),
+					resource.TestCheckResourceAttr(resName, "version.#", "1"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				),
+			},
+		},
+	})
+}
+
+func TestAccGroupPolicyVersionCaseSensitive(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	resName := "athenz_policy_version.policy_version_test"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	name := fmt.Sprintf("test%d", rInt)
+	version1 := "test_version_1"
+	version2 := "test_version_2"
+	role1 := "acctest_role1"
+	role2 := "acctest_role2"
+	resourceRole1 := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, role1, role1, domainName)
+	resourceRole2 := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, role2, role2, domainName)
+	t.Cleanup(func() {
+		cleanAllAccTestPoliciesVersion(domainName, []string{name}, []string{role1, role2})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupPolicyVersionsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupPolicyVersionConfigCaseSensitive(resourceRole1, resourceRole2, name, domainName, version1, version1, version2, role1, role2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyVersionsExists(resName, []string{version1, version2}),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					resource.TestCheckResourceAttr(resName, "active_version", version1),
+					resource.TestCheckResourceAttr(resName, "version.#", "2"),
+					resource.TestCheckResourceAttr(resName, "version.1.version_name", version2),
+					resource.TestCheckResourceAttr(resName, "version.1.assertion.0.case_sensitive", "false"),
+					resource.TestCheckResourceAttr(resName, "version.1.assertion.1.action", "PLAY"),
+					resource.TestCheckResourceAttr(resName, "version.1.assertion.1.resource", domainName+RESOURCE_SEPARATOR+"Resource2"),
+					resource.TestCheckResourceAttr(resName, "version.1.assertion.1.case_sensitive", "true"),
 				),
 			},
 		},
@@ -195,9 +245,9 @@ resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions{
+version{
 	version_name = "%s"
-	}
+ }
 }`, name, domain, activeVersion, version1)
 }
 func testAccGroupPolicyVersionConfigAddAssertion(role1, name, domain, activeVersion, version1, resource1Name string) string {
@@ -207,15 +257,15 @@ resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions {
-  version_name = "%s"
-  assertion = [{
-    effect = "ALLOW"
-    action = "*"
-    role = "${athenz_role.%s.name}"
-    resource = "%smendi_resource1"
-  }]
-}
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role = "${athenz_role.%s.name}"
+		resource = "%smendi_resource1"
+	}
+ }
 }`, role1, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR)
 }
 func testAccGroupPolicyVersionConfigAddNonActiveVersion(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
@@ -226,31 +276,30 @@ resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions {
-  version_name = "%s"
-  assertion = [{
-    effect = "ALLOW"
-    action = "*"
-    role="${athenz_role.%s.name}"
-    resource = "%smendi_resource1"
-  }]
-}
-
-versions {
-  version_name = "%s"
-  assertion  = [{
-    effect = "ALLOW"
-    action = "*"
-	role="${athenz_role.%s.name}"
-    resource = "%smendi_resource2"
-  },
-	{
-	role="${athenz_role.%s.name}"
-    effect = "DENY"
-    action = "play"
-    resource = "%smendi_resource2"
-  }]
-}
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource1"
+	}
+ }
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource2"
+	}
+	assertion	{
+		role="${athenz_role.%s.name}"
+		effect = "DENY"
+		action = "play"
+		resource = "%smendi_resource2"
+	}
+ }
 }
 `, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
 }
@@ -263,31 +312,31 @@ resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions {
- version_name = "%s"
- assertion = [{
-	effect = "ALLOW"
-	action = "*"
-	role="${athenz_role.%s.name}"
-	resource = "%smendi_resource1"
- }]
-}
+version {
+	 version_name = "%s"
+	 assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource1"
+	 }
+ }
 
-versions {
- version_name = "%s"
- assertion  = [{
-	effect = "ALLOW"
-	action = "*"
-	role="${athenz_role.%s.name}"
-	resource = "%smendi_resource2"
- },
- {
-	role="${athenz_role.%s.name}"
-	effect = "DENY"
-	action = "play"
-	resource = "%smendi_resource2"
- }]
-}
+version {
+	 version_name = "%s"
+	 assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource2"
+	 }
+	 assertion {
+		role="${athenz_role.%s.name}"
+		effect = "DENY"
+		action = "play"
+		resource = "%smendi_resource2"
+	 }
+ }
 }
 `, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
 }
@@ -301,114 +350,141 @@ resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions = [
-  {
-    version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
-	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource1"
-      }]
-  },
-  {
-    version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
-	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource2"
-      },
-      {
-	     role="${athenz_role.%s.name}"
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource1"
+	  }
+ }
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource2"
+	}
+	assertion {
+		 role="${athenz_role.%s.name}"
 		 effect = "DENY"
 		 action = "play"
 		 resource = "%smendi_resource2"
-      }
-	]
-  },
-  {
-    version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
-	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource3"
-      },
-      {
-	    role="${athenz_role.%s.name}"
+	}
+ }
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource3"
+	}
+	assertion {
+		role="${athenz_role.%s.name}"
 		effect = "DENY"
-        action = "play"
-        resource = "%smendi_resource3"
-      }]
-  }
-]
+		action = "play"
+		resource = "%smendi_resource3"
+	}
+ }
 }
 `, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR, version3, resource3Name, domain+RESOURCE_SEPARATOR, resource3Name, domain+RESOURCE_SEPARATOR)
 }
 
-func testAccGroupPolicyVersionConfigRemoveNonActiveVersion(role1, role3, name, domain, activeVersion, version1, version3, resource1Name, resource3Name string) string {
+func testAccGroupPolicyVersionConfigRemoveNonActiveVersion(role1, role2, role3, name, domain, activeVersion, version1, version3, resource1Name, resource3Name string) string {
 	return fmt.Sprintf(`
+%s
 %s
 %s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions = [
-  {
-    version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
-	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource1"
-      }]
-  },
-  {
-    version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
-	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource3"
-      },
-      {
-	    role="${athenz_role.%s.name}"
-        effect = "DENY"
-        action = "play"
-        resource = "%smendi_resource3"
-      }]
-  }
-]
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource1"
+	  }
 }
-`, role1, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version3, resource3Name, domain+RESOURCE_SEPARATOR, resource3Name, domain+RESOURCE_SEPARATOR)
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%smendi_resource3"
+	}
+	assertion {
+		role="${athenz_role.%s.name}"
+		effect = "DENY"
+		action = "play"
+		resource = "%smendi_resource3"
+	}
+}
+}
+`, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version3, resource3Name, domain+RESOURCE_SEPARATOR, resource3Name, domain+RESOURCE_SEPARATOR)
 }
 
-func testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(role1, name, domain, activeVersion, version1, resource1Name string) string {
+func testAccGroupPolicyVersionConfigRemovePreviousActiveVersion(role1, role2, role3, name, domain, activeVersion, version1, resource1Name string) string {
 	return fmt.Sprintf(`
+%s
+%s
 %s
 resource "athenz_policy_version" "policy_version_test" {
 name = "%s"
 domain = "%s"
 active_version = "%s"
-versions = [
-  {
+version {
     version_name = "%s"
-    assertion = [
-      {
-        effect = "ALLOW"
-        action = "*"
+    assertion {
+       effect = "ALLOW"
+       action = "*"
 	    role="${athenz_role.%s.name}"
-        resource = "%smendi_resource1"
-      }]
-  }
-]
+       resource = "%smendi_resource1"
+     }
+ }
 }
-`, role1, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR)
+`, role1, role2, role3, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccGroupPolicyVersionConfigCaseSensitive(role1, role2, name, domain, activeVersion, version1, version2, resource1Name, resource2Name string) string {
+	return fmt.Sprintf(`
+%s
+%s
+resource "athenz_policy_version" "policy_version_test" {
+name = "%s"
+domain = "%s"
+active_version = "%s"
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%sresource1"
+	}
+ }
+version {
+	version_name = "%s"
+	assertion {
+		effect = "ALLOW"
+		action = "*"
+		role="${athenz_role.%s.name}"
+		resource = "%sresource2"
+	}
+	assertion	{
+		role="${athenz_role.%s.name}"
+		effect = "DENY"
+		action = "PLAY"
+		resource = "%sResource2"
+		case_sensitive = true
+	}
+ }
+}
+`, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
 }

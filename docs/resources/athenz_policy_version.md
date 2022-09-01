@@ -11,39 +11,39 @@ The policy version resource provides an Athenz policy with all its versions reso
 
 ### Example Usage
 
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
+
 ```hcl
 resource "athenz_policy_version" "policy_with_version" {
   name = "with_version"
   domain = "some_domain"
   active_version = "version1"
-  versions = [
-    {
+  version {
       version_name = "version1"
-      assertion = [
-        {
+      assertion {
           effect = "ALLOW"
           action = "*"
           role = "role1"
           resource = "some_domain:resource1"
-        }]
-    },
-    {
+        }
+    }
+  version {
       version_name = "version2"
-      assertion = [
-        {
+      assertion {
           effect = "ALLOW"
           action = "*"
           role = "role2"
-          resource = "some_domain:resource2"
-        },
-        {
+          resource = "some_domain:RESOURCE2"
+          case_sensitive = true
+      }
+      assertion {
           effect = "DENY"
-          action = "play"
+          action = "PLAY"
           role = "role2"
           resource = "some_domain:resource2"
-        }]
+          case_sensitive = true
+      }
     }
-  ]
   audit_ref = "create policy"
 }
 ```
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 - `active_version` - (Required) The active version of the policy. Must match one of the version name defined un the resource
 
-- `versions` - (Required) A set of policy versions. Each version consists the following arguments:
+- `version` - (Required) A set of policy versions. Each version consists the following arguments:
 
     - `version_name` - (Required) The version name.
 
@@ -71,6 +71,8 @@ The following arguments are supported:
         - `action` - (Required) The action is the domain administrator defined action available for the resource (e.g. read, write, delete).
 
         - `resource` - (Required) The resource is the YRN of the resource this assertion applies to. MUST provide fully qualified name: `<domain name>:<resource name>`
+
+        - `case_sensitive` - (Optional Default = false) If true, action and resource will be case-sensitive.
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.

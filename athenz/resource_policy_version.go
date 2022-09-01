@@ -38,7 +38,7 @@ func ResourcePolicyVersion() *schema.Resource {
 				Required:    true,
 				Description: "The policy version that will be active",
 			},
-			"versions": {
+			"version": {
 				Type:       schema.TypeSet,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Required:   true,
@@ -57,6 +57,8 @@ func ResourcePolicyVersion() *schema.Resource {
 						},
 						"assertion": resourceAssertionSchema(),
 					},
+					// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
+					CustomizeDiff: validateAssertion(),
 				},
 			},
 			"audit_ref": {
@@ -105,7 +107,7 @@ func resourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta
 	if err = d.Set("active_version", activeVersion); err != nil {
 		return diag.FromErr(err)
 	}
-	if err = d.Set("versions", flattenPolicyVersions(policyVersionList)); err != nil {
+	if err = d.Set("version", flattenPolicyVersions(policyVersionList)); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
@@ -122,7 +124,7 @@ func resourcePolicyVersionCreate(ctx context.Context, d *schema.ResourceData, me
 		if v.Code == 404 {
 			auditRef := d.Get("audit_ref").(string)
 			activeVersion := d.Get("active_version").(string)
-			versions := d.Get("versions").(*schema.Set).List()
+			versions := d.Get("version").(*schema.Set).List()
 			if err := validateSchema(activeVersion, versions); err != nil {
 				return diag.FromErr(err)
 			}
@@ -188,13 +190,13 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 		return diag.Errorf("error retrieving Athenz Policy vrsions: %s", err)
 	}
 	activeVersion := d.Get("active_version").(string)
-	versions := d.Get("versions").(*schema.Set).List()
+	versions := d.Get("version").(*schema.Set).List()
 	auditRef := d.Get("audit_ref").(string)
 	if err = validateSchema(activeVersion, versions); err != nil {
 		return diag.FromErr(err)
 	}
-	if d.HasChange("versions") {
-		oldVersions, newVersions := handleChange(d, "versions")
+	if d.HasChange("version") {
+		oldVersions, newVersions := handleChange(d, "version")
 		versionsToPut := newVersions.Difference(oldVersions).List()
 		versionsToDelete := getVersionsNamesToRemove(oldVersions.Difference(newVersions).List(), versionsToPut)
 		for _, version := range versionsToPut {
