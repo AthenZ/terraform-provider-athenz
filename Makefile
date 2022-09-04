@@ -6,10 +6,6 @@ BINARY=terraform-provider-athenz
 FMT_LOG=/tmp/fmt.log
 GOIMPORTS_LOG=/tmp/goimports.log
 
-# parameters for local build only - change it if needed
-OS_ARCH=darwin_arm64
-VERSION=1.0.9
-
 ifndef SYS_TEST_CA_CERT
 	SYS_TEST_CA_CERT=$(shell pwd)/docker/sample/CAs/athenz_ca.pem 
 endif
@@ -41,7 +37,16 @@ build_linux:
 	GOOS=linux go install -v $(GOPKGNAME)/...
 
 install_local:
+	VERSION=9.9.9
+	OS_ARCH=darwin_arm64
 	GOOS=darwin GOARCH=arm64 go build -o ${BINARY}
+	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
+	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
+
+install_local_sd:
+	VERSION=9.9.9
+	OS_ARCH=linux_amd64
+	GOOS=linux GOARCH=amd64 go build -o ${BINARY}
 	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 
