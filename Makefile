@@ -37,17 +37,17 @@ build_linux:
 	GOOS=linux go install -v $(GOPKGNAME)/...
 
 install_local:
-	VERSION=9.9.9
-	OS_ARCH=darwin_arm64
-	GOOS=darwin GOARCH=arm64 go build -o ${BINARY}
-	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
+	VERSION=9.9.9 ;\
+	OS_ARCH=darwin_arm64 ;\
+	GOOS=darwin GOARCH=arm64 go build -o ${BINARY} ;\
+	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH} ;\
 	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 
 install_local_sd:
-	VERSION=9.9.9
-	OS_ARCH=linux_amd64
-	GOOS=linux GOARCH=amd64 go build -o ${BINARY}
-	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
+	VERSION=9.9.9 ;\
+	OS_ARCH=linux_amd64 ;\
+	GOOS=linux GOARCH=amd64 go build -o ${BINARY} ;\
+	mkdir -p ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH} ;\
 	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 
 unit: vet fmt
