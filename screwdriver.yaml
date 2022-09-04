@@ -8,17 +8,17 @@ shared:
       statuses: [SUCCESS, FAILURE]
   environment:
     USER_SHELL_BIN: bash
+  annotations:
+    screwdriver.cd/cpu: 8
+    screwdriver.cd/ram: 16
+    screwdriver.cd/disk: HIGH
+    screwdriver.cd/timeout: 120
+    screwdriver.cd/dockerEnabled: true
+    screwdriver.cd/dockerCpu: HIGH
+    screwdriver.cd/dockerRam: HIGH  
 
 jobs:
   certify-provider:
-    annotations:
-      screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 16
-      screwdriver.cd/disk: HIGH
-      screwdriver.cd/timeout: 120
-      screwdriver.cd/dockerEnabled: true
-      screwdriver.cd/dockerCpu: HIGH
-      screwdriver.cd/dockerRam: HIGH
     requires: [~commit]
     environment:
       USER_SHELL_BIN: bash
@@ -48,5 +48,11 @@ jobs:
     steps:
       - install-deps: |
           ./goupdate.sh
+          set -e
+          yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+          yum -y install wget docker-ce-cli
+          docker system info
+          ls -la $SD_DIND_SHARE_PATH
       - unit-test: |
           make unit
+          ./pr-acc-test.sh

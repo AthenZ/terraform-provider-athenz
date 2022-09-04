@@ -21,9 +21,6 @@ fi
 # build provider
 make install_local
 
-# since we are going to modify some files - work on temporary directory
-cp -R sys-test local-sys-test
-
 # get latest provider version 
 VERSION="$(ls -tr ~/.terraform.d/plugins/yahoo/provider/athenz | tail -1)"
 sed -i -e "s/version = \"x.x.x\"/version = \"$VERSION\"/g" "local-sys-test/sys-test_provider.tf"
@@ -74,6 +71,7 @@ fi
 # destroy resources
 cd local-sys-test
 terraform apply --destroy -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars"
-rm -fr local-sys-test
+sed -i -e "s/version = \"$VERSION\"/version = \"x.x.x\"/g" "sys-test_provider.tf"
+rm -fr .terraform* *-e terraform* 
 
 exit $EXIT_CODE
