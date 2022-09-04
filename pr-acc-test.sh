@@ -42,8 +42,8 @@ ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli
 make install_local
 
 # get latest provider version 
-VERSION="$(ls -tr ~/.terraform.d/plugins/yahoo/provider/athenz | tail -1)"
-sed -i -e "s/version = \"x.x.x\"/version = \"$VERSION\"/g" "local-sys-test/sys-test_provider.tf"
+PROVIDER_VERSION="$(ls -tr ~/.terraform.d/plugins/yahoo/provider/athenz | tail -1)"
+sed -i -e "s/version = \"x.x.x\"/version = \"$PROVIDER_VERSION\"/g" "local-sys-test/sys-test_provider.tf"
 
 EXIT_CODE=0
 
