@@ -75,10 +75,10 @@ ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
   -c ${SYS_TEST_CA_CERT} \
   -key ${SYS_TEST_KEY} \
   -cert ${SYS_TEST_CERT} \
-  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > ${SD_ROOT_DIR}/terraform-sys-test-results
+  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > local-sys-test/terraform-sys-test-results
 
 echo 'Terraform results: '
-cat ${SD_ROOT_DIR}/terraform-sys-test-results
+cat local-sys-test/terraform-sys-test-results
 echo 'Expected results: '
 cat local-sys-test/expected-terraform-sys-test-results
 
