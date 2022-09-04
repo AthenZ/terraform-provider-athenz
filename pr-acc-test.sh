@@ -39,7 +39,7 @@ ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli
 ( cd docker ; make deploy )
 
 # build provider
-make install_local_sd
+make install_local
 
 # get latest provider version 
 VERSION="$(ls -tr ~/.terraform.d/plugins/yahoo/provider/athenz | tail -1)"
