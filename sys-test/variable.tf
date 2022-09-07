@@ -7,6 +7,10 @@ variable "sys_test_domain" {
   type = string
   description = "The domain name to use"
 }
+variable "sys_test_delegated_domain" {
+  type = string
+  description = "The domain name to use for delegating roles"
+}
 variable "cacert" {
   type = string
   description = "cacert for systest"
