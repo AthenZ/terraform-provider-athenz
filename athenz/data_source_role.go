@@ -29,6 +29,12 @@ func DataSourceRole() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
+			"trust": {
+				Type:        schema.TypeString,
+				Description: "The domain, which this role is trusted to",
+				Optional:    true,
+				ForceNew:    true,
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -60,11 +66,19 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 	d.SetId(fullResourceName)
 
 	if len(role.RoleMembers) > 0 {
-		d.Set("members", flattenRoleMembers(role.RoleMembers))
-
+		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	if len(role.Tags) > 0 {
-		d.Set("tags", flattenTag(role.Tags))
+		if err = d.Set("tags", flattenTag(role.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.Trust != "" {
+		if err = d.Set("trust", string(role.Trust)); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil
