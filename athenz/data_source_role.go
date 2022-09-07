@@ -33,7 +33,6 @@ func DataSourceRole() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The domain, which this role is trusted to",
 				Optional:    true,
-				ForceNew:    true,
 			},
 			"tags": {
 				Type:     schema.TypeMap,
