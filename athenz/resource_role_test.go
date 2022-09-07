@@ -22,6 +22,9 @@ func TestAccGroupRoleBasic(t *testing.T) {
 	if v := os.Getenv("DOMAIN"); v == "" {
 		t.Fatal("DOMAIN must be set for acceptance tests")
 	}
+	if v := os.Getenv("DELEGATED_DOMAIN"); v == "" {
+		t.Fatal("DELEGATED_DOMAIN must be set for acceptance tests")
+	}
 	if v := os.Getenv("MEMBER_1"); v == "" {
 		t.Fatal("MEMBER_1 must be set for acceptance tests")
 	}
@@ -35,6 +38,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 	roleName := fmt.Sprintf("test%d", rInt)
 	member1 := os.Getenv("MEMBER_1")
 	member2 := os.Getenv("MEMBER_2")
+	delegatedDomain := os.Getenv("DELEGATED_DOMAIN")
 	t.Cleanup(func() {
 		cleanAllAccTestRoles(domainName, []string{roleName})
 	})
@@ -97,6 +101,16 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					testAccCheckCorrectGroupMembers(resourceName, []string{member1}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigDelegated(roleName, domainName, delegatedDomain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
 				),
 			},
 		},
@@ -348,4 +362,17 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, member1)
+}
+
+func testAccGroupRoleConfigDelegated(name, domain, trust string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  trust = "%s"
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, trust)
 }

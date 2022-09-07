@@ -22,7 +22,6 @@ func ResourceRole() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:        schema.TypeString,
@@ -43,6 +42,12 @@ func ResourceRole() *schema.Resource {
 				Computed:    false,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Set:         schema.HashString,
+			},
+			"trust": {
+				Type:        schema.TypeString,
+				Description: "The domain, which this role is trusted to",
+				Optional:    true,
+				ForceNew:    true,
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
@@ -78,6 +83,12 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			auditRef := d.Get("audit_ref").(string)
 			if v, ok := d.GetOk("tags"); ok {
 				role.Tags = expandRoleTags(v.(map[string]interface{}))
+			}
+			if v, ok := d.GetOk("trust"); ok {
+				if len(role.RoleMembers) != 0 {
+					return diag.Errorf("delegated roles cannot have members")
+				}
+				role.Trust = zms.DomainName(v.(string))
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
@@ -135,6 +146,11 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	}
+	if role.Trust != "" {
+		if err = d.Set("trust", string(role.Trust)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	// added for role tag
 	if len(role.Tags) > 0 {
 		if err = d.Set("tags", flattenTag(role.Tags)); err != nil {
@@ -153,6 +169,9 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 	auditRef := d.Get("audit_ref").(string)
 	if d.HasChange("members") {
+		if _, ok := d.GetOk("trust"); ok {
+			return diag.Errorf("delegated roles cannot change members")
+		}
 		os, ns := handleChange(d, "members")
 		remove := expandRoleMembers(os.Difference(ns).List())
 		add := expandRoleMembers(ns.Difference(os).List())
