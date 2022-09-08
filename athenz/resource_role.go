@@ -47,7 +47,6 @@ func ResourceRole() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The domain, which this role is trusted to",
 				Optional:    true,
-				ForceNew:    true,
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
@@ -84,7 +83,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			if v, ok := d.GetOk("tags"); ok {
 				role.Tags = expandRoleTags(v.(map[string]interface{}))
 			}
-			if v, ok := d.GetOk("trust"); ok {
+			if v, ok := d.GetOk("trust"); ok && v != "" {
 				if len(role.RoleMembers) != 0 {
 					return diag.Errorf("delegated roles cannot have members")
 				}
@@ -141,21 +140,32 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		return diag.Errorf("error retrieving Athenz Role - Make sure your cert/key are valid")
 	}
 
+	// Setting to nil declare the intention to delete the attribute (doesn't quite work for primitives)
+	// Handle setting the members
+	var members interface{} = nil
 	if len(role.RoleMembers) > 0 {
-		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
-			return diag.FromErr(err)
-		}
+		members = flattenRoleMembers(role.RoleMembers)
 	}
+	if err = d.Set("members", members); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set the trust
+	var trust interface{} = nil
 	if role.Trust != "" {
-		if err = d.Set("trust", string(role.Trust)); err != nil {
-			return diag.FromErr(err)
-		}
+		trust = string(role.Trust)
 	}
-	// added for role tag
+	if err = d.Set("trust", trust); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Set the tags
+	var tags interface{} = nil
 	if len(role.Tags) > 0 {
-		if err = d.Set("tags", flattenTag(role.Tags)); err != nil {
-			return diag.FromErr(err)
-		}
+		tags = flattenTag(role.Tags)
+	}
+	if err = d.Set("tags", tags); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return nil
@@ -168,8 +178,35 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	if d.HasChange("members") {
-		if _, ok := d.GetOk("trust"); ok {
+
+	// Handle any changes that require PutRole
+	if d.HasChanges("trust", "tags") {
+		role, err := zmsClient.GetRole(dn, rn)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if trust, ok := d.GetOk("trust"); ok {
+			role.Trust = zms.DomainName(trust.(string))
+		} else {
+			role.Trust = ""
+		}
+		if tags, ok := d.GetOk("tags"); ok {
+			role.Tags = expandRoleTags(tags.(map[string]interface{}))
+		}
+		if members, ok := d.GetOk("members"); ok {
+			if role.Trust != "" {
+				return diag.Errorf("delegated roles may not have members")
+			}
+			role.RoleMembers = expandRoleMembers(members.(*schema.Set).List())
+		} else {
+			role.RoleMembers = nil
+		}
+		if err = zmsClient.PutRole(dn, rn, auditRef, role); err != nil {
+			return diag.Errorf("error updating trust or tags: %s", err)
+		}
+	} else if d.HasChange("members") {
+		// Members-only changes can add/remove members by looking at the diffs.
+		if trust, ok := d.GetOk("trust"); ok && trust != "" {
 			return diag.Errorf("delegated roles cannot change members")
 		}
 		os, ns := handleChange(d, "members")
@@ -178,19 +215,6 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		err := updateRoleMembers(dn, rn, remove, add, auditRef, zmsClient)
 		if err != nil {
 			return diag.Errorf("error updating group membership: %s", err)
-		}
-	}
-	if d.HasChange("tags") {
-		role, err := zmsClient.GetRole(dn, rn)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		_, n := d.GetChange("tags")
-		tags := expandRoleTags(n.(map[string]interface{}))
-		role.Tags = tags
-		err = zmsClient.PutRole(dn, rn, auditRef, role)
-		if err != nil {
-			return diag.Errorf("error updating tags: %s", err)
 		}
 	}
 	return resourceRoleRead(ctx, d, meta)
