@@ -103,6 +103,87 @@ func TestAccGroupRoleBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupRoleDelegation(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("DELEGATED_DOMAIN"); v == "" {
+		t.Fatal("DELEGATED_DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var role zms.Role
+	resourceName := "athenz_role.roleTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	roleName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	delegatedDomain := os.Getenv("DELEGATED_DOMAIN")
+	t.Cleanup(func() {
+		cleanAllAccTestRoles(domainName, []string{roleName})
+	})
+
+	// Switch between delegated and non-delegated, then back to delegated
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupRoleConfigDelegated(roleName, domainName, delegatedDomain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigAddMember(roleName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckNoResourceAttr(resourceName, "trust"),
+					testAccCheckCorrectGroupMembers(resourceName, []string{member1, member2}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigRemoveMember(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckNoResourceAttr(resourceName, "trust"),
+					testAccCheckCorrectGroupMembers(resourceName, []string{member1, member2}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigDelegated(roleName, domainName, delegatedDomain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
+				),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestRoles(domain string, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, roleName := range roles {
@@ -348,4 +429,17 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, member1)
+}
+
+func testAccGroupRoleConfigDelegated(name, domain, trust string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  trust = "%s"
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, trust)
 }
