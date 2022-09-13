@@ -61,9 +61,11 @@ fi
 
 echo "Downloading gitversion"
 yum install -y wget
-wget -q -O - https://github.com/screwdriver-cd/gitversion/releases/latest \
-  | egrep -o '/screwdriver-cd/gitversion/releases/download/v[0-9.]*/gitversion_linux_amd64' \
-  | wget --base=http://github.com/ -i - -O /tmp/gitversion
+wget -O - https://github.com/screwdriver-cd/gitversion/releases/latest |
+  egrep -o 'https://github.com/screwdriver-cd/gitversion/releases/expanded_assets/v[0-9.]*' |
+  wget -O - -i - |
+  grep -o '/screwdriver-cd/gitversion/releases/download/v[0-9.]*/gitversion_linux_amd64' |
+  wget --base=http://github.com/ -i - -O /tmp/gitversion
 GIT_VERSION=/tmp/gitversion
 chmod +x $GIT_VERSION
     
