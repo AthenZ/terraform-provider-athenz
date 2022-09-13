@@ -13,7 +13,7 @@ import (
 
 func dataSourceAssertionSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeSet,
+		Type:       schema.TypeList,
 		ConfigMode: schema.SchemaConfigModeAttr,
 		Optional:   true,
 		Computed:   false,
