@@ -43,7 +43,6 @@ func ResourceGroup() *schema.Resource {
 				Type:        schema.TypeSet,
 				Description: "Users or services to be added as members",
 				Optional:    true,
-				Computed:    false,
 				Elem: &schema.Schema{Type: schema.TypeString,
 					ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 						value := v.(string)

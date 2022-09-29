@@ -96,8 +96,8 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 				Name:     zms.ResourceName(fullResourceName),
 				Modified: nil,
 			}
-			if v, ok := d.GetOk("assertion"); ok && len(v.([]interface{})) > 0 {
-				policy.Assertions = expandPolicyAssertions(dn, v.([]interface{}))
+			if v, ok := d.GetOk("assertion"); ok && v.(*schema.Set).Len() > 0 {
+				policy.Assertions = expandPolicyAssertions(dn, v.(*schema.Set).List())
 			} else {
 				policy.Assertions = make([]*zms.Assertion, 0)
 			}
@@ -137,9 +137,9 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 	if d.HasChange("assertion") {
 		_, newVal := d.GetChange("assertion")
 		if newVal == nil {
-			newVal = new([]interface{})
+			newVal = new(schema.Set)
 		}
-		ns := newVal.([]interface{})
+		ns := newVal.(*schema.Set).List()
 		policy.Assertions = expandPolicyAssertions(dn, ns)
 		auditRef := d.Get("audit_ref").(string)
 		err = zmsClient.PutPolicy(dn, pn, auditRef, policy)

@@ -28,8 +28,8 @@ domain:
             - grant * to admin on *
         - name: athenz_provider_foo
           assertions:
-            - grant * to athenz_provider_foo on athenz_provider_foo
             - deny play1 to athenz_provider_bar on athenz_provider_BAR
+            - grant * to athenz_provider_foo on athenz_provider_foo
     services:
         - name: terraform-provider.athenz_provider_foo
           modified: XXX

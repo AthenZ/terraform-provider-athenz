@@ -39,7 +39,6 @@ func ResourceRole() *schema.Resource {
 				Type:        schema.TypeSet,
 				Description: "Users or services to be added as members",
 				Optional:    true,
-				Computed:    false,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Set:         schema.HashString,
 			},

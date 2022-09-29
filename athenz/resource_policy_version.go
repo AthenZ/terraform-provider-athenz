@@ -39,9 +39,8 @@ func ResourcePolicyVersion() *schema.Resource {
 				Description: "The policy version that will be active",
 			},
 			"version": {
-				Type:       schema.TypeSet,
-				ConfigMode: schema.SchemaConfigModeAttr,
-				Required:   true,
+				Type:     schema.TypeSet,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"version_name": {
@@ -212,7 +211,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 					active := false
 					zmsPolicyVersion.Active = &active
 				}
-				assertions := expandPolicyAssertions(dn, policyVersion["assertion"].([]interface{}))
+				assertions := expandPolicyAssertions(dn, policyVersion["assertion"].(*schema.Set).List())
 				zmsPolicyVersion.Assertions = assertions
 				if err = zmsClient.PutPolicy(dn, pn, auditRef, zmsPolicyVersion); err != nil {
 					return diag.FromErr(err)
