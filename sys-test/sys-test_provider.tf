@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     athenz = {
-      source = "AthenZ/athenz"
+      source = "yahoo/provider/athenz"
       version = "x.x.x"
     }
   }

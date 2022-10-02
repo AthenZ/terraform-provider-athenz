@@ -3,6 +3,8 @@ package athenz
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
@@ -61,7 +63,7 @@ func getRelevantPolicyVersions(policies []*zms.Policy, policyName string) []*zms
 func expandPolicyVersion(policyVersion interface{}, domainName string) (string, []*zms.Assertion) {
 	data := policyVersion.(map[string]interface{})
 	versionName := data["version_name"].(string)
-	versionAssertion := expandPolicyAssertions(domainName, data["assertion"].([]interface{}))
+	versionAssertion := expandPolicyAssertions(domainName, data["assertion"].(*schema.Set).List())
 	return versionName, versionAssertion
 }
 

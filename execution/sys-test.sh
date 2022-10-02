@@ -35,9 +35,7 @@ wget -U "Athenz Authors" -O "${SD_ROOT_DIR}/athenz-utils-${VERSION}-bin.tar.gz" 
 tar xvfz ${SD_ROOT_DIR}/athenz-utils-${VERSION}-bin.tar.gz -C ${SD_ROOT_DIR}/
 ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli
 
-cd docker
-make deploy
-cd ..
+( cd docker ; make deploy )
 
 EXIT_CODE=0
 

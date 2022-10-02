@@ -43,7 +43,7 @@ make install_local
 
 # get latest provider version 
 PROVIDER_VERSION="$(ls -tr ~/.terraform.d/plugins/yahoo/provider/athenz | tail -1)"
-sed -i -e "s/version = \"x.x.x\"/version = \"$PROVIDER_VERSION\"/g" "local-sys-test/sys-test_provider.tf"
+sed -i -e "s/version = \"x.x.x\"/version = \"$PROVIDER_VERSION\"/g" "sys-test/sys-test_provider.tf"
 
 EXIT_CODE=0
 
@@ -52,7 +52,7 @@ export SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sam
 export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
 
 # First, create the sys test domain and run several tests using the latest terraform provider
-cd local-sys-test
+cd sys-test
 if ! terraform init ; then
     echo "terraform init failed!"
     EXIT_CODE=1
@@ -75,15 +75,15 @@ ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
   -c ${SYS_TEST_CA_CERT} \
   -key ${SYS_TEST_KEY} \
   -cert ${SYS_TEST_CERT} \
-  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > local-sys-test/terraform-sys-test-results
+  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > sys-test/terraform-sys-test-results
 
 echo 'Terraform results: '
-cat local-sys-test/terraform-sys-test-results
+cat sys-test/terraform-sys-test-results
 echo 'Expected results: '
-cat local-sys-test/expected-terraform-sys-test-results
+cat sys-test/expected-terraform-sys-test-results
 
 # make sure the expected domain is same as zms-cli result
-if ! diff -w local-sys-test/terraform-sys-test-results local-sys-test/expected-terraform-sys-test-results ; then
+if ! diff -w sys-test/terraform-sys-test-results sys-test/expected-terraform-sys-test-results ; then
     echo "expected domain is NOT same!"
     EXIT_CODE=1
 fi

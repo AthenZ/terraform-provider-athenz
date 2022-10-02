@@ -13,10 +13,8 @@ import (
 
 func dataSourceAssertionSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Optional:   true,
-		Computed:   false,
+		Type:     schema.TypeSet,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"effect": {
@@ -47,9 +45,8 @@ func dataSourceAssertionSchema() *schema.Schema {
 
 func resourceAssertionSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:       schema.TypeList,
-		ConfigMode: schema.SchemaConfigModeAttr,
-		Optional:   true,
+		Type:     schema.TypeSet,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"effect": {
@@ -166,7 +163,7 @@ func inferCaseSensitiveValue(action, resourceName string) bool {
 func validateAssertion() schema.CustomizeDiffFunc {
 	return customdiff.All(
 		customdiff.ValidateChange("assertion", func(ctx context.Context, old, new, meta any) error {
-			assertions := new.([]interface{})
+			assertions := new.(*schema.Set).List()
 			for _, aRaw := range assertions {
 				data := aRaw.(map[string]interface{})
 				resource := data["resource"].(string)

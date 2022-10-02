@@ -42,3 +42,5 @@ docker/sample/CAs/athenz_ca.pem
 docker/sample/domain-admin/domain_admin_cert.pem
 docker/sample/domain-admin/domain_admin_key.pem
 docker/zms/conf/zms.properties
+
+manual-testing/

@@ -25,7 +25,6 @@ func DataSourceGroup() *schema.Resource {
 			"members": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Computed: false,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
