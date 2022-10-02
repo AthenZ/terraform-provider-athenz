@@ -4,8 +4,8 @@ PRERELEASE_VERSION_WITH_PREFIX=$1
 PRERELEASE_VERSION=$(echo $PRERELEASE_VERSION_WITH_PREFIX | sed 's/v//g')
 echo "About to update athenz provider version to : $PRERELEASE_VERSION"
 
-sed -i "s/version = \"x.x.x\"/version = \"$PRERELEASE_VERSION\"/g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
-sed -i "s/source = \"yahoo/provider/athenz\"/source = \"AthenZ/athenz\"/g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
+sed -i "s|version = \"x.x.x\"|version = \"$PRERELEASE_VERSION\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
+sed -i "s|source = \"yahoo/provider/athenz\"|source = \"AthenZ/athenz\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
 
 cat $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
 
