@@ -37,7 +37,7 @@ jobs:
       - run-tests-prerelease-version: |
           PRERELEASE_VERSION=$(meta get git.version)
           ./provider-version-update.sh $PRERELEASE_VERSION
-          ./sys-test.sh
+          ./execution/sys-test.sh
       - tag-certify-version: |
           ./git-tag.sh -r patch -t true
 
@@ -55,4 +55,4 @@ jobs:
           ls -la $SD_DIND_SHARE_PATH
       - unit-test: |
           make unit
-          ./pr-acc-test.sh
+          ./execution/pr-acc-test.sh
