@@ -70,11 +70,11 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 				Name:     zms.ResourceName(fullResourceName),
 				Modified: nil,
 			}
-
-			if v, ok := d.GetOk("members"); ok && v.(*schema.Set).Len() > 0 {
+			if v, ok := d.GetOk("members"); ok {
+				group.GroupMembers = expandDeprecatedGroupMembers(v.(*schema.Set).List())
+			} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
 				group.GroupMembers = expandGroupMembers(v.(*schema.Set).List())
 			}
-
 			auditRef := d.Get("audit_ref").(string)
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
 				return diag.FromErr(err)
@@ -128,11 +128,20 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	}
 
 	if len(group.GroupMembers) > 0 {
-		if err = d.Set("members", flattenGroupMember(group.GroupMembers)); err != nil {
-			return diag.FromErr(err)
+		if _, ok := d.GetOk("members"); ok {
+			if err = d.Set("members", flattenDeprecatedGroupMembers(group.GroupMembers)); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err = d.Set("member", flattenGroupMembers(group.GroupMembers)); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	} else {
 		if err = d.Set("members", nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err = d.Set("member", nil); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -147,15 +156,27 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	auditRef := d.Get("audit_ref").(string)
+	removeDeprecatedGroupMembers := make([]*zms.GroupMember, 0)
+	addDeprecatedGroupMembers := make([]*zms.GroupMember, 0)
 	if d.HasChange("members") {
-		oldVal, newVal := d.GetChange("members")
-		err := updateGroupMembers(dn, gn, oldVal, newVal, zmsClient, auditRef)
-		if err != nil {
-			return diag.Errorf("error updating group membership: %s", err)
-		}
+		oldVal, newVal := handleChange(d, "members")
+		removeDeprecatedGroupMembers = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
+		addDeprecatedGroupMembers = expandDeprecatedGroupMembers(newVal.Difference(oldVal).List())
 	}
+	removeGroupMembers := make([]*zms.GroupMember, 0)
+	addGroupMembers := make([]*zms.GroupMember, 0)
+	if d.HasChange("member") {
+		oldVal, newVal := handleChange(d, "member")
+		removeGroupMembers = expandGroupMembers(oldVal.Difference(newVal).List())
+		addGroupMembers = expandGroupMembers(newVal.Difference(oldVal).List())
+	}
+	removeMembers, addMembers := handleGroupMembersChange(removeDeprecatedGroupMembers, addDeprecatedGroupMembers, removeGroupMembers, addGroupMembers)
+	err = updateGroupMembers(dn, gn, removeMembers, addMembers, zmsClient, auditRef)
+	if err != nil {
+		return diag.Errorf("error updating group membership: %s", err)
+	}
+
 	return resourceGroupRead(ctx, d, meta)
 }
 

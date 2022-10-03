@@ -14,6 +14,95 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func TestAccGroupRoleBasicDeprecated(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var role zms.Role
+	resourceName := "athenz_role.roleTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	roleName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	t.Cleanup(func() {
+		cleanAllAccTestRoles(domainName, []string{roleName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupRoleConfigDeprecated(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigChangeAuditRefDeprecated(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigAddTagsDeprecated(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigRemoveTagsDeprecated(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigAddMemberDeprecated(roleName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					testAccCheckCorrectGroupMembersDeprecated(resourceName, []string{member1, member2}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigRemoveMemberDeprecated(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					testAccCheckCorrectGroupMembersDeprecated(resourceName, []string{member1}),
+				),
+			},
+		},
+	})
+}
+
 func TestAccGroupRoleBasic(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
@@ -48,7 +137,8 @@ func TestAccGroupRoleBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
 				),
 			},
@@ -57,7 +147,8 @@ func TestAccGroupRoleBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 				),
 			},
@@ -66,7 +157,8 @@ func TestAccGroupRoleBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
 					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
 				),
 			},
@@ -75,28 +167,29 @@ func TestAccGroupRoleBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
 					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigAddMember(roleName, domainName, member1, member2),
+				Config: testAccGroupRoleConfigAddMemberWithExpiration(roleName, domainName, member1, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
-					testAccCheckCorrectGroupMembers(resourceName, []string{member1, member2}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigRemoveMember(roleName, domainName, member1),
+				Config: testAccGroupRoleConfigRemoveMember(roleName, domainName, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
-					testAccCheckCorrectGroupMembers(resourceName, []string{member1}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59"}}),
 				),
 			},
 		},
@@ -142,42 +235,97 @@ func TestAccGroupRoleDelegation(t *testing.T) {
 				Config: testAccGroupRoleConfigDelegated(roleName, domainName, delegatedDomain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigAddMember(roleName, domainName, member1, member2),
+				Config: testAccGroupRoleConfigAddMemberWithExpiration(roleName, domainName, member1, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckNoResourceAttr(resourceName, "trust"),
-					testAccCheckCorrectGroupMembers(resourceName, []string{member1, member2}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigRemoveMember(roleName, domainName, member1),
+				Config: testAccGroupRoleConfigRemoveMember(roleName, domainName, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckNoResourceAttr(resourceName, "trust"),
-					testAccCheckCorrectGroupMembers(resourceName, []string{member1, member2}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
 				Config: testAccGroupRoleConfigDelegated(roleName, domainName, delegatedDomain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
-					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
+				),
+			},
+		},
+	})
+}
+
+func TestAccGroupRoleTransitionFromMembersToMember(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var role zms.Role
+	resourceName := "athenz_role.roleTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	roleName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	t.Cleanup(func() {
+		cleanAllAccTestRoles(domainName, []string{roleName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupRoleConfigUsingMembers(roleName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					testAccCheckCorrectGroupMembersDeprecated(resourceName, []string{member1, member2}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigMoveToMember(roleName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
 				),
 			},
 		},
@@ -327,7 +475,8 @@ func testAccCheckCorrectTags(n string, expectedTagsMap map[string][]string) reso
 		return nil
 	}
 }
-func testAccCheckCorrectGroupMembers(n string, groupMembers []string) resource.TestCheckFunc {
+
+func testAccCheckCorrectGroupMembersDeprecated(n string, groupMembers []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -360,6 +509,59 @@ func testAccCheckCorrectGroupMembers(n string, groupMembers []string) resource.T
 	}
 }
 
+// we implement this check function since we can't predict the order of the members
+func testAccCheckCorrectGroupMembers(n string, lookingForMembers []map[string]string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no Athenz Group Role ID is set")
+		}
+		expectedMembers := make([]map[string]string, len(lookingForMembers))
+		// for build the expected members, we look for all attribute from the following pattern: member.<index>.<attribute> (e.g. member.0.expiration)
+		for key, val := range rs.Primary.Attributes {
+			if !strings.HasPrefix(key, "member.") {
+				continue
+			}
+			theKeyArr := strings.Split(key, ".")
+			if len(theKeyArr) == 3 && theKeyArr[2] != "%" {
+				index, err := strconv.Atoi(theKeyArr[1])
+				if err != nil {
+					return err
+				}
+				attributeKey := theKeyArr[2]
+				attributeVal := val
+				if expectedMembers[index] == nil {
+					member := map[string]string{
+						attributeKey: attributeVal,
+					}
+					expectedMembers[index] = member
+				} else {
+					expectedMembers[index][attributeKey] = attributeVal
+				}
+			}
+		}
+
+		for _, lookingForMember := range lookingForMembers {
+			found := false
+			for _, expectedMember := range expectedMembers {
+				if reflect.DeepEqual(lookingForMember, expectedMember) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("the member %v is Not found", lookingForMember)
+			}
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckGroupRoleDestroy(s *terraform.State) error {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 
@@ -380,7 +582,41 @@ func testAccCheckGroupRoleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccGroupRoleConfig(name, domain, member1 string) string {
+func testAccGroupRoleConfigMendi(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  members = ["%s", "user.olevi"]
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfigMendi2(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {name = "%s"}
+  member {
+		name = "user.gbendor"
+		expiration = "2022-12-29 23:59:59"
+	}
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfigDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -394,7 +630,7 @@ resource "athenz_role" "roleTest" {
 }
 `, name, domain, member1)
 }
-func testAccGroupRoleConfigChangeAuditRef(name, domain, member1 string) string {
+func testAccGroupRoleConfigChangeAuditRefDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -404,7 +640,7 @@ resource "athenz_role" "roleTest" {
 `, name, domain, member1)
 }
 
-func testAccGroupRoleConfigAddTags(name, domain, member1 string) string {
+func testAccGroupRoleConfigAddTagsDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -417,7 +653,7 @@ resource "athenz_role" "roleTest" {
 }
 `, name, domain, member1)
 }
-func testAccGroupRoleConfigRemoveTags(name, domain, member1 string) string {
+func testAccGroupRoleConfigRemoveTagsDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
 name = "%s"
@@ -430,7 +666,7 @@ members = ["%s"]
 `, name, domain, member1)
 }
 
-func testAccGroupRoleConfigAddMember(name, domain, member1, member2 string) string {
+func testAccGroupRoleConfigAddMemberDeprecated(name, domain, member1, member2 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -443,7 +679,7 @@ resource "athenz_role" "roleTest" {
 `, name, domain, member1, member2)
 }
 
-func testAccGroupRoleConfigRemoveMember(name, domain string, member1 string) string {
+func testAccGroupRoleConfigRemoveMemberDeprecated(name, domain string, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -452,6 +688,99 @@ resource "athenz_role" "roleTest" {
   tags = {
 	key1 = "a1,a2"
 	}
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfig(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+func testAccGroupRoleConfigChangeAuditRef(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfigAddTags(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+  tags = {
+	key1 = "a1,a2"
+	key2 = "b1,b2"
+	}
+}
+`, name, domain, member1)
+}
+func testAccGroupRoleConfigRemoveTags(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+  tags = {
+	key1 = "a1,a2"
+  }
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfigAddMemberWithExpiration(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, member1, member2)
+}
+
+func testAccGroupRoleConfigRemoveMember(name, domain string, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+  }
 }
 `, name, domain, member1)
 }
@@ -467,6 +796,37 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, trust)
+}
+
+func testAccGroupRoleConfigUsingMembers(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  members = ["%s","%s"]
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, member1, member2)
+}
+func testAccGroupRoleConfigMoveToMember(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, member1, member2)
 }
 
 func testAccGroupRoleInvalidDomainNameConfig() string {

@@ -9,13 +9,37 @@ The role resource provides an Athenz role resource.
 
 `athenz_role` provides an Athenz role resource.
 
-### Example Usage
+### Example Usage \*\*Deprecated** (please use as explained in the second example)
 
 ```hcl
 resource "athenz_role" "foo_role" {
   name = "some_name"
   domain = "some_domain"
   members = ["domain1.user1", "domain2.user2"]
+  audit_ref = "create role"
+  tags = {
+    key1 = "val1,val2"
+    key2 = "val3,val4"
+  }
+  
+}
+```
+
+### Example Usage
+
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
+
+```hcl
+resource "athenz_role" "foo_role" {
+  name = "some_name"
+  domain = "some_domain"
+  member {
+    name = "domain1.user1"
+  }
+  member {
+    name = "domain2.user2"
+    expiration = "2022-12-29 23:59:59"
+  }
   audit_ref = "create role"
   tags = {
     key1 = "val1,val2"
@@ -35,7 +59,13 @@ The following arguments are supported:
 - `domain` - (Required) The Athenz domain name. 
     
 
-- `members` - (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
+- `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
+
+- `member` - (Optional) A set of Athenz principal members. Each member consists the following arguments:
+
+  - `name` - (Required) The name of the Athenz principal member. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
+
+  - `expiration` - (Optional) The expiration of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
 
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]

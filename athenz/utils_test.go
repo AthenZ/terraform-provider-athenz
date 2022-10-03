@@ -1,10 +1,9 @@
 package athenz
 
 import (
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	ast "gotest.tools/assert"
@@ -12,14 +11,33 @@ import (
 
 const dName = "home.someone"
 
-func getZmsRoleMembers() []*zms.RoleMember {
+func getZmsRoleMembersDeprecated() []*zms.RoleMember {
 	return []*zms.RoleMember{
 		zms.NewRoleMember(&zms.RoleMember{MemberName: "member1"}),
 		zms.NewRoleMember(&zms.RoleMember{MemberName: "member2"}),
 	}
 }
-func getFlattedRoleMembers() []interface{} {
+func getFlattedRoleMembersDeprecated() []interface{} {
 	return []interface{}{"member1", "member2"}
+}
+
+func Test_flattenDeprecatedRoleMembers(t *testing.T) {
+	ast.DeepEqual(t, flattenDeprecatedRoleMembers(getZmsRoleMembersDeprecated()), getFlattedRoleMembersDeprecated())
+}
+
+func Test_expandDeprecatedRoleMembers(t *testing.T) {
+	ast.DeepEqual(t, expandDeprecatedRoleMembers(getFlattedRoleMembersDeprecated()), getZmsRoleMembersDeprecated())
+}
+
+func getZmsRoleMembers() []*zms.RoleMember {
+	return []*zms.RoleMember{
+		zms.NewRoleMember(&zms.RoleMember{MemberName: "member1"}),
+		zms.NewRoleMember(&zms.RoleMember{MemberName: "member2", Expiration: stringToTimestamp("2022-05-29 23:59:59")}),
+	}
+}
+
+func getFlattedRoleMembers() []interface{} {
+	return []interface{}{map[string]interface{}{"name": "member1", "expiration": ""}, map[string]interface{}{"name": "member2", "expiration": "2022-05-29 23:59:59"}}
 }
 
 func getZmsAssertions(roleName, resourceName string, caseSensitive bool) []*zms.Assertion {
@@ -64,6 +82,7 @@ Llfy/E8K0QtCk3ki1y8Tga2I5k2hffx3DrHMnr14Zj3Br0T9RwiqJD7FoyTiD/ti
 xQIDAQAB
 -----END PUBLIC KEY-----`
 }
+
 func Test_flattenRoleMembers(t *testing.T) {
 	ast.DeepEqual(t, flattenRoleMembers(getZmsRoleMembers()), getFlattedRoleMembers())
 }
@@ -215,4 +234,11 @@ func Test_splitId(t *testing.T) {
 	inValidId := "some_domain" + "some_role"
 	_, _, err = splitId(inValidId, ROLE_SEPARATOR)
 	assert.NotNil(t, err)
+}
+
+func Test_validateExpirationMemberFunc(t *testing.T) {
+	expiration := "2022-12-29 23:59:59"
+	assert.Nil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
+	invalidExpiration := "2022-12-29 23:59"
+	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 }

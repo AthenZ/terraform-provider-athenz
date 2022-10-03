@@ -13,32 +13,7 @@ import (
 func DataSourceRole() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceRoleRead,
-		Schema: map[string]*schema.Schema{
-			"domain": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"members": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
-			},
-			"trust": {
-				Type:        schema.TypeString,
-				Description: "The domain, which this role is trusted to",
-				Optional:    true,
-			},
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-		},
+		Schema:      dataSourceRoleSchema(),
 	}
 }
 
@@ -64,7 +39,7 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 	d.SetId(fullResourceName)
 
 	if len(role.RoleMembers) > 0 {
-		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
+		if err = d.Set("member", flattenRoleMembers(role.RoleMembers)); err != nil {
 			return diag.FromErr(err)
 		}
 	}

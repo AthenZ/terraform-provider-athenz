@@ -124,7 +124,7 @@ func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	adminUsers := flattenRoleMembers(adminRole.RoleMembers)
+	adminUsers := flattenDeprecatedRoleMembers(adminRole.RoleMembers)
 	if err = d.Set("admin_users", adminUsers); err != nil {
 		return diag.FromErr(err)
 	}

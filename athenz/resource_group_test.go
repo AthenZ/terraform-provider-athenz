@@ -14,6 +14,73 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func TestAccGroupBasicDeprecated(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var group zms.Group
+	resName := "athenz_group.groupTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	groupName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	t.Cleanup(func() {
+		cleanAllAccTestGroups(domainName, []string{groupName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupConfigBasicDeprecated(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				),
+			},
+			{
+				Config: testAccGroupConfigBasicChangeAuditRefDeprecated(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", "done by someone"),
+				),
+			},
+			{
+				Config: testAccGroupConfigAddMemberDeprecated(groupName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "2"),
+				),
+			},
+			{
+				Config: testAccGroupConfigRemoveMemberDeprecated(groupName, domainName, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccGroupBasic(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Print("TF_ACC must be set for acceptance tests")
@@ -48,8 +115,10 @@ func TestAccGroupBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resName, &group),
 					resource.TestCheckResourceAttr(resName, "name", groupName),
-					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
 				),
 			},
 			{
@@ -57,8 +126,10 @@ func TestAccGroupBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resName, &group),
 					resource.TestCheckResourceAttr(resName, "name", groupName),
-					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
 				),
 			},
 			{
@@ -66,7 +137,7 @@ func TestAccGroupBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resName, &group),
 					resource.TestCheckResourceAttr(resName, "name", groupName),
-					resource.TestCheckResourceAttr(resName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resName, "member.#", "2"),
 				),
 			},
 			{
@@ -74,7 +145,64 @@ func TestAccGroupBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resName, &group),
 					resource.TestCheckResourceAttr(resName, "name", groupName),
-					resource.TestCheckResourceAttr(resName, "members.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member2),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccGroupTransitionFromMembersToMember(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var group zms.Group
+	resName := "athenz_group.groupTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	groupName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	t.Cleanup(func() {
+		cleanAllAccTestGroups(domainName, []string{groupName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupConfigUsingMembers(groupName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "2"),
+					resource.TestCheckResourceAttr(resName, "member.#", "0"),
+				),
+			},
+			{
+				Config: testAccGroupConfigMoveToMember(groupName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "members.#", "0"),
+					resource.TestCheckResourceAttr(resName, "member.#", "2"),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
+					resource.TestCheckResourceAttr(resName, "member.1.name", member2),
+					resource.TestCheckResourceAttr(resName, "member.1.expiration", "2022-12-29 23:59:59"),
 				),
 			},
 		},
@@ -166,7 +294,7 @@ func testAccCheckGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccGroupConfigBasic(name, domain, member1 string) string {
+func testAccGroupConfigBasicDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_group" "groupTest" {
   name = "%s"
@@ -176,7 +304,7 @@ resource "athenz_group" "groupTest" {
 `, name, domain, member1)
 }
 
-func testAccGroupConfigBasicChangeAuditRef(name, domain, member1 string) string {
+func testAccGroupConfigBasicChangeAuditRefDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_group" "groupTest" {
   name = "%s"
@@ -187,7 +315,7 @@ resource "athenz_group" "groupTest" {
 `, name, domain, member1)
 }
 
-func testAccGroupConfigAddMember(name, domain, member1, member2 string) string {
+func testAccGroupConfigAddMemberDeprecated(name, domain, member1, member2 string) string {
 	return fmt.Sprintf(`
 resource "athenz_group" "groupTest" {
   name = "%s"
@@ -197,7 +325,7 @@ resource "athenz_group" "groupTest" {
 `, name, domain, member1, member2)
 }
 
-func testAccGroupConfigRemoveMember(name, domain, member2 string) string {
+func testAccGroupConfigRemoveMemberDeprecated(name, domain, member2 string) string {
 	return fmt.Sprintf(`
 resource "athenz_group" "groupTest" {
   name = "%s"
@@ -205,6 +333,85 @@ resource "athenz_group" "groupTest" {
   members = ["%s"]
 }
 `, name, domain, member2)
+}
+
+func testAccGroupConfigBasic(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+}
+`, name, domain, member1)
+}
+
+func testAccGroupConfigBasicChangeAuditRef(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  audit_ref = "done by someone"
+}
+`, name, domain, member1)
+}
+
+func testAccGroupConfigAddMember(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+}
+`, name, domain, member1, member2)
+}
+
+func testAccGroupConfigRemoveMember(name, domain, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+}
+`, name, domain, member2)
+}
+
+func testAccGroupConfigUsingMembers(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  members = ["%s", "%s"]
+}
+`, name, domain, member1, member2)
+}
+func testAccGroupConfigMoveToMember(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+}
+`, name, domain, member1, member2)
 }
 
 func testAccGroupInvalidDomainNameConfig() string {

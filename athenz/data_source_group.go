@@ -22,11 +22,23 @@ func DataSourceGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"members": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+			"member": {
+				Type:        schema.TypeSet,
+				Description: "Users or services to be added as members",
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"expiration": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -53,7 +65,9 @@ func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta inter
 	d.SetId(fullResourceName)
 
 	if len(group.GroupMembers) > 0 {
-		d.Set("members", flattenGroupMember(group.GroupMembers))
+		if err = d.Set("member", flattenGroupMembers(group.GroupMembers)); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil
