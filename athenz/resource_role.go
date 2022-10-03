@@ -144,7 +144,12 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
 			return diag.FromErr(err)
 		}
+	} else {
+		if err = d.Set("members", nil); err != nil {
+			return diag.FromErr(err)
+		}
 	}
+
 	if role.Trust != "" {
 		if err = d.Set("trust", string(role.Trust)); err != nil {
 			return diag.FromErr(err)
@@ -153,6 +158,10 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	// added for role tag
 	if len(role.Tags) > 0 {
 		if err = d.Set("tags", flattenTag(role.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("tags", nil); err != nil {
 			return diag.FromErr(err)
 		}
 	}

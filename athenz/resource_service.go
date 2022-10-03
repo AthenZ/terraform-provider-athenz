@@ -123,6 +123,7 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
+	//return diag.Errorf("terraform plan resource")
 
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -144,6 +145,10 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 	if len(service.PublicKeys) > 0 {
 		if err = d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("public_keys", nil); err != nil {
 			return diag.FromErr(err)
 		}
 	}
