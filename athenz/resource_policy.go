@@ -79,6 +79,10 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interf
 		if err = d.Set("assertion", flattenPolicyAssertion(policy.Assertions)); err != nil {
 			return diag.FromErr(err)
 		}
+	} else {
+		if err = d.Set("assertion", nil); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	return nil
 }

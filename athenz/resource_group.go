@@ -135,7 +135,13 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	}
 
 	if len(group.GroupMembers) > 0 {
-		d.Set("members", flattenGroupMember(group.GroupMembers))
+		if err = d.Set("members", flattenGroupMember(group.GroupMembers)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("members", nil); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil
