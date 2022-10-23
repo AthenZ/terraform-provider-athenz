@@ -28,6 +28,10 @@ variable "athenz_provider_foo-members" {
   type = list(string)
   description = "The role members to use"
 }
+variable "athenz_provider_foo-member-0-name" {
+  type = string
+  description = "The name to use"
+}
 variable "athenz_provider_foo-audit_ref" {
   type = string
   description = "The auditRef to use"
@@ -44,13 +48,27 @@ variable "athenz_provider_bar-members" {
   type = list(string)
   description = "The role members to use"
 }
-
+variable "athenz_provider_bar-member-0-name" {
+  type = string
+  description = "The name to use"
+}
+variable "athenz_provider_bar-member-0-expiration" {
+  type = string
+  description = "The expiration to use"
+}
 # ------------------ groups variables --------------------
 variable "athenz_provider_foo-group_members" {
   type = list(string)
-  description = "The role members to use"
+  description = "The group members to use"
 }
-
+variable "athenz_provider_foo-group_member-0-name" {
+  type = string
+  description = "The name to use"
+}
+variable "athenz_provider_foo-group_member-0-expiration" {
+  type = string
+  description = "The expiration to use"
+}
 # ------------------ services variables --------------------
 variable "athenz_provider_foo-keys-0-id" {
   type = string
