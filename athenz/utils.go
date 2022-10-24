@@ -145,7 +145,7 @@ func stringToTimestamp(val string) *rdl.Timestamp {
 	if val == "" {
 		return nil
 	}
-	expiration, _ := time.ParseInLocation(EXPIRATION_TEMPLATE, val, time.UTC)
+	expiration, _ := time.ParseInLocation(EXPIRATION_LAYOUT, val, time.UTC)
 	return &rdl.Timestamp{Time: expiration}
 }
 

@@ -582,40 +582,6 @@ func testAccCheckGroupRoleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccGroupRoleConfigMendi(name, domain, member1 string) string {
-	return fmt.Sprintf(`
-resource "athenz_role" "roleTest" {
-  name = "%s"
-  domain = "%s"
-  members = ["%s", "user.olevi"]
-  audit_ref="done by someone"
-  tags = {
-	key1 = "v1,v2"
-	key2 = "v2,v3"
-	}
-}
-`, name, domain, member1)
-}
-
-func testAccGroupRoleConfigMendi2(name, domain, member1 string) string {
-	return fmt.Sprintf(`
-resource "athenz_role" "roleTest" {
-  name = "%s"
-  domain = "%s"
-  member {name = "%s"}
-  member {
-		name = "user.gbendor"
-		expiration = "2022-12-29 23:59:59"
-	}
-  audit_ref="done by someone"
-  tags = {
-	key1 = "v1,v2"
-	key2 = "v2,v3"
-	}
-}
-`, name, domain, member1)
-}
-
 func testAccGroupRoleConfigDeprecated(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {

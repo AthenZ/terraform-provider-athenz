@@ -9,6 +9,6 @@ const (
 	SERVICE_SEPARATOR    = "."
 	SUB_DOMAIN_SEPARATOR = "."
 	PREFIX_USER_DOMAIN   = "home."
-	EXPIRATION_TEMPLATE  = "2006-01-02 15:04:05" // General type
+	EXPIRATION_LAYOUT    = "2006-01-02 15:04:05"
 	EXPIRATION_PATTERN   = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 )

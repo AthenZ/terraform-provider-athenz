@@ -61,11 +61,12 @@ The following arguments are supported:
 
 - `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
 
+
 - `member` - (Optional) A set of Athenz principal members. Each member consists the following arguments:
 
   - `name` - (Required) The name of the Athenz principal member. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
 
-  - `expiration` - (Optional) The expiration of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
+  - `expiration` - (Optional) The expiration time in UTC of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
 
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]

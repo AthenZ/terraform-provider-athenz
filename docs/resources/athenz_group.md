@@ -51,11 +51,13 @@ The following arguments are supported:
 
 - `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
 
+
 - `member` - (Optional) A set of Athenz principal members. Each member consists the following arguments:
 
     - `name` - (Required) The name of the Athenz principal member. must be in this format: `user.<userid> or <domain>.<service>`.
 
     - `expiration` - (Optional) The expiration of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
+
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number
 
