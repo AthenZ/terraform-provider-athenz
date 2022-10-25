@@ -24,10 +24,11 @@ func ResourceRole() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that role belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that role belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePattern(getDomainPattern(), "domain"),
 			},
 			"name": {
 				Type:        schema.TypeString,

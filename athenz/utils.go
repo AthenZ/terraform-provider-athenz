@@ -3,8 +3,11 @@ package athenz
 import (
 	b64 "encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -222,4 +225,34 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 		return fmt.Errorf("you must specify the fully qualified name for resource: %s", resourceName)
 	}
 	return nil
+}
+
+func validatePattern(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
+	return func(val interface{}, c cty.Path) diag.Diagnostics {
+		r, e := regexp.Compile(validPattern)
+		if e != nil {
+			return diag.FromErr(e)
+		}
+		if r.FindString(val.(string)) != val.(string) {
+			return diag.FromErr(fmt.Errorf("%s must match the pattern %s", attribute, validPattern))
+		}
+		return nil
+	}
+}
+
+func getDomainPattern() string {
+	rdlSchema := zms.ZMSSchema()
+	var pattern string
+	for _, t := range rdlSchema.Types {
+		if t.StringTypeDef.Name == "DomainName" {
+			pattern = t.StringTypeDef.Pattern
+			break
+		}
+	}
+	return pattern
+}
+
+func getDomainPatternErrorRegex() *regexp.Regexp {
+	r, _ := regexp.Compile("Error: domain must match the pattern")
+	return r
 }

@@ -44,6 +44,10 @@ func TestAccGroupRoleBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckGroupRoleDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config:      testAccGroupRoleInvalidDomainNameConfig(roleName, "sys.au@th", member1),
+				ExpectError: getDomainPatternErrorRegex(),
+			},
+			{
 				Config: testAccGroupRoleConfig(roleName, domainName, member1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
@@ -353,6 +357,21 @@ func testAccCheckGroupRoleDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccGroupRoleInvalidDomainNameConfig(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  members = ["%s"]
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
 }
 
 func testAccGroupRoleConfig(name, domain, member1 string) string {
