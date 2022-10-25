@@ -241,4 +241,8 @@ func Test_validateExpirationMemberFunc(t *testing.T) {
 	assert.Nil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
 	invalidExpiration := "2022-12-29 23:59"
 	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	invalidExpiration = "2022-12-29 23:59:59:00"
+	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	invalidExpiration = "22022-12-29 23:59:59"
+	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 }

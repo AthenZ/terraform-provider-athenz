@@ -318,11 +318,11 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 
 func validatePattern(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
 	return func(val interface{}, c cty.Path) diag.Diagnostics {
-		match, e := regexp.MatchString(validPattern, val.(string))
+		r, e := regexp.Compile(validPattern)
 		if e != nil {
 			return diag.FromErr(e)
 		}
-		if !match {
+		if r.FindString(val.(string)) != val.(string) {
 			return diag.FromErr(fmt.Errorf("%s must match the pattern %s", attribute, validPattern))
 		}
 		return nil
