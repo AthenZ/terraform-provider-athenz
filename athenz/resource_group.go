@@ -46,6 +46,29 @@ func ResourceGroup() *schema.Resource {
 					ValidateDiagFunc: validatePatternFunc(GROUP_MEMBER_NAME),
 					Set:              schema.HashString,
 				},
+				ConflictsWith: []string{"member"},
+				Deprecated:    "use member attribute instead",
+			},
+			"member": {
+				Type:          schema.TypeSet,
+				Description:   "Users or services to be added as members with attribute",
+				Optional:      true,
+				ConflictsWith: []string{"members"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validatePatternFunc(GROUP_MEMBER_NAME),
+						},
+						"expiration": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
+							ValidateDiagFunc: validateExpirationPatternFunc(EXPIRATION_PATTERN, MEMBER_EXPIRATION),
+						},
+					},
+				},
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
@@ -157,22 +180,19 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	removeDeprecatedGroupMembers := make([]*zms.GroupMember, 0)
-	addDeprecatedGroupMembers := make([]*zms.GroupMember, 0)
+	membersToDelete := make([]*zms.GroupMember, 0)
+	membersToAdd := make([]*zms.GroupMember, 0)
 	if d.HasChange("members") {
 		oldVal, newVal := handleChange(d, "members")
-		removeDeprecatedGroupMembers = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
-		addDeprecatedGroupMembers = expandDeprecatedGroupMembers(newVal.Difference(oldVal).List())
+		membersToDelete = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
+		membersToAdd = expandDeprecatedGroupMembers(newVal.Difference(oldVal).List())
 	}
-	removeGroupMembers := make([]*zms.GroupMember, 0)
-	addGroupMembers := make([]*zms.GroupMember, 0)
 	if d.HasChange("member") {
 		oldVal, newVal := handleChange(d, "member")
-		removeGroupMembers = expandGroupMembers(oldVal.Difference(newVal).List())
-		addGroupMembers = expandGroupMembers(newVal.Difference(oldVal).List())
+		membersToDelete = append(membersToDelete, expandGroupMembers(oldVal.Difference(newVal).List())...)
+		membersToAdd = append(membersToAdd, expandGroupMembers(newVal.Difference(oldVal).List())...)
 	}
-	removeMembers, addMembers := handleGroupMembersChange(removeDeprecatedGroupMembers, addDeprecatedGroupMembers, removeGroupMembers, addGroupMembers)
-	err = updateGroupMembers(dn, gn, removeMembers, addMembers, zmsClient, auditRef)
+	err = updateGroupMembers(dn, gn, membersToDelete, membersToAdd, zmsClient, auditRef)
 	if err != nil {
 		return diag.Errorf("error updating group membership: %s", err)
 	}

@@ -39,7 +39,7 @@ func ResourceRole() *schema.Resource {
 			},
 			"members": {
 				Type:        schema.TypeSet,
-				Description: "Users or services to be added as members",
+				Description: "Athenz principal to be added as members",
 				Optional:    true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
@@ -51,20 +51,21 @@ func ResourceRole() *schema.Resource {
 			},
 			"member": {
 				Type:          schema.TypeSet,
-				Description:   "Users or services to be added as members",
+				Description:   "Athenz principal to be added as members",
 				Optional:      true,
 				ConflictsWith: []string{"members"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validatePatternFunc(MEMBER_NAME),
 						},
 						"expiration": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "",
-							ValidateDiagFunc: validatePattern(EXPIRATION_PATTERN, "member expiration"),
+							ValidateDiagFunc: validateExpirationPatternFunc(EXPIRATION_PATTERN, MEMBER_EXPIRATION),
 						},
 					},
 				},
@@ -209,45 +210,6 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	return nil
 }
 
-// return true iff the members is includes in the members list
-func isMembersIncludes(member *zms.RoleMember, members []*zms.RoleMember) bool {
-	for _, m := range members {
-		if string(member.MemberName) == string(m.MemberName) {
-			return true
-		}
-	}
-	return false
-}
-
-// return all role members that appears in list1 but not includes in list2
-func unifyMembers(list1, list2 []*zms.RoleMember) []*zms.RoleMember {
-	toReturn := make([]*zms.RoleMember, 0)
-	for _, m := range list1 {
-		if !isMembersIncludes(m, list2) {
-			toReturn = append(toReturn, m)
-		}
-	}
-	return toReturn
-}
-
-/*
-since we not allow configuring both members (deprecated) and member attributes at the same time, state changes CAN'T be one of the following:
-1. remove members from both attributes member and members.
-2. add members in both attributes member and members.
-*/
-func handleMembersChange(removeDeprecatedRoleMembers, addDeprecatedRoleMembers, removeRoleMembers, addRoleMembers []*zms.RoleMember) ([]*zms.RoleMember, []*zms.RoleMember) {
-	var removeMembers []*zms.RoleMember
-	if len(removeDeprecatedRoleMembers) == 0 {
-		removeMembers = unifyMembers(removeRoleMembers, addDeprecatedRoleMembers)
-	} else {
-		removeMembers = unifyMembers(removeDeprecatedRoleMembers, addRoleMembers)
-	}
-	if len(addDeprecatedRoleMembers) == 0 {
-		return removeMembers, addRoleMembers
-	}
-	return removeMembers, addDeprecatedRoleMembers
-}
-
 func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, rn, err := splitRoleId(d.Id())
@@ -255,31 +217,35 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	removeDeprecatedRoleMembers := make([]*zms.RoleMember, 0)
-	addDeprecatedRoleMembers := make([]*zms.RoleMember, 0)
+	membersToDelete := make([]*zms.RoleMember, 0)
+	membersToAdd := make([]*zms.RoleMember, 0)
 	if d.HasChange("members") {
 		if _, ok := d.GetOk("trust"); ok {
 			return diag.Errorf("delegated roles cannot change members")
 		}
 		os, ns := handleChange(d, "members")
-		removeDeprecatedRoleMembers = expandDeprecatedRoleMembers(os.Difference(ns).List())
-		addDeprecatedRoleMembers = expandDeprecatedRoleMembers(ns.Difference(os).List())
+		membersToDelete = expandDeprecatedRoleMembers(os.Difference(ns).List())
+		membersToAdd = expandDeprecatedRoleMembers(ns.Difference(os).List())
 	}
-	removeRoleMembers := make([]*zms.RoleMember, 0)
-	addRoleMembers := make([]*zms.RoleMember, 0)
 	if d.HasChange("member") {
 		if _, ok := d.GetOk("trust"); ok {
 			return diag.Errorf("delegated roles cannot change members")
 		}
 		os, ns := handleChange(d, "member")
-		removeRoleMembers = expandRoleMembers(os.Difference(ns).List())
-		addRoleMembers = expandRoleMembers(ns.Difference(os).List())
+		membersToDelete = append(membersToDelete, expandRoleMembers(os.Difference(ns).List())...)
+		membersToAdd = append(membersToAdd, expandRoleMembers(ns.Difference(os).List())...)
 	}
-	removeMembers, addMembers := handleMembersChange(removeDeprecatedRoleMembers, addDeprecatedRoleMembers, removeRoleMembers, addRoleMembers)
-	err = updateRoleMembers(dn, rn, removeMembers, addMembers, auditRef, zmsClient)
+
+	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient)
 	if err != nil {
 		return diag.Errorf("error updating group membership: %s", err)
 	}
+
+	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
+	if err != nil {
+		return diag.Errorf("error updating group membership: %s", err)
+	}
+
 	if d.HasChange("tags") {
 		role, err := zmsClient.GetRole(dn, rn)
 		if err != nil {

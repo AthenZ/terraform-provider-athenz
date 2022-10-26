@@ -10,7 +10,7 @@ import (
 	ast "gotest.tools/assert"
 )
 
-func Test_allElementsNotContained(t *testing.T) {
+func TestAllElementsNotContained(t *testing.T) {
 
 	ast.DeepEqual(t, allElementsNotContained([]string{"s1", "s2", "s3"}, []string{"s1", "s2"}), []string{"s3"})
 	ast.DeepEqual(t, allElementsNotContained([]string{}, []string{"s1", "s2"}), []string{})
@@ -19,21 +19,21 @@ func Test_allElementsNotContained(t *testing.T) {
 	ast.DeepEqual(t, allElementsNotContained([]string{"s1", "s2", "s3"}, []string{"s1", "s2", "s3"}), []string{})
 }
 
-func Test_convertTagComponentValueListToStringList(t *testing.T) {
+func TestConvertTagComponentValueListToStringList(t *testing.T) {
 	ast.DeepEqual(t,
 		convertTagComponentValueListToStringList([]zms.TagCompoundValue{"s1", "s2", "s3"}),
 		[]string{"s1", "s2", "s3"})
 	ast.DeepEqual(t, convertTagComponentValueListToStringList([]zms.TagCompoundValue{}), []string{})
 }
 
-func Test_makeTagsValue(t *testing.T) {
+func TestMakeTagsValue(t *testing.T) {
 	ast.DeepEqual(t, makeTagsValue("s1,s2,s3"),
 		&zms.TagValueList{List: []zms.TagCompoundValue{"s1", "s2", "s3"}})
 	ast.DeepEqual(t, makeTagsValue(""), &zms.TagValueList{List: []zms.TagCompoundValue{}})
 }
 
 // works if changing in line 59 from .(*schema.Set).List() to .([]interface)
-func Test_expandRoleTags(t *testing.T) {
+func TestExpandRoleTags(t *testing.T) {
 	actual := expandRoleTags(map[string]interface{}{"key1": "v1k1,v2k1", "key2": "v1k2,v2k2,v3k2"})
 	expected := buildMapForSchemaTest([]string{"key1", "key2"}, []int{2, 3}, []string{"v1k1", "v2k1", "v1k2", "v2k2", "v3k2"})
 	checkMapEquals(t, expected, actual)
@@ -54,7 +54,7 @@ func checkMapEquals(t *testing.T, expected map[zms.CompoundName]*zms.TagValueLis
 	}
 }
 
-func Test_flattenTag(t *testing.T) {
+func TestFlattenTag(t *testing.T) {
 	assert.EqualValues(t,
 		map[string]interface{}{
 			"key1": "v1k1,v2k1",

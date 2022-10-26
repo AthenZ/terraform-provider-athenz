@@ -4,8 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -14,6 +19,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func TestAccGroupRoleConflictArgumentError(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	r, e := regexp.Compile("Error: Conflicting configuration arguments")
+	if e != nil {
+		assert.Fail(t, e.Error())
+	}
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupRoleMembersConflictingMember(),
+				ExpectError: r,
+			},
+		},
+	})
+}
+
+func testAccGroupRoleMembersConflictingMember() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "test"
+  domain = "sys.auth"
+  members = ["user.jone"]
+  member {
+	name = "user.jone"
+  }
+}
+`)
+}
 func TestAccGroupRoleBasicDeprecated(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
@@ -352,6 +389,10 @@ func TestAccGroupRoleInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupRoleInvalidMemberNameConfig(),
 				ExpectError: getPatternErrorRegex(MEMBER_NAME),
+			},
+			{
+				Config:      testAccGroupRoleInvalidExpirationConfig(),
+				ExpectError: getPatternErrorRegex(MEMBER_EXPIRATION),
 			},
 		},
 	})
@@ -817,7 +858,28 @@ func testAccGroupRoleInvalidMemberNameConfig() string {
 resource "athenz_role" "roleTest" {
 	domain = "sys.auth"
 	name = "acc.test"
-    members = ["user.jone", "sys.auth:group.test", "user:bob"]
+	member {
+		name = "user.jone"
+	}
+	member {
+		name = "sys.auth:group.test"
+	}
+	member {
+		name = "user:bob"
+	}
+}
+`)
+}
+
+func testAccGroupRoleInvalidExpirationConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+	member {
+		name = "user.jone"
+		expiration = "2022-01-01 13:56"
+	}
 }
 `)
 }

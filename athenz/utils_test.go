@@ -1,11 +1,11 @@
 package athenz
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/stretchr/testify/assert"
 	ast "gotest.tools/assert"
 )
 
@@ -21,11 +21,11 @@ func getFlattedRoleMembersDeprecated() []interface{} {
 	return []interface{}{"member1", "member2"}
 }
 
-func Test_flattenDeprecatedRoleMembers(t *testing.T) {
+func TestFlattenDeprecatedRoleMembers(t *testing.T) {
 	ast.DeepEqual(t, flattenDeprecatedRoleMembers(getZmsRoleMembersDeprecated()), getFlattedRoleMembersDeprecated())
 }
 
-func Test_expandDeprecatedRoleMembers(t *testing.T) {
+func TestExpandDeprecatedRoleMembers(t *testing.T) {
 	ast.DeepEqual(t, expandDeprecatedRoleMembers(getFlattedRoleMembersDeprecated()), getZmsRoleMembersDeprecated())
 }
 
@@ -83,27 +83,27 @@ xQIDAQAB
 -----END PUBLIC KEY-----`
 }
 
-func Test_flattenRoleMembers(t *testing.T) {
+func TestFlattenRoleMembers(t *testing.T) {
 	ast.DeepEqual(t, flattenRoleMembers(getZmsRoleMembers()), getFlattedRoleMembers())
 }
 
-func Test_expandRoleMembers(t *testing.T) {
+func TestExpandRoleMembers(t *testing.T) {
 	ast.DeepEqual(t, expandRoleMembers(getFlattedRoleMembers()), getZmsRoleMembers())
 }
 
-func Test_flattenPolicyAssertion(t *testing.T) {
+func TestFlattenPolicyAssertion(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
 	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false)), getFlattedAssertions(roleName, resourceName))
 }
 
-func Test_expandPolicyAssertions(t *testing.T) {
+func TestExpandPolicyAssertions(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
 	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false))
 }
 
-func Test_validateCaseSensitiveValue(t *testing.T) {
+func TestValidateCaseSensitiveValue(t *testing.T) {
 	action := "PLAY"
 	resource := `dom:OWS`
 
@@ -119,7 +119,7 @@ func Test_validateCaseSensitiveValue(t *testing.T) {
 	ast.NilError(t, validateCaseSensitiveValue(false, action, strings.ToLower(resource)))
 }
 
-func Test_inferCaseSensitiveValue(t *testing.T) {
+func TestInferCaseSensitiveValue(t *testing.T) {
 	action := "PLAY"
 	resource := `dom:OWS`
 
@@ -132,7 +132,7 @@ func Test_inferCaseSensitiveValue(t *testing.T) {
 	ast.Equal(t, true, inferCaseSensitiveValue(action, strings.ToLower(resource)))
 }
 
-func Test_getShortName(t *testing.T) {
+func TestGetShortName(t *testing.T) {
 	serviceName := "openhouse"
 	fullServiceName := dName + SERVICE_SEPARATOR + serviceName
 	roleName := "test_role"
@@ -147,21 +147,21 @@ func Test_getShortName(t *testing.T) {
 	ast.Equal(t, roleName, shortName(dName, roleName, ROLE_SEPARATOR))
 }
 
-func Test_flattenPublicKeyEntryList(t *testing.T) {
+func TestFlattenPublicKeyEntryList(t *testing.T) {
 	id := "v0"
 	keyBase64 := getKeyBase64()
 	key := getDecodedKey() + "\n"
 	ast.DeepEqual(t, flattenPublicKeyEntryList(getPublicKeysEntry(id, keyBase64)), getPublicKeys(id, key))
 }
 
-func Test_convertToPublicKeyEntryList(t *testing.T) {
+func TestConvertToPublicKeyEntryList(t *testing.T) {
 	id := "v0"
 	key := getDecodedKey()
 	keyBase64 := getKeyBase64()
 	ast.DeepEqual(t, convertToPublicKeyEntryList(getPublicKeys(id, key)), getPublicKeysEntry(id, keyBase64))
 }
 
-func Test_splitServiceId(t *testing.T) {
+func TestSplitServiceId(t *testing.T) {
 	serviceName := "openhouse"
 	// simple case:
 	serviceId := dName + SERVICE_SEPARATOR + serviceName
@@ -178,7 +178,7 @@ func Test_splitServiceId(t *testing.T) {
 	ast.Equal(t, serviceName, sn)
 }
 
-func Test_splitRoleId(t *testing.T) {
+func TestSplitRoleId(t *testing.T) {
 	roleId := "some_domain" + ROLE_SEPARATOR + "some_role"
 	dn, rn, err := splitRoleId(roleId)
 	ast.NilError(t, err)
@@ -186,7 +186,7 @@ func Test_splitRoleId(t *testing.T) {
 	ast.Equal(t, "some_role", rn)
 }
 
-func Test_splitPolicyId(t *testing.T) {
+func TestSplitPolicyId(t *testing.T) {
 	policyId := "some_domain" + POLICY_SEPARATOR + "some_policy"
 	dn, pn, err := splitPolicyId(policyId)
 	ast.NilError(t, err)
@@ -194,7 +194,7 @@ func Test_splitPolicyId(t *testing.T) {
 	ast.Equal(t, "some_policy", pn)
 }
 
-func Test_splitGroupId(t *testing.T) {
+func TestSplitGroupId(t *testing.T) {
 	groupId := "some_domain" + GROUP_SEPARATOR + "some_group"
 	dn, gn, err := splitGroupId(groupId)
 	ast.NilError(t, err)
@@ -202,29 +202,29 @@ func Test_splitGroupId(t *testing.T) {
 	ast.Equal(t, "some_group", gn)
 }
 
-func Test_convertToKeyBase64(t *testing.T) {
+func TestConvertToKeyBase64(t *testing.T) {
 	ast.Equal(t, convertToKeyBase64(getDecodedKey()), getKeyBase64())
 }
 
-func Test_convertToDecodedKey(t *testing.T) {
+func TestConvertToDecodedKey(t *testing.T) {
 	ast.Equal(t, convertToDecodedKey(getKeyBase64()), getDecodedKey())
 }
 
-func Test_validateResourceNameWithinAssertion(t *testing.T) {
+func TestValidateResourceNameWithinAssertion(t *testing.T) {
 	fullyQualifiedName := "athens:resource1"
 	ast.NilError(t, validateResourceNameWithinAssertion(fullyQualifiedName))
 	illegalName := "resource1"
 	assert.NotNil(t, validateResourceNameWithinAssertion(illegalName))
 }
 
-func Test_validateRoleNameWithinAssertion(t *testing.T) {
+func TestValidateRoleNameWithinAssertion(t *testing.T) {
 	roleName := "admin"
 	ast.NilError(t, validateRoleNameWithinAssertion(roleName))
 	illegalFullyQualifiedName := "athens" + ROLE_SEPARATOR + roleName
 	assert.NotNil(t, validateRoleNameWithinAssertion(illegalFullyQualifiedName))
 }
 
-func Test_splitId(t *testing.T) {
+func TestSplitId(t *testing.T) {
 	validId := "some_domain" + ROLE_SEPARATOR + "some_role"
 	dn, r, err := splitId(validId, ROLE_SEPARATOR)
 	ast.NilError(t, err)
@@ -236,13 +236,13 @@ func Test_splitId(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func Test_validateExpirationMemberFunc(t *testing.T) {
+func TestValidateExpirationMemberFunc(t *testing.T) {
 	expiration := "2022-12-29 23:59:59"
-	assert.Nil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
+	assert.Nil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
 	invalidExpiration := "2022-12-29 23:59"
-	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "2022-12-29 23:59:59:00"
-	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "22022-12-29 23:59:59"
-	assert.NotNil(t, validatePattern(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 }

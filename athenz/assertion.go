@@ -3,9 +3,10 @@ package athenz
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
