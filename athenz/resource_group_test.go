@@ -81,6 +81,31 @@ func TestAccGroupBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupInvalidGroupNameConfig(),
+				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+			{
+				Config:      testAccGroupInvalidMemberNameConfig(),
+				ExpectError: getPatternErrorRegex(GROUP_MEMBER_NAME),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestGroups(domain string, groups []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, groupName := range groups {
@@ -180,4 +205,32 @@ resource "athenz_group" "groupTest" {
   members = ["%s"]
 }
 `, name, domain, member2)
+}
+
+func testAccGroupInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+	domain = "sys.au@th"
+	name = "acc.test"
+}
+`)
+}
+
+func testAccGroupInvalidGroupNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+}
+`)
+}
+
+func testAccGroupInvalidMemberNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+    members = ["user.jone", "sys.auth:group.test", "user:bob"]
+}
+`)
 }

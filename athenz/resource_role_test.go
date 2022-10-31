@@ -44,10 +44,6 @@ func TestAccGroupRoleBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckGroupRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccGroupRoleInvalidDomainNameConfig(roleName, "sys.au@th", member1),
-				ExpectError: getDomainPatternErrorRegex(),
-			},
-			{
 				Config: testAccGroupRoleConfig(roleName, domainName, member1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
@@ -183,6 +179,31 @@ func TestAccGroupRoleDelegation(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resourceName, "trust", delegatedDomain),
 				),
+			},
+		},
+	})
+}
+
+func TestAccGroupRoleInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupRoleInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupRoleInvalidRoleNameConfig(),
+				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+			{
+				Config:      testAccGroupRoleInvalidMemberNameConfig(),
+				ExpectError: getPatternErrorRegex(MEMBER_NAME),
 			},
 		},
 	})
@@ -359,21 +380,6 @@ func testAccCheckGroupRoleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccGroupRoleInvalidDomainNameConfig(name, domain, member1 string) string {
-	return fmt.Sprintf(`
-resource "athenz_role" "roleTest" {
-  name = "%s"
-  domain = "%s"
-  members = ["%s"]
-  audit_ref="done by someone"
-  tags = {
-	key1 = "v1,v2"
-	key2 = "v2,v3"
-	}
-}
-`, name, domain, member1)
-}
-
 func testAccGroupRoleConfig(name, domain, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
@@ -461,4 +467,31 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, trust)
+}
+
+func testAccGroupRoleInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.au@th"
+	name = "acc.test"
+}
+`)
+}
+
+func testAccGroupRoleInvalidRoleNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+}
+`)
+}
+func testAccGroupRoleInvalidMemberNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+    members = ["user.jone", "sys.auth:group.test", "user:bob"]
+}
+`)
 }

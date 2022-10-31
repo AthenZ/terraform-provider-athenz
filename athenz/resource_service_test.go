@@ -73,6 +73,27 @@ func TestAccGroupServiceBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupServiceInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupServiceInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupServiceInvalidServiceNameConfig(),
+				ExpectError: getPatternErrorRegex(SIMPLE_NAME),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestServices(domain string, services []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, serviceName := range services {
@@ -185,4 +206,22 @@ resource "athenz_service" "serviceTest" {
   description = "this service is for acc test"
 }
 `, name, domain)
+}
+
+func testAccGroupServiceInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+	domain = "sys.au@th"
+	name = "service_test"
+}
+`)
+}
+
+func testAccGroupServiceInvalidServiceNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+	domain = "sys.auth"
+	name = "service.test"
+}
+`)
 }

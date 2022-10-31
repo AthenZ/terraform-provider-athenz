@@ -18,33 +18,35 @@ func ResourceSubDomain() *schema.Resource {
 		ReadContext:   resourceSubDomainRead,
 		DeleteContext: resourceSubDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"parent_name": {
-				Type:        schema.TypeString,
-				Description: "Name of the standard parent domain",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the standard parent domain",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the standard sub domain",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the standard sub domain",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(SIMPLE_NAME),
 			},
 			"admin_users": {
 				Type:        schema.TypeSet,
 				Description: "Names of the standard admin users",
 				Required:    true,
-				ForceNew:    true, // must to be true, because no update method
+				ForceNew:    true, // must be set as true, since no update method
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true, // must to be true, because no update method
+				ForceNew: true, // must be set as true, since no update method
 				Default:  AUDIT_REF,
 			},
 		},

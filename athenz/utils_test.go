@@ -216,11 +216,3 @@ func Test_splitId(t *testing.T) {
 	_, _, err = splitId(inValidId, ROLE_SEPARATOR)
 	assert.NotNil(t, err)
 }
-
-func TestValidateDomainName(t *testing.T) {
-	domainName := "sys.auth"
-	domainPattern := getDomainPattern()
-	assert.Nil(t, validatePattern(domainPattern, "domain")(domainName, nil))
-	invalidDomainName := "sys.au@th"
-	assert.NotNil(t, validatePattern(domainPattern, "domain")(invalidDomainName, nil))
-}

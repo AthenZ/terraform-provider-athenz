@@ -161,6 +161,27 @@ func TestAccGroupCreatePolicyCaseSensitiveAssertion(t *testing.T) {
 	})
 }
 
+func TestAccGroupPolicyInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupPolicyInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidPolicyNameConfig(),
+				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestPolicies(domain string, policies, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, policyName := range policies {
@@ -323,4 +344,22 @@ name = "%s"
   }
 }
 `, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccGroupPolicyInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "policyTest" {
+	domain = "sys.au@th"
+	name = "acc.test"
+}
+`)
+}
+
+func testAccGroupPolicyInvalidPolicyNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "policyTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+}
+`)
 }

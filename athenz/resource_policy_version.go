@@ -2,7 +2,6 @@ package athenz
 
 import (
 	"context"
-	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -22,21 +21,24 @@ func ResourcePolicyVersion() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that policy belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that policy belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the policy",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the policy",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
 			},
 			"active_version": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The policy version that will be active",
+				Type:             schema.TypeString,
+				Required:         true,
+				Description:      "The policy version that will be active",
+				ValidateDiagFunc: validatePatternFunc(SIMPLE_NAME),
 			},
 			"version": {
 				Type:     schema.TypeSet,
@@ -44,15 +46,9 @@ func ResourcePolicyVersion() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"version_name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: func(val interface{}, key string) (ws []string, errs []error) {
-								v := val.(string)
-								if v == "" {
-									errs = append(errs, fmt.Errorf("%s can't be empty string", key))
-								}
-								return
-							},
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validatePatternFunc(SIMPLE_NAME),
 						},
 						"assertion": resourceAssertionSchema(),
 					},

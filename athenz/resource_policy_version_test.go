@@ -123,6 +123,31 @@ func TestAccGroupPolicyVersionBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupPolicyVersionInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupPolicyVersionInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidPolicyNameConfig(),
+				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidVersionConfig(),
+				ExpectError: getPatternErrorRegex(SIMPLE_NAME),
+			},
+		},
+	})
+}
+
 func TestAccGroupPolicyVersionCaseSensitive(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Print("TF_ACC must be set for acceptance tests")
@@ -487,4 +512,43 @@ version {
  }
 }
 `, role1, role2, name, domain, activeVersion, version1, resource1Name, domain+RESOURCE_SEPARATOR, version2, resource2Name, domain+RESOURCE_SEPARATOR, resource2Name, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccGroupPolicyVersionInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "PolicyVersionTest" {
+	domain = "sys.au@th"
+	name = "acc.test"
+	active_version = "1"
+	version {
+		version_name = "1"
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidPolicyNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "PolicyVersionTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+	active_version = "1"
+	version {
+		version_name = "1"
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidVersionConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "PolicyVersionTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+	active_version = "1.1"
+	version {
+		version_name = "1.1"
+	}
+}
+`)
 }

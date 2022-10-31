@@ -22,16 +22,18 @@ func ResourcePolicy() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that policy belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that policy belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the standard policy",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the standard policy",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
 			},
 			"assertion": resourceAssertionSchema(),
 			"audit_ref": {

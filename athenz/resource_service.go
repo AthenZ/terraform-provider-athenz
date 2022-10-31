@@ -24,16 +24,18 @@ func ResourceService() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that service belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that service belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the service to be added to the domain",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the service to be added to the domain",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(SIMPLE_NAME),
 			},
 			"description": {
 				Type:        schema.TypeString,
