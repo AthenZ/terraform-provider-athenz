@@ -17,6 +17,9 @@ shared:
     screwdriver.cd/dockerCpu: HIGH
     screwdriver.cd/dockerRam: HIGH  
 
+parameters:
+  upgrade_test: "true"
+  
 jobs:
   certify-provider:
     requires: [~commit]
@@ -26,20 +29,26 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
-          ./goupdate.sh
+          ./scripts/goupdate.sh
           set -e
           yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
           yum -y install wget docker-ce-cli
           docker system info
           ls -la $SD_DIND_SHARE_PATH
       - tag-prerelease-version: |
-          ./git-tag.sh -r prerelease -t true
+          ./scripts/git-tag.sh -r prerelease -t true
       - run-tests-prerelease-version: |
+          UPGRADE_TEST=$(meta get parameters.upgrade_test.value)
+          echo "Perform upgrade test case: $UPGRADE_TEST"
           PRERELEASE_VERSION=$(meta get git.version)
-          ./provider-version-update.sh $PRERELEASE_VERSION
-          ./execution/sys-test.sh
+          PREVIOUS_VERSION=$(meta get git.prev.version)
+          if [[ "$UPGRADE_TEST" == "true" ]]; then
+            ./execution/sys-test.sh $PREVIOUS_VERSION
+          fi
+          ./scripts/wait-for-prerelease-version.sh $PRERELEASE_VERSION
+          ./execution/sys-test.sh $PRERELEASE_VERSION $UPGRADE_TEST
       - tag-certify-version: |
-          ./git-tag.sh -r patch -t true
+          ./scripts/git-tag.sh -r patch -t true
 
   pull-request:
     requires: [~pr]
@@ -47,7 +56,7 @@ jobs:
       - SD_DEPLOY_KEY
     steps:
       - install-deps: |
-          ./goupdate.sh
+          ./scripts/goupdate.sh
           set -e
           yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
           yum -y install wget docker-ce-cli
