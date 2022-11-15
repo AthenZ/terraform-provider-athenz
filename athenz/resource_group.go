@@ -2,17 +2,14 @@ package athenz
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 
 	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -28,30 +25,26 @@ func ResourceGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that group belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that group belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the standard group role",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the standard group role",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
 			},
 			"members": {
 				Type:        schema.TypeSet,
 				Description: "Users or services to be added as members",
 				Optional:    true,
 				Elem: &schema.Schema{Type: schema.TypeString,
-					ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-						value := v.(string)
-						if strings.Contains(value, ":group.") {
-							errors = append(errors, fmt.Errorf("%q. A group can't be a member of another group", v))
-						}
-						return
-					},
-					Set: schema.HashString,
+					ValidateDiagFunc: validatePatternFunc(GROUP_MEMBER_NAME),
+					Set:              schema.HashString,
 				},
 			},
 			"audit_ref": {

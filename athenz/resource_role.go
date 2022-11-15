@@ -24,29 +24,35 @@ func ResourceRole() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"domain": {
-				Type:        schema.TypeString,
-				Description: "Name of the domain that role belongs to",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the domain that role belongs to",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "Name of the standard group role",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "Name of the standard group role",
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
 			},
 			"members": {
 				Type:        schema.TypeSet,
 				Description: "Users or services to be added as members",
 				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Set:         schema.HashString,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					ValidateDiagFunc: validatePatternFunc(MEMBER_NAME),
+				},
+				Set: schema.HashString,
 			},
 			"trust": {
-				Type:        schema.TypeString,
-				Description: "The domain, which this role is trusted to",
-				Optional:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The domain, which this role is trusted to",
+				Optional:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
@@ -56,7 +62,9 @@ func ResourceRole() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

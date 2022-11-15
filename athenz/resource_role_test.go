@@ -184,6 +184,31 @@ func TestAccGroupRoleDelegation(t *testing.T) {
 	})
 }
 
+func TestAccGroupRoleInvalidResource(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+
+	resource.Test(t, resource.TestCase{
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccGroupRoleInvalidDomainNameConfig(),
+				ExpectError: getPatternErrorRegex(DOMAIN_NAME),
+			},
+			{
+				Config:      testAccGroupRoleInvalidRoleNameConfig(),
+				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+			{
+				Config:      testAccGroupRoleInvalidMemberNameConfig(),
+				ExpectError: getPatternErrorRegex(MEMBER_NAME),
+			},
+		},
+	})
+}
+
 func cleanAllAccTestRoles(domain string, roles []string) {
 	zmsClient := testAccProvider.Meta().(client.ZmsClient)
 	for _, roleName := range roles {
@@ -442,4 +467,31 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, trust)
+}
+
+func testAccGroupRoleInvalidDomainNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.au@th"
+	name = "acc.test"
+}
+`)
+}
+
+func testAccGroupRoleInvalidRoleNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc:test"
+}
+`)
+}
+func testAccGroupRoleInvalidMemberNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+    members = ["user.jone", "sys.auth:group.test", "user:bob"]
+}
+`)
 }

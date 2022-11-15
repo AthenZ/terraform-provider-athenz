@@ -3,6 +3,7 @@ package athenz
 import (
 	b64 "encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -222,4 +223,9 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 		return fmt.Errorf("you must specify the fully qualified name for resource: %s", resourceName)
 	}
 	return nil
+}
+
+func getPatternErrorRegex(attribute string) *regexp.Regexp {
+	r, _ := regexp.Compile(fmt.Sprintf("Error: %s must match the pattern", attribute))
+	return r
 }
