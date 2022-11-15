@@ -544,7 +544,7 @@ func testAccGroupPolicyVersionInvalidVersionConfig() string {
 	return fmt.Sprintf(`
 resource "athenz_policy_version" "PolicyVersionTest" {
 	domain = "sys.auth"
-	name = "acc:test"
+	name = "acc_test"
 	active_version = "1.1"
 	version {
 		version_name = "1.1"

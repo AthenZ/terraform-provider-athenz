@@ -2,9 +2,10 @@ package athenz
 
 import (
 	"context"
+	"log"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"log"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"

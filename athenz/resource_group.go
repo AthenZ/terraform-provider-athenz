@@ -46,6 +46,29 @@ func ResourceGroup() *schema.Resource {
 					ValidateDiagFunc: validatePatternFunc(GROUP_MEMBER_NAME),
 					Set:              schema.HashString,
 				},
+				ConflictsWith: []string{"member"},
+				Deprecated:    "use member attribute instead",
+			},
+			"member": {
+				Type:          schema.TypeSet,
+				Description:   "Users or services to be added as members with attribute",
+				Optional:      true,
+				ConflictsWith: []string{"members"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validatePatternFunc(GROUP_MEMBER_NAME),
+						},
+						"expiration": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
+							ValidateDiagFunc: validateExpirationPatternFunc(EXPIRATION_PATTERN, MEMBER_EXPIRATION),
+						},
+					},
+				},
 			},
 			"audit_ref": {
 				Type:     schema.TypeString,
@@ -70,11 +93,11 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 				Name:     zms.ResourceName(fullResourceName),
 				Modified: nil,
 			}
-
-			if v, ok := d.GetOk("members"); ok && v.(*schema.Set).Len() > 0 {
+			if v, ok := d.GetOk("members"); ok {
+				group.GroupMembers = expandDeprecatedGroupMembers(v.(*schema.Set).List())
+			} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
 				group.GroupMembers = expandGroupMembers(v.(*schema.Set).List())
 			}
-
 			auditRef := d.Get("audit_ref").(string)
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
 				return diag.FromErr(err)
@@ -128,11 +151,20 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	}
 
 	if len(group.GroupMembers) > 0 {
-		if err = d.Set("members", flattenGroupMember(group.GroupMembers)); err != nil {
-			return diag.FromErr(err)
+		if _, ok := d.GetOk("members"); ok {
+			if err = d.Set("members", flattenDeprecatedGroupMembers(group.GroupMembers)); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err = d.Set("member", flattenGroupMembers(group.GroupMembers)); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	} else {
 		if err = d.Set("members", nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err = d.Set("member", nil); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -147,15 +179,24 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	auditRef := d.Get("audit_ref").(string)
+	membersToDelete := make([]*zms.GroupMember, 0)
+	membersToAdd := make([]*zms.GroupMember, 0)
 	if d.HasChange("members") {
-		oldVal, newVal := d.GetChange("members")
-		err := updateGroupMembers(dn, gn, oldVal, newVal, zmsClient, auditRef)
-		if err != nil {
-			return diag.Errorf("error updating group membership: %s", err)
-		}
+		oldVal, newVal := handleChange(d, "members")
+		membersToDelete = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
+		membersToAdd = expandDeprecatedGroupMembers(newVal.Difference(oldVal).List())
 	}
+	if d.HasChange("member") {
+		oldVal, newVal := handleChange(d, "member")
+		membersToDelete = append(membersToDelete, expandGroupMembers(oldVal.Difference(newVal).List())...)
+		membersToAdd = append(membersToAdd, expandGroupMembers(newVal.Difference(oldVal).List())...)
+	}
+	err = updateGroupMembers(dn, gn, membersToDelete, membersToAdd, zmsClient, auditRef)
+	if err != nil {
+		return diag.Errorf("error updating group membership: %s", err)
+	}
+
 	return resourceGroupRead(ctx, d, meta)
 }
 

@@ -39,13 +39,36 @@ func ResourceRole() *schema.Resource {
 			},
 			"members": {
 				Type:        schema.TypeSet,
-				Description: "Users or services to be added as members",
+				Description: "Athenz principal to be added as members",
 				Optional:    true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateDiagFunc: validatePatternFunc(MEMBER_NAME),
 				},
-				Set: schema.HashString,
+				Set:           schema.HashString,
+				ConflictsWith: []string{"member"},
+				Deprecated:    "use member attribute instead",
+			},
+			"member": {
+				Type:          schema.TypeSet,
+				Description:   "Athenz principal to be added as members",
+				Optional:      true,
+				ConflictsWith: []string{"members"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateDiagFunc: validatePatternFunc(MEMBER_NAME),
+						},
+						"expiration": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
+							ValidateDiagFunc: validateExpirationPatternFunc(EXPIRATION_PATTERN, MEMBER_EXPIRATION),
+						},
+					},
+				},
 			},
 			"trust": {
 				Type:             schema.TypeString,
@@ -84,7 +107,9 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 				Name:     zms.ResourceName(fullResourceName),
 				Modified: nil,
 			}
-			if v, ok := d.GetOk("members"); ok && v.(*schema.Set).Len() > 0 {
+			if v, ok := d.GetOk("members"); ok {
+				role.RoleMembers = expandDeprecatedRoleMembers(v.(*schema.Set).List())
+			} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
 				role.RoleMembers = expandRoleMembers(v.(*schema.Set).List())
 			}
 			auditRef := d.Get("audit_ref").(string)
@@ -147,13 +172,21 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	if role == nil {
 		return diag.Errorf("error retrieving Athenz Role - Make sure your cert/key are valid")
 	}
-
 	if len(role.RoleMembers) > 0 {
-		if err = d.Set("members", flattenRoleMembers(role.RoleMembers)); err != nil {
-			return diag.FromErr(err)
+		if _, ok := d.GetOk("members"); ok {
+			if err = d.Set("members", flattenDeprecatedRoleMembers(role.RoleMembers)); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			if err = d.Set("member", flattenRoleMembers(role.RoleMembers)); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	} else {
 		if err = d.Set("members", nil); err != nil {
+			return diag.FromErr(err)
+		}
+		if err = d.Set("member", nil); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -184,18 +217,35 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
+	membersToDelete := make([]*zms.RoleMember, 0)
+	membersToAdd := make([]*zms.RoleMember, 0)
 	if d.HasChange("members") {
 		if _, ok := d.GetOk("trust"); ok {
 			return diag.Errorf("delegated roles cannot change members")
 		}
 		os, ns := handleChange(d, "members")
-		remove := expandRoleMembers(os.Difference(ns).List())
-		add := expandRoleMembers(ns.Difference(os).List())
-		err := updateRoleMembers(dn, rn, remove, add, auditRef, zmsClient)
-		if err != nil {
-			return diag.Errorf("error updating group membership: %s", err)
-		}
+		membersToDelete = expandDeprecatedRoleMembers(os.Difference(ns).List())
+		membersToAdd = expandDeprecatedRoleMembers(ns.Difference(os).List())
 	}
+	if d.HasChange("member") {
+		if _, ok := d.GetOk("trust"); ok {
+			return diag.Errorf("delegated roles cannot change members")
+		}
+		os, ns := handleChange(d, "member")
+		membersToDelete = append(membersToDelete, expandRoleMembers(os.Difference(ns).List())...)
+		membersToAdd = append(membersToAdd, expandRoleMembers(ns.Difference(os).List())...)
+	}
+
+	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient)
+	if err != nil {
+		return diag.Errorf("error updating group membership: %s", err)
+	}
+
+	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
+	if err != nil {
+		return diag.Errorf("error updating group membership: %s", err)
+	}
+
 	if d.HasChange("tags") {
 		role, err := zmsClient.GetRole(dn, rn)
 		if err != nil {

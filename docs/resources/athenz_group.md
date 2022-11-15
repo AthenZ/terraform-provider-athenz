@@ -9,13 +9,32 @@ The group resource provides an Athenz group resource.
 
 `athenz_group` provides an Athenz group resource.
 
-### Example Usage
+### Example Usage \*\*Deprecated** (please use as explained in the second example)
 
 ```hcl
 resource "athenz_group" "newgrp" {
   name = "some_group"
   domain = "some_domain"
   members = ["user.<user-id>", "<domain>.<service-name>"]
+  audit_ref = "create group"
+}
+```
+
+### Example Usage
+
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
+
+```hcl
+resource "athenz_group" "newgrp" {
+  name = "some_group"
+  domain = "some_domain"
+  member {
+    name = "user.<user-id>"
+  }
+  member {
+    name = "<domain>.<service-name>"
+    expiration = "2022-12-29 23:59:59"
+  }
   audit_ref = "create group"
 }
 ```
@@ -30,7 +49,14 @@ The following arguments are supported:
 - `domain` - (Required) The Athenz domain name.
 
 
-- `members` - (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
+- `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
+
+
+- `member` - (Optional) A set of Athenz principal members. Each member consists the following arguments:
+
+    - `name` - (Required) The name of the Athenz principal member. must be in this format: `user.<userid> or <domain>.<service>`.
+
+    - `expiration` - (Optional) The expiration of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
 
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number

@@ -5,12 +5,56 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+func dataSourceRoleSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"domain": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"member": {
+			Type:        schema.TypeSet,
+			Description: "Athenz principal to be added as members",
+			Optional:    true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"expiration": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Default:  "",
+					},
+				},
+			},
+		},
+		"trust": {
+			Type:        schema.TypeString,
+			Description: "The domain, which this role is trusted to",
+			Optional:    true,
+		},
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+	}
+}
 
 func getGroupsNames(zmsGroupList []*zms.Group) []string {
 	groupList := make([]string, 0, len(zmsGroupList))
@@ -65,10 +109,7 @@ func splitId(id, separator string) (string, string, error) {
 	return prefix, shortName, nil
 }
 
-// adapted from https://github.com/yahoo/athenz/blob/master/libs/go/zmscli/utils.go
-// Copyright 2016 Yahoo Inc.
-// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
-func expandRoleMembers(configured []interface{}) []*zms.RoleMember {
+func expandDeprecatedRoleMembers(configured []interface{}) []*zms.RoleMember {
 	roleMembers := make([]*zms.RoleMember, 0, len(configured))
 	for _, v := range configured {
 		val, ok := v.(string)
@@ -81,12 +122,58 @@ func expandRoleMembers(configured []interface{}) []*zms.RoleMember {
 	return roleMembers
 }
 
-func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
+func flattenDeprecatedRoleMembers(list []*zms.RoleMember) []interface{} {
 	roleMembers := make([]interface{}, 0, len(list))
 	for _, m := range list {
 		roleMembers = append(roleMembers, string(m.MemberName))
 	}
 	return roleMembers
+}
+
+func expandRoleMembers(configured []interface{}) []*zms.RoleMember {
+	roleMembers := make([]*zms.RoleMember, 0, len(configured))
+	for _, v := range configured {
+		val, ok := v.(map[string]interface{})
+		if ok {
+			roleMember := zms.NewRoleMember()
+			roleMember.MemberName = zms.MemberName(val["name"].(string))
+			roleMember.Expiration = stringToTimestamp(val["expiration"].(string))
+			roleMembers = append(roleMembers, roleMember)
+		}
+	}
+	return roleMembers
+}
+
+func stringToTimestamp(val string) *rdl.Timestamp {
+	if val == "" {
+		return nil
+	}
+	expiration, _ := time.ParseInLocation(EXPIRATION_LAYOUT, val, time.UTC)
+	return &rdl.Timestamp{Time: expiration}
+}
+
+func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
+	roleMembers := make([]interface{}, 0, len(list))
+	for _, m := range list {
+		name := string(m.MemberName)
+		expiration := timestampToString(m.Expiration)
+		member := map[string]interface{}{
+			"name":       name,
+			"expiration": expiration,
+		}
+		roleMembers = append(roleMembers, member)
+	}
+	return roleMembers
+}
+
+func timestampToString(timeStamp *rdl.Timestamp) string {
+	if timeStamp == nil {
+		return ""
+	}
+	str := timeStamp.Time.String()
+	// <yyyy>-<mm>-<dd> <hh>:<mm>:<ss> +0000 UTC
+	lastIndex := strings.Index(str, "+") - 1
+	return str[0:lastIndex]
 }
 
 func convertToPublicKeyEntryList(publicKeys []interface{}) []*zms.PublicKeyEntry {
@@ -126,26 +213,44 @@ func convertToDecodedKey(keyValue string) string {
 	return string(keyBytes)
 }
 
-// adapted from https://github.com/terraform-providers/terraform-provider-aws/blob/master/aws/resource_aws_autoscaling_group.go
-func updateRoleMembers(dn string, rn string, remove []*zms.RoleMember, add []*zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
-	if len(remove) > 0 {
-		for _, m := range remove {
-			name := m.MemberName
-			err := zmsClient.DeleteMembership(dn, rn, name, auditRef)
-			if err != nil {
+func deleteRoleMember(dn string, rn string, member *zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
+	name := member.MemberName
+	err := zmsClient.DeleteMembership(dn, rn, name, auditRef)
+	if err != nil {
+		return fmt.Errorf("error removing membership: %s", err)
+	}
+	return nil
+}
+
+func deleteRoleMembers(dn string, rn string, members []*zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
+	if members != nil {
+		for _, m := range members {
+			if err := deleteRoleMember(dn, rn, m, auditRef, zmsClient); err != nil {
 				return fmt.Errorf("error removing membership: %s", err)
 			}
 		}
 	}
-	if len(add) > 0 {
-		for _, m := range add {
-			var member zms.Membership
-			name := m.MemberName
-			member.MemberName = name
-			member.RoleName = zms.ResourceName(rn)
-			err := zmsClient.PutMembership(dn, rn, name, auditRef, &member)
-			if err != nil {
-				return err
+	return nil
+}
+
+func addRoleMember(dn string, rn string, m *zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
+	var member zms.Membership
+	name := m.MemberName
+	member.MemberName = name
+	member.RoleName = zms.ResourceName(rn)
+	member.Expiration = m.Expiration
+	err := zmsClient.PutMembership(dn, rn, name, auditRef, &member)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func addRoleMembers(dn string, rn string, members []*zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
+	if members != nil {
+		for _, m := range members {
+			if err := addRoleMember(dn, rn, m, auditRef, zmsClient); err != nil {
+				return fmt.Errorf("error removing membership: %s", err)
 			}
 		}
 	}
@@ -186,10 +291,16 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	role["domain"] = domainName
 	role["name"] = zmsRole.Name
 	if len(zmsRole.RoleMembers) > 0 {
-		role["members"] = flattenRoleMembers(zmsRole.RoleMembers)
+		members := flattenRoleMembers(zmsRole.RoleMembers)
+		if len(members) > 0 {
+			role["member"] = members
+		}
 	}
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
+	}
+	if zmsRole.Trust != "" {
+		role["trust"] = string(zmsRole.Trust)
 	}
 	return role
 }
@@ -223,6 +334,19 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 		return fmt.Errorf("you must specify the fully qualified name for resource: %s", resourceName)
 	}
 	return nil
+}
+
+func validateExpirationPatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
+	return func(val interface{}, c cty.Path) diag.Diagnostics {
+		r, e := regexp.Compile(validPattern)
+		if e != nil {
+			return diag.FromErr(e)
+		}
+		if r.FindString(val.(string)) != val.(string) {
+			return diag.FromErr(fmt.Errorf("%s must match the pattern %s", attribute, validPattern))
+		}
+		return nil
+	}
 }
 
 func getPatternErrorRegex(attribute string) *regexp.Regexp {
