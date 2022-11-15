@@ -6,7 +6,7 @@
 #          -t|--tag              Should generate a new Git tag (default "false");
 
 mkdir -p ~/.ssh
-echo "Adding pkey to ssh config to be able to crete new git tag"
+echo "Adding pkey to ssh config to create new git tag"
 echo $SD_DEPLOY_KEY | base64 -d > ~/.ssh/terraform-provider-athenz_deploy_key
 echo "Host git-as-sd
         Hostname github.com
@@ -72,6 +72,7 @@ chmod +x $GIT_VERSION
 echo "Getting previous git tag version"
 $GIT_VERSION --prefix "$PREFIX" show | tee PREVIOUS_VERSION
 echo "Prev version is: $(cat PREVIOUS_VERSION)"
+/opt/sd/meta set git.prev.version `cat PREVIOUS_VERSION`
 
 echo "Getting git tag version"
 $GIT_VERSION --prefix "$PREFIX" bump $RELEASE_TYPE | tee VERSION
