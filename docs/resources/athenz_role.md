@@ -49,6 +49,17 @@ resource "athenz_role" "foo_role" {
 }
 ```
 
+### Example Delegated Role Usage 
+
+```hcl
+resource "athenz_role" "foo_role" {
+  name = "some_name"
+  domain = "some_domain"
+  trust = "some_delegated_domain"
+  audit_ref = "create delegated role"
+}
+```
+
 ### Argument Reference
 
 The following arguments are supported:
@@ -71,6 +82,7 @@ The following arguments are supported:
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
 
+- `trust` - (Optional) The domain, which this role is trusted to.
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
