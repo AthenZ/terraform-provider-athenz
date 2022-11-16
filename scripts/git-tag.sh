@@ -6,7 +6,7 @@
 #          -t|--tag              Should generate a new Git tag (default "false");
 
 mkdir -p ~/.ssh
-echo "Adding pkey to ssh config to create new git tag"
+echo "Adding pkey to ssh config to create a new git tag"
 echo $SD_DEPLOY_KEY | base64 -d > ~/.ssh/terraform-provider-athenz_deploy_key
 echo "Host git-as-sd
         Hostname github.com
