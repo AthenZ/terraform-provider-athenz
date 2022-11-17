@@ -9,6 +9,7 @@ import (
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -44,8 +45,18 @@ func ResourcePolicy() *schema.Resource {
 			},
 		},
 		// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
-		CustomizeDiff: validateAssertion(),
+		CustomizeDiff: validatePolicySchema(),
 	}
+}
+
+// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
+func validatePolicySchema() schema.CustomizeDiffFunc {
+	return customdiff.All(
+		customdiff.ValidateChange("assertion", func(ctx context.Context, old, new, meta any) error {
+			assertions := new.(*schema.Set).List()
+			return validateAssertion(assertions)
+		}),
+	)
 }
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

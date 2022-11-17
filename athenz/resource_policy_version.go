@@ -8,6 +8,7 @@ import (
 	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -53,8 +54,6 @@ func ResourcePolicyVersion() *schema.Resource {
 						},
 						"assertion": resourceAssertionSchema(),
 					},
-					// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
-					CustomizeDiff: validateAssertion(),
 				},
 			},
 			"audit_ref": {
@@ -63,7 +62,26 @@ func ResourcePolicyVersion() *schema.Resource {
 				Default:  AUDIT_REF,
 			},
 		},
+		// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
+		CustomizeDiff: validatePolicyVersionSchema(),
 	}
+}
+
+// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
+func validatePolicyVersionSchema() schema.CustomizeDiffFunc {
+	return customdiff.All(
+		customdiff.ValidateChange("version", func(ctx context.Context, old, new, meta any) error {
+			versions := new.(*schema.Set).List()
+			for _, version := range versions {
+				data := version.(map[string]interface{})
+				assertions := data["assertion"].(*schema.Set).List()
+				if err := validateAssertion(assertions); err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
+	)
 }
 
 func resourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

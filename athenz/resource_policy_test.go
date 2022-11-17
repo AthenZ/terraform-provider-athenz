@@ -168,6 +168,7 @@ func TestAccGroupPolicyInvalidResource(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -177,6 +178,22 @@ func TestAccGroupPolicyInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupPolicyInvalidPolicyNameConfig(),
 				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidResourceNameConfig(),
+				ExpectError: getErrorRegex("you must specify the fully qualified name for resource"),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidRoleNameConfig(),
+				ExpectError: getErrorRegex("please provide only the role name without the domain prefix"),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidCaseSensitive1Config(),
+				ExpectError: getErrorRegex("enabling case_sensitive flag is allowed only if action or resource has capital letters"),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidCaseSensitive2Config(),
+				ExpectError: getErrorRegex("capitalized action or resource allowed only when enabling case_sensitive flag"),
 			},
 		},
 	})
@@ -360,6 +377,67 @@ func testAccGroupPolicyInvalidPolicyNameConfig() string {
 resource "athenz_policy" "policyTest" {
 	domain = "sys.auth"
 	name = "acc:test"
+}
+`)
+}
+
+func testAccGroupPolicyInvalidResourceNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="play"
+    role="test"
+    resource="ows"
+  }
+}
+`)
+}
+
+func testAccGroupPolicyInvalidRoleNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="play"
+    role="sys.auth:role.test"
+    resource="sys.auth:ows"
+  }
+}
+`)
+}
+
+func testAccGroupPolicyInvalidCaseSensitive1Config() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="play"
+    role="test"
+    resource="sys.auth:ows"
+    case_sensitive=true
+  }
+}
+`)
+}
+
+func testAccGroupPolicyInvalidCaseSensitive2Config() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="PLAY"
+    role="role_test"
+    resource="sys.auth:ows"
+  }
 }
 `)
 }

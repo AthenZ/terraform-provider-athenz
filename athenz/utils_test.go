@@ -107,16 +107,17 @@ func TestValidateCaseSensitiveValue(t *testing.T) {
 	action := "PLAY"
 	resource := `dom:OWS`
 
-	// valid cases
+	// valid use cases
 	ast.NilError(t, validateCaseSensitiveValue(true, action, resource))
 	ast.NilError(t, validateCaseSensitiveValue(true, strings.ToLower(action), resource))
 	ast.NilError(t, validateCaseSensitiveValue(true, action, strings.ToLower(resource)))
 	ast.NilError(t, validateCaseSensitiveValue(false, strings.ToLower(action), strings.ToLower(resource)))
 
-	//invalid cases
-	ast.NilError(t, validateCaseSensitiveValue(false, action, resource))
-	ast.NilError(t, validateCaseSensitiveValue(false, strings.ToLower(action), resource))
-	ast.NilError(t, validateCaseSensitiveValue(false, action, strings.ToLower(resource)))
+	//invalid use cases
+	assert.NotNil(t, validateCaseSensitiveValue(true, strings.ToLower(action), strings.ToLower(resource)))
+	assert.NotNil(t, validateCaseSensitiveValue(false, action, resource))
+	assert.NotNil(t, validateCaseSensitiveValue(false, strings.ToLower(action), resource))
+	assert.NotNil(t, validateCaseSensitiveValue(false, action, strings.ToLower(resource)))
 }
 
 func TestInferCaseSensitiveValue(t *testing.T) {

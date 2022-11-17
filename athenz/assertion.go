@@ -1,11 +1,9 @@
 package athenz
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -145,11 +143,15 @@ func flattenPolicyAssertion(list []*zms.Assertion) []interface{} {
 	return policyAssertions
 }
 
-// enabling case_sensitive flag is allowed only if action or resource has capital letters
+// enabling case_sensitive flag is allowed if and only if action or resource has capital letters
 func validateCaseSensitiveValue(caseSensitive bool, action string, resourceName string) error {
 	if caseSensitive {
 		if strings.ToLower(resourceName) == resourceName && action == strings.ToLower(action) {
 			return fmt.Errorf("enabling case_sensitive flag is allowed only if action or resource has capital letters")
+		}
+	} else {
+		if strings.ToLower(resourceName) != resourceName || action != strings.ToLower(action) {
+			return fmt.Errorf("capitalized action or resource allowed only when enabling case_sensitive flag")
 		}
 	}
 	return nil
@@ -160,21 +162,15 @@ func inferCaseSensitiveValue(action, resourceName string) bool {
 	return strings.ToLower(resourceName) != resourceName || strings.ToLower(action) != action
 }
 
-// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
-func validateAssertion() schema.CustomizeDiffFunc {
-	return customdiff.All(
-		customdiff.ValidateChange("assertion", func(ctx context.Context, old, new, meta any) error {
-			assertions := new.(*schema.Set).List()
-			for _, aRaw := range assertions {
-				data := aRaw.(map[string]interface{})
-				resource := data["resource"].(string)
-				action := data["action"].(string)
-				caseSensitive := data["case_sensitive"].(bool)
-				if err := validateCaseSensitiveValue(caseSensitive, action, resource); err != nil {
-					return err
-				}
-			}
-			return nil
-		}),
-	)
+func validateAssertion(assertions []interface{}) error {
+	for _, aRaw := range assertions {
+		data := aRaw.(map[string]interface{})
+		resource := data["resource"].(string)
+		action := data["action"].(string)
+		caseSensitive := data["case_sensitive"].(bool)
+		if err := validateCaseSensitiveValue(caseSensitive, action, resource); err != nil {
+			return err
+		}
+	}
+	return nil
 }
