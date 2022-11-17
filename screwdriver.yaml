@@ -22,7 +22,6 @@ parameters:
   
 jobs:
   certify-provider:
-    requires: [~commit]
     environment:
       USER_SHELL_BIN: bash
     secrets:

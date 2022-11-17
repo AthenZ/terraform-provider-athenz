@@ -130,6 +130,7 @@ func TestAccGroupPolicyVersionInvalidResource(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -143,6 +144,22 @@ func TestAccGroupPolicyVersionInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupPolicyVersionInvalidVersionConfig(),
 				ExpectError: getPatternErrorRegex(SIMPLE_NAME),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidResourceNameConfig(),
+				ExpectError: getErrorRegex("you must specify the fully qualified name for resource"),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidRoleNameConfig(),
+				ExpectError: getErrorRegex("please provide only the role name without the domain prefix"),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidCaseSensitive1Config(),
+				ExpectError: getErrorRegex("enabling case_sensitive flag is allowed only if action or resource has capital letters"),
+			},
+			{
+				Config:      testAccGroupPolicyVersionInvalidCaseSensitive2Config(),
+				ExpectError: getErrorRegex("capitalized action or resource allowed only when enabling case_sensitive flag"),
 			},
 		},
 	})
@@ -548,6 +565,83 @@ resource "athenz_policy_version" "PolicyVersionTest" {
 	active_version = "1.1"
 	version {
 		version_name = "1.1"
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidResourceNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "invalid" {
+	name = "policy_test"
+	domain = "sys.auth"
+	active_version = "1"
+	version {
+		version_name = "1"
+		  assertion {
+			effect="DENY"
+			action="play"
+			role="test"
+			resource="ows"
+		  }
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidRoleNameConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "invalid" {
+	name = "policy_test"
+	domain = "sys.auth"
+	active_version = "1"
+	version {
+		version_name = "1"
+		  assertion {
+			effect="DENY"
+			action="play"
+			role="sys.auth:role.test"
+			resource="sys.auth:ows"
+		  }
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidCaseSensitive1Config() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "invalid" {
+	name = "policy_test"
+	domain = "sys.auth"
+	active_version = "1"
+	version {
+		version_name = "1"
+		  assertion {
+			effect="DENY"
+			action="play"
+			role="test"
+			resource="sys.auth:ows"
+			case_sensitive=true
+		  }
+	}
+}
+`)
+}
+
+func testAccGroupPolicyVersionInvalidCaseSensitive2Config() string {
+	return fmt.Sprintf(`
+resource "athenz_policy_version" "invalid" {
+	name = "policy_test"
+	domain = "sys.auth"
+	active_version = "1"
+	version {
+		version_name = "1"
+		  assertion {
+			effect="DENY"
+			action="play"
+			role="test"
+			resource="sys.auth:OWS"
+		  }
 	}
 }
 `)

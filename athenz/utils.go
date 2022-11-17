@@ -348,8 +348,3 @@ func validateExpirationPatternFunc(validPattern string, attribute string) schema
 		return nil
 	}
 }
-
-func getPatternErrorRegex(attribute string) *regexp.Regexp {
-	r, _ := regexp.Compile(fmt.Sprintf("Error: %s must match the pattern", attribute))
-	return r
-}
