@@ -236,7 +236,13 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		membersToAdd = append(membersToAdd, expandRoleMembers(ns.Difference(os).List())...)
 	}
 
-	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient)
+	// we don't want to delete a member that should be added right after
+	membersToNotDelete := stringSet{}
+	for _, member := range membersToAdd {
+		membersToNotDelete.add(string(member.MemberName))
+	}
+
+	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient, membersToNotDelete)
 	if err != nil {
 		return diag.Errorf("error updating group membership: %s", err)
 	}
