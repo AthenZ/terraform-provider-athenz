@@ -222,11 +222,13 @@ func deleteRoleMember(dn string, rn string, member *zms.RoleMember, auditRef str
 	return nil
 }
 
-func deleteRoleMembers(dn string, rn string, members []*zms.RoleMember, auditRef string, zmsClient client.ZmsClient) error {
+func deleteRoleMembers(dn string, rn string, members []*zms.RoleMember, auditRef string, zmsClient client.ZmsClient, membersToNotDelete stringSet) error {
 	if members != nil {
 		for _, m := range members {
-			if err := deleteRoleMember(dn, rn, m, auditRef, zmsClient); err != nil {
-				return fmt.Errorf("error removing membership: %s", err)
+			if !membersToNotDelete.contains(string(m.MemberName)) {
+				if err := deleteRoleMember(dn, rn, m, auditRef, zmsClient); err != nil {
+					return fmt.Errorf("error removing membership: %s", err)
+				}
 			}
 		}
 	}

@@ -57,12 +57,21 @@ func flattenGroupMembers(list []*zms.GroupMember) []interface{} {
 }
 
 func updateGroupMembers(dn string, gn string, remove []*zms.GroupMember, add []*zms.GroupMember, zmsClient client.ZmsClient, auditRef string) error {
+
+	// we don't want to delete a member that should be added right after
+	membersToNotDelete := stringSet{}
+	for _, member := range add {
+		membersToNotDelete.add(string(member.MemberName))
+	}
+
 	if len(remove) > 0 {
 		for _, member := range remove {
-			name := member.MemberName
-			err := zmsClient.DeleteGroupMembership(dn, gn, name, auditRef)
-			if err != nil {
-				return fmt.Errorf("Error removing membership: %s", err)
+			if !membersToNotDelete.contains(string(member.MemberName)) {
+				name := member.MemberName
+				err := zmsClient.DeleteGroupMembership(dn, gn, name, auditRef)
+				if err != nil {
+					return fmt.Errorf("Error removing membership: %s", err)
+				}
 			}
 		}
 	}
