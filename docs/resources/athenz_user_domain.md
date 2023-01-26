@@ -5,13 +5,13 @@ description: |-
 The user-domain resource provides an Athenz user-domain resource.
 ---
 
-# Resource `athenz_user_domain`
+# Resource: athenz_user_domain
 
 `athenz_user_domain` provides an Athenz user-domain resource.
 
 Important Note: Use this resource only for create new user domain, update not supported. For import existing one, pls use terraform import.
 
-### Example Usage
+## Example Usage
 
 ```hcl
 resource "athenz_user_domain" "athenz_user_domain-test" {
@@ -20,7 +20,7 @@ resource "athenz_user_domain" "athenz_user_domain-test" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -29,7 +29,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-### Import
+## Import
 User-Domain resource can be imported using the User-Domain name: `<domain name>`, e.g.
 
 ```hcl
