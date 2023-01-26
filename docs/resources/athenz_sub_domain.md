@@ -5,13 +5,13 @@ description: |-
 The sub-domain resource provides an Athenz sub-domain resource.
 ---
 
-# Resource `athenz_sub_domain`
+# Resource: athenz_sub_domain
 
 `athenz_sub_domain` provides an Athenz sub-domain resource.
 
 Important Note: Use this resource only for create new sub-domain, update not supported. For import existing one, pls use terraform import.
 
-### Example Usage
+## Example Usage
 
 ```hcl
 resource "athenz_sub_domain" "sub_domain-test" {
@@ -22,7 +22,7 @@ resource "athenz_sub_domain" "sub_domain-test" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-### Import
+## Import
 Sub-Domain resource can be imported using the Sub-Domain id: `<parent domain>.<domain name>`, e.g.
 
 ```hcl

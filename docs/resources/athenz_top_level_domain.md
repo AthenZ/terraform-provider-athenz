@@ -5,13 +5,13 @@ description: |-
 The top-level-domain resource provides an Athenz top-level domain resource.
 ---
 
-# Resource `athenz_top_level_domain`
+# Resource: athenz_top_level_domain
 
 `athenz_top_level_domain` provides an Athenz top-level domain resource.
 
-###Important Note: Use this resource only for create new top-level domain, update not supported. For import existing one, pls use terraform import.
+**Important Note: Use this resource only for create new top-level domain, update not supported. For import existing one, pls use terraform import.**
 
-### Example Usage
+## Example Usage
 
 ```hcl
 resource "athenz_top_level_domain" "athenz_top_level_domain-test" {
@@ -22,7 +22,7 @@ resource "athenz_top_level_domain" "athenz_top_level_domain-test" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-###Import
+## Import
 Top-Level-Domain resource can be imported using the Top-Level-Domain name: `<domain name>`, e.g.
 
 ```hcl

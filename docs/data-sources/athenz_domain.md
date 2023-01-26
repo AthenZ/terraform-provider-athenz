@@ -5,11 +5,11 @@ description: |-
 The domain data source provides details about a specific Athenz domain.
 ---
 
-# Data Source `athenz_domain`
+# Data Source: athenz_domain
 
 `athenz_domain` provides details about a specific Athenz domain (top-level domain/ sub domain/ personal domain)
 
-### Example Usage
+## Example Usage
 
 ```hcl
 variable "domain_name" {
@@ -21,7 +21,7 @@ data "athenz_domain" "domain-test" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The arguments of this data source act as filters for querying the current Athenz domain.
 

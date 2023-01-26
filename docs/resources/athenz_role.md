@@ -5,11 +5,11 @@ description: |-
 The role resource provides an Athenz role resource.
 ---
 
-# Resource `athenz_role`
+# Resource: athenz_role
 
 `athenz_role` provides an Athenz role resource.
 
-### Example Usage \*\*Deprecated** (please use as explained in the second example)
+## Example Usage \*\*Deprecated** (please use as explained in the second example)
 
 ```hcl
 resource "athenz_role" "foo_role" {
@@ -25,7 +25,7 @@ resource "athenz_role" "foo_role" {
 }
 ```
 
-### Example Usage
+## Example Usage
 
 IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
 
@@ -49,7 +49,7 @@ resource "athenz_role" "foo_role" {
 }
 ```
 
-### Example Delegated Role Usage 
+## Example Delegated Role Usage 
 
 ```hcl
 resource "athenz_role" "foo_role" {
@@ -60,7 +60,7 @@ resource "athenz_role" "foo_role" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-### Import
+## Import
 Role resource can be imported using the role id: `<domain>:role.<role name>`, e.g.
 
 ```hcl

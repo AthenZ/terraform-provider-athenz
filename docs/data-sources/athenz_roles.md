@@ -5,11 +5,11 @@ description: |-
 The roles data source provides details about all roles in a domain with optional flag whether or not include members.
 ---
 
-# Data Source `athenz_roles`
+# Data Source: athenz_roles
 
 `athenz_roles` This Data Source you can get the list of all roles in a domain with optional flag whether or not include members
 
-### Example Usage
+## Example Usage
 
 ```hcl
 variable "tag_kay" {
@@ -28,7 +28,7 @@ data "athenz_roles" "selected" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The arguments of this data source act as filters for querying the available roles in the current Athenz domain.
 

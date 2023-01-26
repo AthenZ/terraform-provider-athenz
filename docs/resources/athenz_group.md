@@ -5,22 +5,11 @@ description: |-
 The group resource provides an Athenz group resource.
 ---
 
-# Resource `athenz_group`
+# Resource: athenz_group
 
 `athenz_group` provides an Athenz group resource.
 
-### Example Usage \*\*Deprecated** (please use as explained in the second example)
-
-```hcl
-resource "athenz_group" "newgrp" {
-  name = "some_group"
-  domain = "some_domain"
-  members = ["user.<user-id>", "<domain>.<service-name>"]
-  audit_ref = "create group"
-}
-```
-
-### Example Usage
+## Example Usage
 
 IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
 
@@ -39,7 +28,18 @@ resource "athenz_group" "newgrp" {
 }
 ```
 
-### Argument Reference
+## Example Usage \*\*Deprecated**
+
+```hcl
+resource "athenz_group" "newgrp" {
+  name = "some_group"
+  domain = "some_domain"
+  members = ["user.<user-id>", "<domain>.<service-name>"]
+  audit_ref = "create group"
+}
+```
+
+## Argument Reference
 
 The following arguments are supported:
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number
 
 
-### Import
+## Import
 Group resource can be imported using the group id: `<domain>:group.<group name>`, e.g.
 
 ```hcl

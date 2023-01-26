@@ -5,11 +5,11 @@ description: |-
 The policy resource provides an Athenz policy resource.
 ---
 
-# Resource `athenz_policy`
+# Resource: athenz_policy
 
 `athenz_policy` provides an Athenz policy resource.
 
-### Example Usage
+## Example Usage
 
 IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax 
 
@@ -34,7 +34,7 @@ resource "athenz_policy" "foo_policy" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-### Import
+## Import
 Policy resource can be imported using the policy id: `<domain>:policy.<policy name>`, e.g.
 
 ```hcl

@@ -5,11 +5,11 @@ description: |-
 The role data source provides details about a specific Athenz role.
 ---
 
-# Data Source `athenz_role`
+# Data Source: athenz_role
 
 `athenz_role` provides details about a specific Athenz role.
 
-### Example Usage
+## Example Usage
 
 ```hcl
 variable "role_name" {
@@ -22,7 +22,7 @@ data "athenz_role" "selected" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The arguments of this data source act as filters for querying the available roles in the current Athenz domain. 
 The given filters must match exactly one role whose data will be exported as attributes.

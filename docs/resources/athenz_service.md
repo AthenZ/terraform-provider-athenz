@@ -5,11 +5,11 @@ description: |-
 The role resource provides an Athenz service resource.
 ---
 
-# Resource `athenz_service`
+# Resource: athenz_service
 
 `athenz_service` provides an Athenz service resource.
 
-### Example Usage
+## Example Usage
 
 ```hcl
 resource "athenz_service" "foo_service" {
@@ -33,7 +33,7 @@ EOK
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number.
 
 
-### Import
+## Import
 Service resource can be imported using the service id: `<domain>.<service name>`, e.g.
 
 ```hcl

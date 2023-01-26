@@ -5,11 +5,11 @@ description: |-
 The policy data source provides details about a specific Athenz policy.
 ---
 
-# Data Source `athenz_policy`
+# Data Source: athenz_policy
 
 `athenz_policy` provides details about a specific Athenz policy.
 
-### Example Usage
+## Example Usage
 
 
 ```hcl
@@ -23,7 +23,7 @@ data "athenz_policy" "selected" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The arguments of this data source act as filters for querying the available policies in the current Athenz domain.
 The given filters must match exactly one policy whose data will be exported as attributes.

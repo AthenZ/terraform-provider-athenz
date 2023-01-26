@@ -5,11 +5,11 @@ description: |-
 The policy version data source provides details about a specific Athenz policy.
 ---
 
-# Data Source `athenz_policy_version`
+# Data Source: athenz_policy_version
 
 `athenz_policy_version` provides details about a specific Athenz policy with all its versions.
 
-### Example Usage
+## Example Usage
 
 
 ```hcl
@@ -23,7 +23,7 @@ data "athenz_policy_versions" "selected" {
 }
 ```
 
-### Argument Reference
+## Argument Reference
 
 The arguments of this data source act as filters for querying the available policies versions in the current Athenz domain.
 The given filters must match exactly one policy with all its versions whose data will be exported as attributes.
