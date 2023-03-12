@@ -94,6 +94,12 @@ func ResourceRole() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
+						"review": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
+							ValidateDiagFunc: validateReviewReminderPatternFunc(REVIEW_REMINDER_PATTERN, MEMBER_REVIEW_REMINDER),
+						},
 					},
 				},
 			},
