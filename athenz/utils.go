@@ -347,7 +347,7 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 	return nil
 }
 
-func validateExpirationPatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
+func validateDatePatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
 	return func(val interface{}, c cty.Path) diag.Diagnostics {
 		r, e := regexp.Compile(validPattern)
 		if e != nil {

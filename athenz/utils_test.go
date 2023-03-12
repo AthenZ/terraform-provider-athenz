@@ -239,11 +239,15 @@ func TestSplitId(t *testing.T) {
 
 func TestValidateExpirationMemberFunc(t *testing.T) {
 	expiration := "2022-12-29 23:59:59"
-	assert.Nil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
+	assert.Nil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
+	expiration = "2023-12-29 23:59:59"
+	assert.Nil(t, validateDatePatternFunc(REVIEW_REMINDER_PATTERN, "member review reminder")(expiration, nil))
 	invalidExpiration := "2022-12-29 23:59"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "2022-12-29 23:59:59:00"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "22022-12-29 23:59:59"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	invalidExpiration = "2023-12-29-23:59:59"
+	assert.NotNil(t, validateDatePatternFunc(REVIEW_REMINDER_PATTERN, "member review reminder")(invalidExpiration, nil))
 }
