@@ -175,7 +175,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
 				),
 			},
@@ -185,7 +185,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 				),
 			},
@@ -195,7 +195,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
 				),
 			},
@@ -205,18 +205,18 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigAddMemberWithExpiration(roleName, domainName, member1, member2),
+				Config: testAccGroupRoleConfigAddMemberWithExpirationAndReview(roleName, domainName, member1, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59", "review": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
@@ -226,7 +226,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59"}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59", "review": "2022-12-29 23:59:59"}}),
 				),
 			},
 		},
@@ -279,14 +279,14 @@ func TestAccGroupRoleDelegation(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupRoleConfigAddMemberWithExpiration(roleName, domainName, member1, member2),
+				Config: testAccGroupRoleConfigAddMemberWithExpirationAndReview(roleName, domainName, member1, member2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckNoResourceAttr(resourceName, "trust"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59", "review": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
@@ -297,7 +297,7 @@ func TestAccGroupRoleDelegation(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckNoResourceAttr(resourceName, "trust"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59"}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member2, "expiration": "2022-12-29 23:59:59", "review": "2022-12-29 23:59:59"}}),
 				),
 			},
 			{
@@ -362,7 +362,7 @@ func TestAccGroupRoleTransitionFromMembersToMember(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
-					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59"}}),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}, {"name": member2, "expiration": "2022-12-29 23:59:59", "review": "2022-12-29 23:59:59"}}),
 				),
 			},
 		},
@@ -393,6 +393,10 @@ func TestAccGroupRoleInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupRoleInvalidExpirationConfig(),
 				ExpectError: getPatternErrorRegex(MEMBER_EXPIRATION),
+			},
+			{
+				Config:      testAccGroupRoleInvalidReviewConfig(),
+				ExpectError: getPatternErrorRegex(MEMBER_REVIEW_REMINDER),
 			},
 		},
 	})
@@ -757,7 +761,7 @@ resource "athenz_role" "roleTest" {
 `, name, domain, member1)
 }
 
-func testAccGroupRoleConfigAddMemberWithExpiration(name, domain, member1, member2 string) string {
+func testAccGroupRoleConfigAddMemberWithExpirationAndReview(name, domain, member1, member2 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -768,6 +772,7 @@ resource "athenz_role" "roleTest" {
   member {
 	name = "%s"
 	expiration = "2022-12-29 23:59:59"
+	review = "2022-12-29 23:59:59"
   }
   tags = {
 	key1 = "a1,a2"
@@ -784,6 +789,7 @@ resource "athenz_role" "roleTest" {
   member {
 	name = "%s"
 	expiration = "2022-12-29 23:59:59"
+	review = "2022-12-29 23:59:59"
   }
   tags = {
 	key1 = "a1,a2"
@@ -828,6 +834,7 @@ resource "athenz_role" "roleTest" {
   member {
 	name = "%s"
 	expiration = "2022-12-29 23:59:59"
+	review = "2022-12-29 23:59:59"
   }
   tags = {
 	key1 = "a1,a2"
@@ -879,6 +886,19 @@ resource "athenz_role" "roleTest" {
 	member {
 		name = "user.jone"
 		expiration = "2022-01-01 13:56"
+	}
+}
+`)
+}
+
+func testAccGroupRoleInvalidReviewConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+	member {
+		name = "user.jone"
+		review = "2022-01-01 13:56"
 	}
 }
 `)

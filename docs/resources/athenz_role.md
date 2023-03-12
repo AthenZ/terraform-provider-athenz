@@ -40,6 +40,10 @@ resource "athenz_role" "foo_role" {
     name = "domain2.user2"
     expiration = "2022-12-29 23:59:59"
   }
+  member {
+    name = "domain3.user3"
+    review = "2023-12-29 23:59:59"
+  }
   audit_ref = "create role"
   tags = {
     key1 = "val1,val2"
@@ -78,6 +82,8 @@ The following arguments are supported:
   - `name` - (Required) The name of the Athenz principal member. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
 
   - `expiration` - (Optional) The expiration time in UTC of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
+
+  - `review` - (Optional) The review time in UTC of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
 
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
