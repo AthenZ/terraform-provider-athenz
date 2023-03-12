@@ -98,7 +98,7 @@ func ResourceRole() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "",
-							ValidateDiagFunc: validateExpirationPatternFunc(REVIEW_REMINDER_PATTERN, MEMBER_REVIEW_REMINDER),
+							ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, MEMBER_REVIEW_REMINDER),
 						},
 					},
 				},
