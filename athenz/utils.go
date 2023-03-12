@@ -359,16 +359,3 @@ func validateExpirationPatternFunc(validPattern string, attribute string) schema
 		return nil
 	}
 }
-
-func validateReviewReminderPatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
-	return func(val interface{}, c cty.Path) diag.Diagnostics {
-		r, e := regexp.Compile(validPattern)
-		if e != nil {
-			return diag.FromErr(e)
-		}
-		if r.FindString(val.(string)) != val.(string) {
-			return diag.FromErr(fmt.Errorf("%s must match the pattern %s", attribute, validPattern))
-		}
-		return nil
-	}
-}
