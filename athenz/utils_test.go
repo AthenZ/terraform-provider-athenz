@@ -237,11 +237,11 @@ func TestSplitId(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestValidateExpirationMemberFunc(t *testing.T) {
+func TestValidateDatePatternFunc(t *testing.T) {
 	expiration := "2022-12-29 23:59:59"
 	assert.Nil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
-	expiration = "2023-12-29 23:59:59"
-	assert.Nil(t, validateDatePatternFunc(REVIEW_REMINDER_PATTERN, "member review reminder")(expiration, nil))
+	review := "2023-12-29 23:59:59"
+	assert.Nil(t, validateDatePatternFunc(REVIEW_REMINDER_PATTERN, "member review reminder")(review, nil))
 	invalidExpiration := "2022-12-29 23:59"
 	assert.NotNil(t, validateDatePatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "2022-12-29 23:59:59:00"
