@@ -196,13 +196,19 @@ func expandRoleSettings(settings map[string]interface{}) (int32, int32) {
 	return int32(settings["token_expiry_mins"].(int)), int32(settings["cert_expiry_mins"].(int))
 }
 
-func flattenRoleSettings(tokenExpiryMins int, certExpiryMins int) map[string]interface{} {
-	settings := map[string]interface{}{
-		"token_expiry_mins": tokenExpiryMins,
-		"cert_expiry_mins":  certExpiryMins,
+func flattenRoleSettings(tokenExpiryMins int, certExpiryMins int) []interface{} {
+	settingsSchemaSet := make([]interface{}, 0, 1)
+	settings := map[string]interface{}{}
+
+	if tokenExpiryMins != 0 {
+		settings["token_expiry_mins"] = tokenExpiryMins
+	}
+	if certExpiryMins != 0 {
+		settings["cert_expiry_mins"] = certExpiryMins
 	}
 
-	return settings
+	settingsSchemaSet = append(settingsSchemaSet, settings)
+	return settingsSchemaSet
 }
 
 func timestampToString(timeStamp *rdl.Timestamp) string {

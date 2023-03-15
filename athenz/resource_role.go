@@ -243,7 +243,15 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	}
 
 	if role.TokenExpiryMins != nil || role.CertExpiryMins != nil {
-		if err = d.Set("settings", flattenRoleSettings(int(*role.TokenExpiryMins), int(*role.CertExpiryMins))); err != nil {
+		tokenExpiryMins := 0
+		if role.TokenExpiryMins != nil {
+			tokenExpiryMins = int(*role.TokenExpiryMins)
+		}
+		certExpiryMins := 0
+		if role.CertExpiryMins != nil {
+			certExpiryMins = int(*role.CertExpiryMins)
+		}
+		if err = d.Set("settings", flattenRoleSettings(tokenExpiryMins, certExpiryMins)); err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
@@ -306,9 +314,14 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	if d.HasChange("settings") {
 		isRoleChanged = true
 		_, n := d.GetChange("settings")
-		tokenExpiryMins, certExpiryMins := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
-		role.TokenExpiryMins = &tokenExpiryMins
-		role.CertExpiryMins = &certExpiryMins
+		if len(n.(*schema.Set).List()) != 0 {
+			tokenExpiryMins, certExpiryMins := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
+			role.TokenExpiryMins = &tokenExpiryMins
+			role.CertExpiryMins = &certExpiryMins
+		} else {
+			role.TokenExpiryMins = nil
+			role.CertExpiryMins = nil
+		}
 	}
 
 	if d.HasChange("tags") {
