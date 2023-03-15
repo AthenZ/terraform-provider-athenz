@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -76,6 +77,26 @@ func ResourceRole() *schema.Resource {
 					},
 				},
 			},
+			"settings": {
+				Type:        schema.TypeSet,
+				Description: "Advanced settings",
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"token_expiry_mins": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"cert_expiry_mins": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
+			},
 			"trust": {
 				Type:             schema.TypeString,
 				Description:      "The domain, which this role is trusted to",
@@ -127,6 +148,14 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					return diag.Errorf("delegated roles cannot have members")
 				}
 				role.Trust = zms.DomainName(v.(string))
+			}
+			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
+				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
+				if ok {
+					tokenExpiryMins, certExpiryMins := expandRoleSettings(settings)
+					role.TokenExpiryMins = &tokenExpiryMins
+					role.CertExpiryMins = &certExpiryMins
+				}
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
@@ -213,6 +242,16 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if role.TokenExpiryMins != nil || role.CertExpiryMins != nil {
+		if err = d.Set("settings", flattenRoleSettings(int(*role.TokenExpiryMins), int(*role.CertExpiryMins))); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("settings", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return nil
 }
 
@@ -258,19 +297,34 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.Errorf("error updating group membership: %s", err)
 	}
 
+	role, err := zmsClient.GetRole(dn, rn)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	isRoleChanged := false
+
+	if d.HasChange("settings") {
+		isRoleChanged = true
+		_, n := d.GetChange("settings")
+		tokenExpiryMins, certExpiryMins := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
+		role.TokenExpiryMins = &tokenExpiryMins
+		role.CertExpiryMins = &certExpiryMins
+	}
+
 	if d.HasChange("tags") {
-		role, err := zmsClient.GetRole(dn, rn)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+		isRoleChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandRoleTags(n.(map[string]interface{}))
 		role.Tags = tags
+	}
+
+	if isRoleChanged {
 		err = zmsClient.PutRole(dn, rn, auditRef, role)
 		if err != nil {
 			return diag.Errorf("error updating tags: %s", err)
 		}
 	}
+
 	return resourceRoleRead(ctx, d, meta)
 }
 

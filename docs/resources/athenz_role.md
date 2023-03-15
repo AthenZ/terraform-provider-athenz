@@ -44,6 +44,10 @@ resource "athenz_role" "foo_role" {
     name = "domain3.user3"
     review = "2023-12-29 23:59:59"
   }
+  settings {
+    token_expiry_mins = 60
+    cert_expiry_mins = 60
+  }
   audit_ref = "create role"
   tags = {
     key1 = "val1,val2"
