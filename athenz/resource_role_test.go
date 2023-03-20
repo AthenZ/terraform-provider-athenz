@@ -239,6 +239,18 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": "2022-12-29 23:59:59"}, {"name": member2, "expiration": "", "review": ""}}),
 				),
 			},
+			{
+				Config: testAccGroupRoleConfigAddCertExpirySettings(roleName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", AUDIT_REF),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": "2022-12-29 23:59:59"}, {"name": member2, "expiration": "", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"cert_expiry_mins": "75"}),
+				),
+			},
 		},
 	})
 }
@@ -276,6 +288,7 @@ func TestAccRoleSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					testAccCheckCorrectSettings(resourceName, map[string]string{"token_expiry_mins": "5", "cert_expiry_mins": "10"}),
 				),
 			},
@@ -309,6 +322,72 @@ func TestAccRoleSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccRoleSettingsStartWithOneEditAndReplace(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	var role zms.Role
+	resourceName := "athenz_role.roleTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	roleName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	t.Cleanup(func() {
+		cleanAllAccTestRoles(domainName, []string{roleName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupRoleConfigWithTokenExpirySetting(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"token_expiry_mins": "30"}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigWithTokenExpirySettingChanged(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"token_expiry_mins": "5"}),
+				),
+			},
+			{
+				Config: testAccGroupRoleConfigWithCertExpirySetting(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"cert_expiry_mins": "75"}),
 				),
 			},
 		},
@@ -489,6 +568,10 @@ func TestAccGroupRoleInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupRoleInvalidReviewConfig(),
 				ExpectError: getPatternErrorRegex(MEMBER_REVIEW_REMINDER),
+			},
+			{
+				Config:      testAccGroupRoleInvalidSettingsConfig(),
+				ExpectError: regexp.MustCompile("expected settings.0.token_expiry_mins to be at least \\(1\\), got 0"),
 			},
 		},
 	})
@@ -1038,6 +1121,29 @@ resource "athenz_role" "roleTest" {
 `, name, domain, member1, member2)
 }
 
+func testAccGroupRoleConfigAddCertExpirySettings(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	review = "2022-12-29 23:59:59"
+  }  
+  member {
+	name = "%s"
+	review = ""
+  }
+  settings {
+	cert_expiry_mins = 75
+  }  
+  tags = {
+	key1 = "a1,a2"
+	}
+}
+`, name, domain, member1, member2)
+}
+
 func testAccGroupRoleConfigRemoveMember(name, domain string, member1 string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
@@ -1156,6 +1262,22 @@ resource "athenz_role" "roleTest" {
 		name = "user.jone"
 		review = "2022-01-01 13:56"
 	}
+}
+`)
+}
+
+func testAccGroupRoleInvalidSettingsConfig() string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+	domain = "sys.auth"
+	name = "acc.test"
+	member {
+		name = "user.jone"
+	}
+	settings {
+		token_expiry_mins = 0
+		cert_expiry_mins = 60
+  	} 
 }
 `)
 }
