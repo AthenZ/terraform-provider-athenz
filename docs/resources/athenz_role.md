@@ -47,6 +47,12 @@ resource "athenz_role" "foo_role" {
   settings {
     token_expiry_mins = 60
     cert_expiry_mins = 60
+    user_expiry_days = 7
+    user_review_days = 7
+    group_expiry_days = 14
+    group_review_days = 14
+    service_expiry_days = 21
+    service_review_days = 21
   }
   audit_ref = "create role"
   tags = {

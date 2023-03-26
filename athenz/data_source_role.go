@@ -48,14 +48,56 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	}
-	zmsSettings := map[string]int{}
-	if role.TokenExpiryMins != nil {
-		zmsSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
-	}
-	if role.CertExpiryMins != nil {
-		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
-	}
-	if len(zmsSettings) > 0 {
+	if role.TokenExpiryMins != nil || role.CertExpiryMins != nil || role.MemberExpiryDays != nil || role.MemberReviewDays != nil || role.GroupExpiryDays != nil || role.GroupReviewDays != nil || role.ServiceExpiryDays != nil || role.ServiceReviewDays != nil {
+		zmsSettings := map[string]int{}
+		zmsSettings["tokenExpiryMins"] = 0
+		//tokenExpiryMins := 0
+		if role.TokenExpiryMins != nil {
+			zmsSettings["tokenExpiryMins"] = int(*role.TokenExpiryMins)
+			//tokenExpiryMins = int(*role.TokenExpiryMins)
+		}
+		//certExpiryMins := 0
+		zmsSettings["certExpiryMins"] = 0
+		if role.CertExpiryMins != nil {
+			zmsSettings["certExpiryMins"] = int(*role.CertExpiryMins)
+			//certExpiryMins = int(*role.CertExpiryMins)
+		}
+		//userExpiryDays := 0
+		zmsSettings["userExpiryDays"] = 0
+		if role.MemberExpiryDays != nil {
+			zmsSettings["userExpiryDays"] = int(*role.MemberExpiryDays)
+			//userExpiryDays = int(*role.MemberExpiryDays)
+		}
+		//userReviewDays := 0
+		zmsSettings["userReviewDays"] = 0
+		if role.MemberReviewDays != nil {
+			zmsSettings["userReviewDays"] = int(*role.MemberReviewDays)
+			//userReviewDays = int(*role.MemberReviewDays)
+		}
+		//groupExpiryDays := 0
+		zmsSettings["groupExpiryDays"] = 0
+		if role.GroupExpiryDays != nil {
+			zmsSettings["groupExpiryDays"] = int(*role.GroupExpiryDays)
+			//groupExpiryDays = int(*role.GroupExpiryDays)
+		}
+		//groupReviewDays := 0
+		zmsSettings["groupReviewDays"] = 0
+		if role.GroupReviewDays != nil {
+			zmsSettings["groupReviewDays"] = int(*role.GroupReviewDays)
+			//groupReviewDays = int(*role.GroupReviewDays)
+		}
+		//serviceExpiryDays := 0
+		zmsSettings["serviceExpiryDays"] = 0
+		if role.ServiceExpiryDays != nil {
+			zmsSettings["serviceExpiryDays"] = int(*role.ServiceExpiryDays)
+			//serviceExpiryDays = int(*role.ServiceExpiryDays)
+		}
+		//serviceReviewDays := 0
+		zmsSettings["serviceReviewDays"] = 0
+		if role.ServiceReviewDays != nil {
+			zmsSettings["serviceReviewDays"] = int(*role.ServiceReviewDays)
+			//serviceReviewDays = int(*role.ServiceReviewDays)
+		}
 		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
 		}

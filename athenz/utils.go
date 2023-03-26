@@ -63,6 +63,30 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 						Type:     schema.TypeInt,
 						Optional: true,
 					},
+					"user_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"user_review_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"group_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"group_review_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"service_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"service_review_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -192,14 +216,40 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
+func expandRoleSettings(settings map[string]interface{}) (int32, int32, int32, int32, int32, int32, int32, int32) {
+	return int32(settings["token_expiry_mins"].(int)), int32(settings["cert_expiry_mins"].(int)),
+		int32(settings["user_expiry_days"].(int)), int32(settings["user_review_days"].(int)),
+		int32(settings["group_expiry_days"].(int)), int32(settings["group_review_days"].(int)),
+		int32(settings["service_expiry_days"].(int)), int32(settings["service_review_days"].(int))
+}
+
 func flattenRoleSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
-	for key, value := range values {
-		if value > 0 {
-			settings[key] = value
-		}
+	if values["tokenExpiryMins"] != 0 {
+		settings["token_expiry_mins"] = values["tokenExpiryMins"]
+	}
+	if values["certExpiryMins"] != 0 {
+		settings["cert_expiry_mins"] = values["certExpiryMins"]
+	}
+	if values["userExpiryDays"] != 0 {
+		settings["user_expiry_days"] = values["userExpiryDays"]
+	}
+	if values["userReviewDays"] != 0 {
+		settings["user_review_days"] = values["userReviewDays"]
+	}
+	if values["groupExpiryDays"] != 0 {
+		settings["group_expiry_days"] = values["groupExpiryDays"]
+	}
+	if values["groupReviewDays"] != 0 {
+		settings["group_review_days"] = values["groupReviewDays"]
+	}
+	if values["serviceExpiryDays"] != 0 {
+		settings["service_expiry_days"] = values["serviceExpiryDays"]
+	}
+	if values["serviceReviewDays"] != 0 {
+		settings["service_review_days"] = values["serviceReviewDays"]
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)
@@ -342,14 +392,20 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
 	}
-	zmsSettings := map[string]int{}
-	if zmsRole.TokenExpiryMins != nil {
-		zmsSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
-	}
-	if zmsRole.CertExpiryMins != nil {
-		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
-	}
-	if len(zmsSettings) > 0 {
+	if *zmsRole.TokenExpiryMins > 0 || *zmsRole.CertExpiryMins > 0 ||
+		*zmsRole.MemberExpiryDays > 0 || *zmsRole.MemberReviewDays > 0 ||
+		*zmsRole.GroupExpiryDays > 0 || *zmsRole.GroupReviewDays > 0 ||
+		*zmsRole.ServiceExpiryDays > 0 || *zmsRole.ServiceReviewDays > 0 {
+		zmsSettings := map[string]int{
+			"tokenExpiryMins":   int(*zmsRole.TokenExpiryMins),
+			"certExpiryMins":    int(*zmsRole.CertExpiryMins),
+			"userExpiryDays":    int(*zmsRole.MemberExpiryDays),
+			"userReviewDays":    int(*zmsRole.MemberReviewDays),
+			"groupExpiryDays":   int(*zmsRole.GroupExpiryDays),
+			"groupReviewDays":   int(*zmsRole.GroupReviewDays),
+			"serviceExpiryDays": int(*zmsRole.ServiceExpiryDays),
+			"serviceReviewDays": int(*zmsRole.ServiceReviewDays),
+		}
 		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
 	if zmsRole.Trust != "" {
@@ -400,4 +456,90 @@ func validateDatePatternFunc(validPattern string, attribute string) schema.Schem
 		}
 		return nil
 	}
+}
+
+func validateRoleMember(members []interface{}, settings map[string]interface{}) error {
+	for _, mRaw := range members {
+		data := mRaw.(map[string]interface{})
+		name := data["name"].(string)
+
+		expirationDays := 0
+		reviewDays := 0
+		memberType := ""
+
+		if strings.HasPrefix(name, "user.") {
+			memberType = "user"
+			if settings["user_expiry_days"] != nil {
+				expirationDays = settings["user_expiry_days"].(int)
+			}
+			if settings["user_review_days"] != nil {
+				reviewDays = settings["user_review_days"].(int)
+			}
+		} else if strings.Contains(name, ":group.") || strings.HasPrefix(name, "unix.") {
+			memberType = "group"
+			if settings["group_expiry_days"] != nil {
+				expirationDays = settings["group_expiry_days"].(int)
+			}
+			if settings["group_review_days"] != nil {
+				reviewDays = settings["group_review_days"].(int)
+			}
+		} else {
+			memberType = "service"
+			if settings["service_expiry_days"] != nil {
+				expirationDays = settings["service_expiry_days"].(int)
+			}
+			if settings["service_review_days"] != nil {
+				reviewDays = settings["service_review_days"].(int)
+			}
+		}
+
+		if err := validateMemberReviewAndExpiration(data, expirationDays, reviewDays, memberType); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateMemberReviewAndExpiration(memberData map[string]interface{}, expirationDays int, reviewDays int, memberType string) error {
+	expiration := memberData["expiration"].(string)
+	review := memberData["review"].(string)
+
+	settingType := "expiration"
+	if err := validateMemberDate(expirationDays, expiration, memberType, settingType); err != nil {
+		return err
+	}
+
+	settingType = "review"
+	if err := validateMemberDate(reviewDays, review, memberType, settingType); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateMemberDate(days int, dateString string, memberType string, settingType string) error {
+	current := time.Now()
+
+	settingAttr := fmt.Sprintf("%s_expiry_days", memberType)
+	if settingType == "review" {
+		settingAttr = fmt.Sprintf("%s_review_days", memberType)
+	}
+
+	if days > 0 {
+		limit := current.AddDate(0, 0, days)
+		if dateString == "" {
+			return fmt.Errorf("settings.%s is defined but for one or more %s isn't set", settingAttr, memberType)
+		}
+
+		date, err := time.Parse(EXPIRATION_LAYOUT, dateString)
+		if err != nil {
+			panic(err)
+		}
+
+		if limit.Before(date) {
+			return fmt.Errorf("one or more %s is set past the %s limit: %s", memberType, settingAttr, limit)
+		}
+	}
+
+	return nil
 }
