@@ -40,6 +40,11 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 						Optional: true,
 						Default:  "",
 					},
+					"review": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Default:  "",
+					},
 				},
 			},
 		},
@@ -138,6 +143,7 @@ func expandRoleMembers(configured []interface{}) []*zms.RoleMember {
 			roleMember := zms.NewRoleMember()
 			roleMember.MemberName = zms.MemberName(val["name"].(string))
 			roleMember.Expiration = stringToTimestamp(val["expiration"].(string))
+			roleMember.ReviewReminder = stringToTimestamp(val["review"].(string))
 			roleMembers = append(roleMembers, roleMember)
 		}
 	}
@@ -157,9 +163,11 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	for _, m := range list {
 		name := string(m.MemberName)
 		expiration := timestampToString(m.Expiration)
+		review := timestampToString(m.ReviewReminder)
 		member := map[string]interface{}{
 			"name":       name,
 			"expiration": expiration,
+			"review":     review,
 		}
 		roleMembers = append(roleMembers, member)
 	}
@@ -241,6 +249,7 @@ func addRoleMember(dn string, rn string, m *zms.RoleMember, auditRef string, zms
 	member.MemberName = name
 	member.RoleName = zms.ResourceName(rn)
 	member.Expiration = m.Expiration
+	member.ReviewReminder = m.ReviewReminder
 	err := zmsClient.PutMembership(dn, rn, name, auditRef, &member)
 	if err != nil {
 		return err
@@ -338,7 +347,7 @@ func validateResourceNameWithinAssertion(resourceName string) error {
 	return nil
 }
 
-func validateExpirationPatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
+func validateDatePatternFunc(validPattern string, attribute string) schema.SchemaValidateDiagFunc {
 	return func(val interface{}, c cty.Path) diag.Diagnostics {
 		r, e := regexp.Compile(validPattern)
 		if e != nil {

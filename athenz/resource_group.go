@@ -65,7 +65,7 @@ func ResourceGroup() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "",
-							ValidateDiagFunc: validateExpirationPatternFunc(EXPIRATION_PATTERN, MEMBER_EXPIRATION),
+							ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, MEMBER_EXPIRATION),
 						},
 					},
 				},

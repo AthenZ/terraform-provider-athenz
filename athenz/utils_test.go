@@ -32,12 +32,12 @@ func TestExpandDeprecatedRoleMembers(t *testing.T) {
 func getZmsRoleMembers() []*zms.RoleMember {
 	return []*zms.RoleMember{
 		zms.NewRoleMember(&zms.RoleMember{MemberName: "member1"}),
-		zms.NewRoleMember(&zms.RoleMember{MemberName: "member2", Expiration: stringToTimestamp("2022-05-29 23:59:59")}),
+		zms.NewRoleMember(&zms.RoleMember{MemberName: "member2", Expiration: stringToTimestamp("2022-05-29 23:59:59"), ReviewReminder: stringToTimestamp("2023-05-29 23:59:59")}),
 	}
 }
 
 func getFlattedRoleMembers() []interface{} {
-	return []interface{}{map[string]interface{}{"name": "member1", "expiration": ""}, map[string]interface{}{"name": "member2", "expiration": "2022-05-29 23:59:59"}}
+	return []interface{}{map[string]interface{}{"name": "member1", "expiration": "", "review": ""}, map[string]interface{}{"name": "member2", "expiration": "2022-05-29 23:59:59", "review": "2023-05-29 23:59:59"}}
 }
 
 func getZmsAssertions(roleName, resourceName string, caseSensitive bool) []*zms.Assertion {
@@ -237,13 +237,17 @@ func TestSplitId(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestValidateExpirationMemberFunc(t *testing.T) {
+func TestValidateDatePatternFunc(t *testing.T) {
 	expiration := "2022-12-29 23:59:59"
-	assert.Nil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(expiration, nil))
+	assert.Nil(t, validateDatePatternFunc(DATE_PATTERN, "member expiration")(expiration, nil))
+	review := "2023-12-29 23:59:59"
+	assert.Nil(t, validateDatePatternFunc(DATE_PATTERN, "member review reminder")(review, nil))
 	invalidExpiration := "2022-12-29 23:59"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "2022-12-29 23:59:59:00"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "22022-12-29 23:59:59"
-	assert.NotNil(t, validateExpirationPatternFunc(EXPIRATION_PATTERN, "member expiration")(invalidExpiration, nil))
+	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member expiration")(invalidExpiration, nil))
+	invalidExpiration = "2023-12-29-23:59:59"
+	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member review reminder")(invalidExpiration, nil))
 }
