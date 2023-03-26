@@ -152,7 +152,9 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
 				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
 				if ok {
-					tokenExpiryMins, certExpiryMins := expandRoleSettings(settings)
+					tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+					certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+
 					role.TokenExpiryMins = &tokenExpiryMins
 					role.CertExpiryMins = &certExpiryMins
 				}
@@ -315,7 +317,10 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		isRoleChanged = true
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
-			tokenExpiryMins, certExpiryMins := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
+			settings := n.(*schema.Set).List()[0].(map[string]interface{})
+			tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+			certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+
 			role.TokenExpiryMins = &tokenExpiryMins
 			role.CertExpiryMins = &certExpiryMins
 		} else {
