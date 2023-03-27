@@ -227,29 +227,10 @@ func flattenRoleSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
-	if values["tokenExpiryMins"] != 0 {
-		settings["token_expiry_mins"] = values["tokenExpiryMins"]
-	}
-	if values["certExpiryMins"] != 0 {
-		settings["cert_expiry_mins"] = values["certExpiryMins"]
-	}
-	if values["userExpiryDays"] != 0 {
-		settings["user_expiry_days"] = values["userExpiryDays"]
-	}
-	if values["userReviewDays"] != 0 {
-		settings["user_review_days"] = values["userReviewDays"]
-	}
-	if values["groupExpiryDays"] != 0 {
-		settings["group_expiry_days"] = values["groupExpiryDays"]
-	}
-	if values["groupReviewDays"] != 0 {
-		settings["group_review_days"] = values["groupReviewDays"]
-	}
-	if values["serviceExpiryDays"] != 0 {
-		settings["service_expiry_days"] = values["serviceExpiryDays"]
-	}
-	if values["serviceReviewDays"] != 0 {
-		settings["service_review_days"] = values["serviceReviewDays"]
+	for key, value := range values {
+		if value > 0 {
+			settings[key] = value
+		}
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)
@@ -392,20 +373,32 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
 	}
-	if *zmsRole.TokenExpiryMins > 0 || *zmsRole.CertExpiryMins > 0 ||
-		*zmsRole.MemberExpiryDays > 0 || *zmsRole.MemberReviewDays > 0 ||
-		*zmsRole.GroupExpiryDays > 0 || *zmsRole.GroupReviewDays > 0 ||
-		*zmsRole.ServiceExpiryDays > 0 || *zmsRole.ServiceReviewDays > 0 {
-		zmsSettings := map[string]int{
-			"tokenExpiryMins":   int(*zmsRole.TokenExpiryMins),
-			"certExpiryMins":    int(*zmsRole.CertExpiryMins),
-			"userExpiryDays":    int(*zmsRole.MemberExpiryDays),
-			"userReviewDays":    int(*zmsRole.MemberReviewDays),
-			"groupExpiryDays":   int(*zmsRole.GroupExpiryDays),
-			"groupReviewDays":   int(*zmsRole.GroupReviewDays),
-			"serviceExpiryDays": int(*zmsRole.ServiceExpiryDays),
-			"serviceReviewDays": int(*zmsRole.ServiceReviewDays),
-		}
+	zmsSettings := map[string]int{}
+	if zmsRole.TokenExpiryMins != nil {
+		zmsSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
+	}
+	if zmsRole.CertExpiryMins != nil {
+		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
+	}
+	if zmsRole.MemberExpiryDays != nil {
+		zmsSettings["user_expiry_days"] = int(*zmsRole.MemberExpiryDays)
+	}
+	if zmsRole.MemberReviewDays != nil {
+		zmsSettings["user_review_days"] = int(*zmsRole.MemberReviewDays)
+	}
+	if zmsRole.GroupExpiryDays != nil {
+		zmsSettings["group_expiry_days"] = int(*zmsRole.GroupExpiryDays)
+	}
+	if zmsRole.GroupReviewDays != nil {
+		zmsSettings["group_review_days"] = int(*zmsRole.GroupReviewDays)
+	}
+	if zmsRole.ServiceExpiryDays != nil {
+		zmsSettings["service_expiry_days"] = int(*zmsRole.ServiceExpiryDays)
+	}
+	if zmsRole.ServiceReviewDays != nil {
+		zmsSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
+	}
+	if len(zmsSettings) > 0 {
 		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
 	if zmsRole.Trust != "" {
