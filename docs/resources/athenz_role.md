@@ -90,6 +90,11 @@ The following arguments are supported:
   - `review` - (Optional) The review time in UTC of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
 
 
+- `settings` - (Optional) A map of advanced settings with the following options:
+  - `token_expiry_mins` - (Optional) Tokens issued for this role will have specified max timeout in mins
+  - `cert_expiry_mins` - (Optional) Certs issued for this role will have specified max timeout in mins
+
+
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
 
 - `trust` - (Optional) The domain, which this role is trusted to.
