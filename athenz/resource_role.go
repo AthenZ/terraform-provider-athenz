@@ -368,46 +368,6 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
 			tokenExpiryMins, certExpiryMins, userExpiryDays, userReviewDays, groupExpiryDays, groupReviewDays, serviceExpiryDays, serviceReviewDays := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
-			//if tokenExpiryMins > 0 {
-			//	role.TokenExpiryMins = &tokenExpiryMins
-			//} else {
-			//	role.TokenExpiryMins = nil
-			//}
-			//if certExpiryMins > 0 {
-			//	role.CertExpiryMins = &certExpiryMins
-			//} else {
-			//	role.CertExpiryMins = nil
-			//}
-			//if userExpiryDays > 0 {
-			//	role.MemberExpiryDays = &userExpiryDays
-			//} else {
-			//	role.MemberExpiryDays = nil
-			//}
-			//if userReviewDays > 0 {
-			//	role.MemberReviewDays = &userReviewDays
-			//} else {
-			//	role.MemberReviewDays = nil
-			//}
-			//if groupExpiryDays > 0 {
-			//	role.GroupExpiryDays = &groupExpiryDays
-			//} else {
-			//	role.GroupExpiryDays = nil
-			//}
-			//if groupReviewDays > 0 {
-			//	role.GroupReviewDays = &groupReviewDays
-			//} else {
-			//	role.GroupReviewDays = nil
-			//}
-			//if serviceExpiryDays > 0 {
-			//	role.ServiceExpiryDays = &serviceExpiryDays
-			//} else {
-			//	role.ServiceExpiryDays = nil
-			//}
-			//if serviceReviewDays > 0 {
-			//	role.ServiceReviewDays = &serviceReviewDays
-			//} else {
-			//	role.ServiceReviewDays = nil
-			//}
 			role.TokenExpiryMins = &tokenExpiryMins
 			role.CertExpiryMins = &certExpiryMins
 			role.MemberExpiryDays = &userExpiryDays
