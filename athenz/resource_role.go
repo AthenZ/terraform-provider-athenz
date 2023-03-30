@@ -196,31 +196,23 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
 				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
 				if ok {
-					tokenExpiryMins, certExpiryMins, userExpiryDays, userReviewDays, groupExpiryDays, groupReviewDays, serviceExpiryDays, serviceReviewDays := expandRoleSettings(settings)
-					if tokenExpiryMins > 0 {
-						role.TokenExpiryMins = &tokenExpiryMins
-					}
-					if certExpiryMins > 0 {
-						role.CertExpiryMins = &certExpiryMins
-					}
-					if userExpiryDays > 0 {
-						role.MemberExpiryDays = &userExpiryDays
-					}
-					if userReviewDays > 0 {
-						role.MemberReviewDays = &userReviewDays
-					}
-					if groupExpiryDays > 0 {
-						role.GroupExpiryDays = &groupExpiryDays
-					}
-					if groupReviewDays > 0 {
-						role.GroupReviewDays = &groupReviewDays
-					}
-					if serviceExpiryDays > 0 {
-						role.ServiceExpiryDays = &serviceExpiryDays
-					}
-					if serviceReviewDays > 0 {
-						role.ServiceReviewDays = &serviceReviewDays
-					}
+					tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+					certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+					userExpiryDays := int32(settings["user_expiry_days"].(int))
+					userReviewDays := int32(settings["user_review_days"].(int))
+					groupExpiryDays := int32(settings["group_expiry_days"].(int))
+					groupReviewDays := int32(settings["group_review_days"].(int))
+					serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+					serviceReviewDays := int32(settings["service_review_days"].(int))
+
+					role.TokenExpiryMins = &tokenExpiryMins
+					role.CertExpiryMins = &certExpiryMins
+					role.MemberExpiryDays = &userExpiryDays
+					role.MemberReviewDays = &userReviewDays
+					role.GroupExpiryDays = &groupExpiryDays
+					role.GroupReviewDays = &groupReviewDays
+					role.ServiceExpiryDays = &serviceExpiryDays
+					role.ServiceReviewDays = &serviceReviewDays
 				}
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
@@ -367,7 +359,16 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		isRoleChanged = true
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
-			tokenExpiryMins, certExpiryMins, userExpiryDays, userReviewDays, groupExpiryDays, groupReviewDays, serviceExpiryDays, serviceReviewDays := expandRoleSettings(n.(*schema.Set).List()[0].(map[string]interface{}))
+			settings := n.(*schema.Set).List()[0].(map[string]interface{})
+			tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+			certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+			userExpiryDays := int32(settings["user_expiry_days"].(int))
+			userReviewDays := int32(settings["user_review_days"].(int))
+			groupExpiryDays := int32(settings["group_expiry_days"].(int))
+			groupReviewDays := int32(settings["group_review_days"].(int))
+			serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+			serviceReviewDays := int32(settings["service_review_days"].(int))
+
 			role.TokenExpiryMins = &tokenExpiryMins
 			role.CertExpiryMins = &certExpiryMins
 			role.MemberExpiryDays = &userExpiryDays

@@ -216,13 +216,6 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
-func expandRoleSettings(settings map[string]interface{}) (int32, int32, int32, int32, int32, int32, int32, int32) {
-	return int32(settings["token_expiry_mins"].(int)), int32(settings["cert_expiry_mins"].(int)),
-		int32(settings["user_expiry_days"].(int)), int32(settings["user_review_days"].(int)),
-		int32(settings["group_expiry_days"].(int)), int32(settings["group_review_days"].(int)),
-		int32(settings["service_expiry_days"].(int)), int32(settings["service_review_days"].(int))
-}
-
 func flattenRoleSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
