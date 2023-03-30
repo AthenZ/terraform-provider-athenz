@@ -48,16 +48,15 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	}
-	if role.TokenExpiryMins != nil || role.CertExpiryMins != nil {
-		tokenExpiryMins := 0
-		if role.TokenExpiryMins != nil {
-			tokenExpiryMins = int(*role.TokenExpiryMins)
-		}
-		certExpiryMins := 0
-		if role.CertExpiryMins != nil {
-			certExpiryMins = int(*role.CertExpiryMins)
-		}
-		if err = d.Set("settings", flattenRoleSettings(tokenExpiryMins, certExpiryMins)); err != nil {
+	zmsSettings := map[string]int{}
+	if role.TokenExpiryMins != nil {
+		zmsSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
+	}
+	if role.CertExpiryMins != nil {
+		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
+	}
+	if len(zmsSettings) > 0 {
+		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	}

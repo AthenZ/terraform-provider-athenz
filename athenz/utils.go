@@ -192,15 +192,14 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
-func flattenRoleSettings(tokenExpiryMins int, certExpiryMins int) []interface{} {
+func flattenRoleSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
-	if tokenExpiryMins != 0 {
-		settings["token_expiry_mins"] = tokenExpiryMins
-	}
-	if certExpiryMins != 0 {
-		settings["cert_expiry_mins"] = certExpiryMins
+	for key, value := range values {
+		if value > 0 {
+			settings[key] = value
+		}
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)
@@ -343,8 +342,15 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
 	}
-	if *zmsRole.TokenExpiryMins > 0 || *zmsRole.CertExpiryMins > 0 {
-		role["settings"] = flattenRoleSettings(int(*zmsRole.TokenExpiryMins), int(*zmsRole.CertExpiryMins))
+	zmsSettings := map[string]int{}
+	if zmsRole.TokenExpiryMins != nil {
+		zmsSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
+	}
+	if zmsRole.CertExpiryMins != nil {
+		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
+	}
+	if len(zmsSettings) > 0 {
+		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
 	if zmsRole.Trust != "" {
 		role["trust"] = string(zmsRole.Trust)
