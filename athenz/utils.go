@@ -48,6 +48,24 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"settings": {
+			Type:        schema.TypeSet,
+			Description: "Advanced settings",
+			Optional:    true,
+			MaxItems:    1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"token_expiry_mins": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"cert_expiry_mins": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
 		"trust": {
 			Type:        schema.TypeString,
 			Description: "The domain, which this role is trusted to",
@@ -172,6 +190,20 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 		roleMembers = append(roleMembers, member)
 	}
 	return roleMembers
+}
+
+func flattenRoleSettings(values map[string]int) []interface{} {
+	settingsSchemaSet := make([]interface{}, 0, 1)
+	settings := map[string]interface{}{}
+
+	for key, value := range values {
+		if value > 0 {
+			settings[key] = value
+		}
+	}
+
+	settingsSchemaSet = append(settingsSchemaSet, settings)
+	return settingsSchemaSet
 }
 
 func timestampToString(timeStamp *rdl.Timestamp) string {
@@ -309,6 +341,16 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	}
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
+	}
+	zmsSettings := map[string]int{}
+	if zmsRole.TokenExpiryMins != nil {
+		zmsSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
+	}
+	if zmsRole.CertExpiryMins != nil {
+		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
+	}
+	if len(zmsSettings) > 0 {
+		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
 	if zmsRole.Trust != "" {
 		role["trust"] = string(zmsRole.Trust)

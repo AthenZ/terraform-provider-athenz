@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -76,6 +77,26 @@ func ResourceRole() *schema.Resource {
 					},
 				},
 			},
+			"settings": {
+				Type:        schema.TypeSet,
+				Description: "Advanced settings",
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"token_expiry_mins": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"cert_expiry_mins": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
+			},
 			"trust": {
 				Type:             schema.TypeString,
 				Description:      "The domain, which this role is trusted to",
@@ -127,6 +148,16 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					return diag.Errorf("delegated roles cannot have members")
 				}
 				role.Trust = zms.DomainName(v.(string))
+			}
+			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
+				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
+				if ok {
+					tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+					certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+
+					role.TokenExpiryMins = &tokenExpiryMins
+					role.CertExpiryMins = &certExpiryMins
+				}
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
@@ -213,6 +244,23 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		}
 	}
 
+	zmsSettings := map[string]int{}
+	if role.TokenExpiryMins != nil {
+		zmsSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
+	}
+	if role.CertExpiryMins != nil {
+		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
+	}
+	if len(zmsSettings) != 0 {
+		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("settings", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return nil
 }
 
@@ -258,19 +306,42 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.Errorf("error updating group membership: %s", err)
 	}
 
-	if d.HasChange("tags") {
-		role, err := zmsClient.GetRole(dn, rn)
-		if err != nil {
-			return diag.FromErr(err)
+	role, err := zmsClient.GetRole(dn, rn)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	isRoleChanged := false
+
+	if d.HasChange("settings") {
+		isRoleChanged = true
+		_, n := d.GetChange("settings")
+		if len(n.(*schema.Set).List()) != 0 {
+			settings := n.(*schema.Set).List()[0].(map[string]interface{})
+			tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+			certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+
+			role.TokenExpiryMins = &tokenExpiryMins
+			role.CertExpiryMins = &certExpiryMins
+		} else {
+			role.TokenExpiryMins = nil
+			role.CertExpiryMins = nil
 		}
+	}
+
+	if d.HasChange("tags") {
+		isRoleChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandRoleTags(n.(map[string]interface{}))
 		role.Tags = tags
+	}
+
+	if isRoleChanged {
 		err = zmsClient.PutRole(dn, rn, auditRef, role)
 		if err != nil {
 			return diag.Errorf("error updating tags: %s", err)
 		}
 	}
+
 	return resourceRoleRead(ctx, d, meta)
 }
 
