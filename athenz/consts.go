@@ -13,4 +13,9 @@ const (
 	MEMBER_EXPIRATION      = "member expiration"
 	DATE_PATTERN           = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 	MEMBER_REVIEW_REMINDER = "member review reminder"
+	USER                   = "user"
+	GROUP                  = "group"
+	SERVICE                = "service"
+	EXPIRATION             = "expiration"
+	REVIEW                 = "review"
 )

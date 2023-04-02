@@ -454,7 +454,7 @@ func validateRoleMember(members []interface{}, settings map[string]interface{}) 
 		memberType := ""
 
 		if strings.HasPrefix(name, "user.") {
-			memberType = "user"
+			memberType = USER
 			if settings["user_expiry_days"] != nil {
 				expirationDays = settings["user_expiry_days"].(int)
 			}
@@ -462,7 +462,7 @@ func validateRoleMember(members []interface{}, settings map[string]interface{}) 
 				reviewDays = settings["user_review_days"].(int)
 			}
 		} else if strings.Contains(name, ":group.") || strings.HasPrefix(name, "unix.") {
-			memberType = "group"
+			memberType = GROUP
 			if settings["group_expiry_days"] != nil {
 				expirationDays = settings["group_expiry_days"].(int)
 			}
@@ -470,7 +470,7 @@ func validateRoleMember(members []interface{}, settings map[string]interface{}) 
 				reviewDays = settings["group_review_days"].(int)
 			}
 		} else {
-			memberType = "service"
+			memberType = SERVICE
 			if settings["service_expiry_days"] != nil {
 				expirationDays = settings["service_expiry_days"].(int)
 			}
@@ -490,12 +490,12 @@ func validateMemberReviewAndExpiration(memberData map[string]interface{}, expira
 	expiration := memberData["expiration"].(string)
 	review := memberData["review"].(string)
 
-	settingType := "expiration"
+	settingType := EXPIRATION
 	if err := validateMemberDate(expirationDays, expiration, memberType, settingType); err != nil {
 		return err
 	}
 
-	settingType = "review"
+	settingType = REVIEW
 	if err := validateMemberDate(reviewDays, review, memberType, settingType); err != nil {
 		return err
 	}
@@ -507,7 +507,7 @@ func validateMemberDate(days int, dateString string, memberType string, settingT
 	current := time.Now()
 
 	settingAttr := fmt.Sprintf("%s_expiry_days", memberType)
-	if settingType == "review" {
+	if settingType == REVIEW {
 		settingAttr = fmt.Sprintf("%s_review_days", memberType)
 	}
 
