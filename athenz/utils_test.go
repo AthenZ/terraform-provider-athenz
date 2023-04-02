@@ -262,7 +262,7 @@ func TestValidateMemberReviewAndExpiration(t *testing.T) {
 	}
 	expirationDays := 0
 	reviewDays := 0
-	memberType := "service"
+	memberType := MemberType(SERVICE)
 	assert.Nil(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType))
 
 	expirationDays = 8
@@ -301,36 +301,36 @@ func TestValidateMemberReviewAndExpiration(t *testing.T) {
 func TestValidateMemberDate(t *testing.T) {
 	days := 10
 	dateString := "2022-12-29 23:59:59"
-	memberType := "group"
-	settingType := "expiration"
+	memberType := MemberType(GROUP)
+	settingType := SettingType(EXPIRATION)
 	assert.Nil(t, validateMemberDate(days, dateString, memberType, settingType))
 
 	current := time.Now()
 	days = 10
 	dateString = current.AddDate(0, 0, 30).Format(EXPIRATION_LAYOUT)
-	memberType = "group"
-	settingType = "expiration"
+	memberType = MemberType(GROUP)
+	settingType = SettingType(EXPIRATION)
 	expectedMessageErr := "one or more group_expiry_days is set past the expiration limit: 10"
 	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
 
 	days = 7
 	dateString = current.AddDate(0, 0, 30).Format(EXPIRATION_LAYOUT)
-	memberType = "group"
-	settingType = "review"
+	memberType = MemberType(GROUP)
+	settingType = SettingType(REVIEW)
 	expectedMessageErr = "one or more group_review_days is set past the review limit: 7"
 	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
 
 	days = 15
 	dateString = ""
-	memberType = "group"
-	settingType = "expiration"
+	memberType = MemberType(GROUP)
+	settingType = SettingType(EXPIRATION)
 	expectedMessageErr = "settings.group_expiry_days is defined but for one or more group isn't set"
 	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
 
 	days = 15
 	dateString = ""
-	memberType = "group"
-	settingType = "review"
+	memberType = MemberType(GROUP)
+	settingType = SettingType(REVIEW)
 	expectedMessageErr = "settings.group_review_days is defined but for one or more group isn't set"
 	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
 }

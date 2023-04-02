@@ -451,7 +451,7 @@ func validateRoleMember(members []interface{}, settings map[string]interface{}) 
 
 		expirationDays := 0
 		reviewDays := 0
-		memberType := ""
+		var memberType MemberType
 
 		if strings.HasPrefix(name, "user.") {
 			memberType = USER
@@ -486,35 +486,33 @@ func validateRoleMember(members []interface{}, settings map[string]interface{}) 
 	return nil
 }
 
-func validateMemberReviewAndExpiration(memberData map[string]interface{}, expirationDays int, reviewDays int, memberType string) error {
+func validateMemberReviewAndExpiration(memberData map[string]interface{}, expirationDays int, reviewDays int, memberType MemberType) error {
 	expiration := memberData["expiration"].(string)
 	review := memberData["review"].(string)
 
-	settingType := EXPIRATION
-	if err := validateMemberDate(expirationDays, expiration, memberType, settingType); err != nil {
+	if err := validateMemberDate(expirationDays, expiration, memberType, SettingType(EXPIRATION)); err != nil {
 		return err
 	}
 
-	settingType = REVIEW
-	if err := validateMemberDate(reviewDays, review, memberType, settingType); err != nil {
+	if err := validateMemberDate(reviewDays, review, memberType, SettingType(REVIEW)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validateMemberDate(days int, dateString string, memberType string, settingType string) error {
+func validateMemberDate(days int, dateString string, memberType MemberType, settingType SettingType) error {
 	current := time.Now()
 
-	settingAttr := fmt.Sprintf("%s_expiry_days", memberType)
+	settingAttr := fmt.Sprintf("%v_expiry_days", memberType)
 	if settingType == REVIEW {
-		settingAttr = fmt.Sprintf("%s_review_days", memberType)
+		settingAttr = fmt.Sprintf("%v_review_days", memberType)
 	}
 
 	if days > 0 {
 		limit := current.AddDate(0, 0, days)
 		if dateString == "" {
-			return fmt.Errorf("settings.%s is defined but for one or more %s isn't set", settingAttr, memberType)
+			return fmt.Errorf("settings.%s is defined but for one or more %v isn't set", settingAttr, memberType)
 		}
 
 		date, err := time.Parse(EXPIRATION_LAYOUT, dateString)
@@ -523,7 +521,7 @@ func validateMemberDate(days int, dateString string, memberType string, settingT
 		}
 
 		if limit.Before(date) {
-			return fmt.Errorf("one or more %s is set past the %s limit: %s", memberType, settingAttr, limit)
+			return fmt.Errorf("one or more %v is set past the %s limit: %s", memberType, settingAttr, limit)
 		}
 	}
 
