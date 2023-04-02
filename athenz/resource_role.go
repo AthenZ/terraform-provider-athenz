@@ -156,10 +156,10 @@ func validateRoleSchema(ctx context.Context, d *schema.ResourceDiff, meta interf
 	members := mNew.(*schema.Set).List()
 
 	_, sNew := d.GetChange("settings")
-	settings := map[string]interface{}{}
-	if len(sNew.(*schema.Set).List()) > 0 {
-		settings = sNew.(*schema.Set).List()[0].(map[string]interface{})
+	if len(sNew.(*schema.Set).List()) == 0 {
+		return nil
 	}
+	settings := sNew.(*schema.Set).List()[0].(map[string]interface{})
 
 	return validateRoleMember(members, settings)
 }

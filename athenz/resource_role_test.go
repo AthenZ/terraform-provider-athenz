@@ -447,6 +447,18 @@ func TestAccRoleSettingsMemberExpiryAndReview(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccGroupRoleConfigWithUserExpiryDaysSettingChangeMemberExpiration(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2023-03-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"user_expiry_days": "30"}),
+				),
+			},
+			{
 				Config: testAccGroupRoleConfigWithUserExpiryDaysSetting(roleName, domainName, member1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
@@ -1494,6 +1506,27 @@ resource "athenz_role" "roleTest" {
   member {
 	name = "%s"
 	expiration = "2022-12-29 23:59:59"
+  }  
+  settings {
+	user_expiry_days = 30
+  }
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccGroupRoleConfigWithUserExpiryDaysSettingChangeMemberExpiration(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2023-03-29 23:59:59"
   }  
   settings {
 	user_expiry_days = 30
