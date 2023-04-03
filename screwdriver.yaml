@@ -41,11 +41,14 @@ jobs:
           echo "Perform upgrade test case: $UPGRADE_TEST"
           PRERELEASE_VERSION=$(meta get git.version)
           PREVIOUS_VERSION=$(meta get git.prev.version)
+          echo "PRERELEASE_VERSION: $PRERELEASE_VERSION"
+          echo "PREVIOUS_VERSION: $PREVIOUS_VERSION"
           if [[ "$UPGRADE_TEST" == "true" ]]; then
-            ./execution/sys-test.sh $PREVIOUS_VERSION
+            echo "about to perform upgrade test using previous version: $PREVIOUS_VERSION"
+            ./execution/sys-test.sh "$PREVIOUS_VERSION"
           fi
-          ./scripts/wait-for-prerelease-version.sh $PRERELEASE_VERSION
-          ./execution/sys-test.sh $PRERELEASE_VERSION $UPGRADE_TEST
+          ./scripts/wait-for-prerelease-version.sh "$PRERELEASE_VERSION"
+          ./execution/sys-test.sh "$PRERELEASE_VERSION" "$UPGRADE_TEST"
       - tag-certify-version: |
           ./scripts/git-tag.sh -r patch -t true
 
