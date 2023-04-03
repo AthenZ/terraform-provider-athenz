@@ -15,6 +15,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type MemberType uint8
+
+const (
+	USER = iota
+	GROUP
+	SERVICE
+)
+
+func (s MemberType) String() string {
+	switch s {
+	case USER:
+		return "user"
+	case GROUP:
+		return "group"
+	case SERVICE:
+		return "service"
+	default:
+		return "Invalid member type"
+	}
+}
+
+type SettingType uint8
+
+const (
+	EXPIRATION = iota
+	REVIEW
+)
+
+func (s SettingType) String() string {
+	switch s {
+	case EXPIRATION:
+		return "expiration"
+	case REVIEW:
+		return "review"
+	default:
+		return "Invalid setting type"
+	}
+}
+
 func dataSourceRoleSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"domain": {
