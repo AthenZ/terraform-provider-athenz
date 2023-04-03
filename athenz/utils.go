@@ -15,6 +15,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type MemberType uint8
+
+const (
+	USER = iota
+	GROUP
+	SERVICE
+)
+
+func (s MemberType) String() string {
+	switch s {
+	case USER:
+		return "user"
+	case GROUP:
+		return "group"
+	case SERVICE:
+		return "service"
+	default:
+		return "Invalid member type"
+	}
+}
+
+type SettingType uint8
+
+const (
+	EXPIRATION = iota
+	REVIEW
+)
+
+func (s SettingType) String() string {
+	switch s {
+	case EXPIRATION:
+		return "expiration"
+	case REVIEW:
+		return "review"
+	default:
+		return "Invalid setting type"
+	}
+}
+
 func dataSourceRoleSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"domain": {
@@ -60,6 +99,30 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 						Optional: true,
 					},
 					"cert_expiry_mins": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"user_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"user_review_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"group_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"group_review_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"service_expiry_days": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"service_review_days": {
 						Type:     schema.TypeInt,
 						Optional: true,
 					},
@@ -349,6 +412,24 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	if zmsRole.CertExpiryMins != nil {
 		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
 	}
+	if zmsRole.MemberExpiryDays != nil {
+		zmsSettings["user_expiry_days"] = int(*zmsRole.MemberExpiryDays)
+	}
+	if zmsRole.MemberReviewDays != nil {
+		zmsSettings["user_review_days"] = int(*zmsRole.MemberReviewDays)
+	}
+	if zmsRole.GroupExpiryDays != nil {
+		zmsSettings["group_expiry_days"] = int(*zmsRole.GroupExpiryDays)
+	}
+	if zmsRole.GroupReviewDays != nil {
+		zmsSettings["group_review_days"] = int(*zmsRole.GroupReviewDays)
+	}
+	if zmsRole.ServiceExpiryDays != nil {
+		zmsSettings["service_expiry_days"] = int(*zmsRole.ServiceExpiryDays)
+	}
+	if zmsRole.ServiceReviewDays != nil {
+		zmsSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
+	}
 	if len(zmsSettings) > 0 {
 		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
@@ -400,4 +481,88 @@ func validateDatePatternFunc(validPattern string, attribute string) schema.Schem
 		}
 		return nil
 	}
+}
+
+func validateRoleMember(members []interface{}, settings map[string]interface{}) error {
+	for _, mRaw := range members {
+		data := mRaw.(map[string]interface{})
+		name := data["name"].(string)
+
+		expirationDays := 0
+		reviewDays := 0
+		var memberType MemberType
+
+		if strings.HasPrefix(name, "user.") {
+			memberType = USER
+			if settings["user_expiry_days"] != nil {
+				expirationDays = settings["user_expiry_days"].(int)
+			}
+			if settings["user_review_days"] != nil {
+				reviewDays = settings["user_review_days"].(int)
+			}
+		} else if strings.Contains(name, ":group.") || strings.HasPrefix(name, "unix.") {
+			memberType = GROUP
+			if settings["group_expiry_days"] != nil {
+				expirationDays = settings["group_expiry_days"].(int)
+			}
+			if settings["group_review_days"] != nil {
+				reviewDays = settings["group_review_days"].(int)
+			}
+		} else {
+			memberType = SERVICE
+			if settings["service_expiry_days"] != nil {
+				expirationDays = settings["service_expiry_days"].(int)
+			}
+			if settings["service_review_days"] != nil {
+				reviewDays = settings["service_review_days"].(int)
+			}
+		}
+
+		if err := validateMemberReviewAndExpiration(data, expirationDays, reviewDays, memberType); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateMemberReviewAndExpiration(memberData map[string]interface{}, expirationDays int, reviewDays int, memberType MemberType) error {
+	expiration := memberData["expiration"].(string)
+	review := memberData["review"].(string)
+
+	if err := validateMemberDate(expirationDays, expiration, memberType, SettingType(EXPIRATION)); err != nil {
+		return err
+	}
+
+	if err := validateMemberDate(reviewDays, review, memberType, SettingType(REVIEW)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateMemberDate(days int, dateString string, memberType MemberType, settingType SettingType) error {
+	current := time.Now()
+
+	settingAttr := fmt.Sprintf("%v_expiry_days", memberType)
+	if settingType == REVIEW {
+		settingAttr = fmt.Sprintf("%v_review_days", memberType)
+	}
+
+	if days > 0 {
+		limit := current.AddDate(0, 0, days)
+		if dateString == "" {
+			return fmt.Errorf("settings.%s is defined but for one or more %v isn't set", settingAttr, memberType)
+		}
+
+		date, err := time.Parse(EXPIRATION_LAYOUT, dateString)
+		if err != nil {
+			panic(err)
+		}
+
+		if limit.Before(date) {
+			return fmt.Errorf("one or more %v is set past the %s limit: %s", memberType, settingAttr, limit)
+		}
+	}
+
+	return nil
 }

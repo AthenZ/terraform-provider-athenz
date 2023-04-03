@@ -94,6 +94,36 @@ func ResourceRole() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
+						"user_expiry_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"user_review_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"group_expiry_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"group_review_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"service_expiry_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"service_review_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
 					},
 				},
 			},
@@ -117,7 +147,21 @@ func ResourceRole() *schema.Resource {
 				},
 			},
 		},
+		CustomizeDiff: validateRoleSchema,
 	}
+}
+
+func validateRoleSchema(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	_, mNew := d.GetChange("member")
+	members := mNew.(*schema.Set).List()
+
+	_, sNew := d.GetChange("settings")
+	if len(sNew.(*schema.Set).List()) == 0 {
+		return nil
+	}
+	settings := sNew.(*schema.Set).List()[0].(map[string]interface{})
+
+	return validateRoleMember(members, settings)
 }
 
 func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -154,9 +198,21 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 				if ok {
 					tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
 					certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+					userExpiryDays := int32(settings["user_expiry_days"].(int))
+					userReviewDays := int32(settings["user_review_days"].(int))
+					groupExpiryDays := int32(settings["group_expiry_days"].(int))
+					groupReviewDays := int32(settings["group_review_days"].(int))
+					serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+					serviceReviewDays := int32(settings["service_review_days"].(int))
 
 					role.TokenExpiryMins = &tokenExpiryMins
 					role.CertExpiryMins = &certExpiryMins
+					role.MemberExpiryDays = &userExpiryDays
+					role.MemberReviewDays = &userReviewDays
+					role.GroupExpiryDays = &groupExpiryDays
+					role.GroupReviewDays = &groupReviewDays
+					role.ServiceExpiryDays = &serviceExpiryDays
+					role.ServiceReviewDays = &serviceReviewDays
 				}
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
@@ -251,6 +307,25 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	if role.CertExpiryMins != nil {
 		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
 	}
+	if role.MemberExpiryDays != nil {
+		zmsSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
+	}
+	if role.MemberReviewDays != nil {
+		zmsSettings["user_review_days"] = int(*role.MemberReviewDays)
+	}
+	if role.GroupExpiryDays != nil {
+		zmsSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
+	}
+	if role.GroupReviewDays != nil {
+		zmsSettings["group_review_days"] = int(*role.GroupReviewDays)
+	}
+	if role.ServiceExpiryDays != nil {
+		zmsSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
+	}
+	if role.ServiceReviewDays != nil {
+		zmsSettings["service_review_days"] = int(*role.ServiceReviewDays)
+	}
+
 	if len(zmsSettings) != 0 {
 		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
@@ -273,6 +348,61 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	auditRef := d.Get("audit_ref").(string)
 	membersToDelete := make([]*zms.RoleMember, 0)
 	membersToAdd := make([]*zms.RoleMember, 0)
+
+	role, err := zmsClient.GetRole(dn, rn)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	isRoleChanged := false
+
+	if d.HasChange("settings") {
+		isRoleChanged = true
+		_, n := d.GetChange("settings")
+		if len(n.(*schema.Set).List()) != 0 {
+			settings := n.(*schema.Set).List()[0].(map[string]interface{})
+			tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
+			certExpiryMins := int32(settings["cert_expiry_mins"].(int))
+			userExpiryDays := int32(settings["user_expiry_days"].(int))
+			userReviewDays := int32(settings["user_review_days"].(int))
+			groupExpiryDays := int32(settings["group_expiry_days"].(int))
+			groupReviewDays := int32(settings["group_review_days"].(int))
+			serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+			serviceReviewDays := int32(settings["service_review_days"].(int))
+
+			role.TokenExpiryMins = &tokenExpiryMins
+			role.CertExpiryMins = &certExpiryMins
+			role.MemberExpiryDays = &userExpiryDays
+			role.MemberReviewDays = &userReviewDays
+			role.GroupExpiryDays = &groupExpiryDays
+			role.GroupReviewDays = &groupReviewDays
+			role.ServiceExpiryDays = &serviceExpiryDays
+			role.ServiceReviewDays = &serviceReviewDays
+		} else {
+			role.TokenExpiryMins = nil
+			role.CertExpiryMins = nil
+			role.MemberExpiryDays = nil
+			role.MemberReviewDays = nil
+			role.GroupExpiryDays = nil
+			role.GroupReviewDays = nil
+			role.ServiceExpiryDays = nil
+			role.ServiceReviewDays = nil
+		}
+	}
+
+	if d.HasChange("tags") {
+		isRoleChanged = true
+		_, n := d.GetChange("tags")
+		tags := expandRoleTags(n.(map[string]interface{}))
+		role.Tags = tags
+	}
+
+	if isRoleChanged {
+		err = zmsClient.PutRole(dn, rn, auditRef, role)
+		if err != nil {
+			return diag.Errorf("error updating tags: %s", err)
+		}
+	}
+
 	if d.HasChange("members") {
 		if _, ok := d.GetOk("trust"); ok {
 			return diag.Errorf("delegated roles cannot change members")
@@ -304,42 +434,6 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
 	if err != nil {
 		return diag.Errorf("error updating group membership: %s", err)
-	}
-
-	role, err := zmsClient.GetRole(dn, rn)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	isRoleChanged := false
-
-	if d.HasChange("settings") {
-		isRoleChanged = true
-		_, n := d.GetChange("settings")
-		if len(n.(*schema.Set).List()) != 0 {
-			settings := n.(*schema.Set).List()[0].(map[string]interface{})
-			tokenExpiryMins := int32(settings["token_expiry_mins"].(int))
-			certExpiryMins := int32(settings["cert_expiry_mins"].(int))
-
-			role.TokenExpiryMins = &tokenExpiryMins
-			role.CertExpiryMins = &certExpiryMins
-		} else {
-			role.TokenExpiryMins = nil
-			role.CertExpiryMins = nil
-		}
-	}
-
-	if d.HasChange("tags") {
-		isRoleChanged = true
-		_, n := d.GetChange("tags")
-		tags := expandRoleTags(n.(map[string]interface{}))
-		role.Tags = tags
-	}
-
-	if isRoleChanged {
-		err = zmsClient.PutRole(dn, rn, auditRef, role)
-		if err != nil {
-			return diag.Errorf("error updating tags: %s", err)
-		}
 	}
 
 	return resourceRoleRead(ctx, d, meta)

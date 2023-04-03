@@ -16,6 +16,19 @@ domain:
           members:
             - name: user.github-7654321
               expiration: 2022-12-29T23:59:59.000Z
+        - name: athenz_provider_foobar
+          member_expiry_days: 14
+          service_expiry_days: 30
+          token_expiry_mins: 7
+          cert_expiry_mins: 8
+          member_review_days: 15
+          service_review_days: 31
+          group_expiry_days: 21
+          group_review_days: 22
+          members:
+            - name: user.github-7654321
+              expiration: 2022-12-29T23:59:59.000Z
+              review: 2022-12-29T23:59:59.000Z
         - name: athenz_provider_bar_deprecated
           members:
             - name: user.github-7654321

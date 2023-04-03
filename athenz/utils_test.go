@@ -3,6 +3,7 @@ package athenz
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/stretchr/testify/assert"
@@ -250,4 +251,86 @@ func TestValidateDatePatternFunc(t *testing.T) {
 	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member expiration")(invalidExpiration, nil))
 	invalidExpiration = "2023-12-29-23:59:59"
 	assert.NotNil(t, validateDatePatternFunc(DATE_PATTERN, "member review reminder")(invalidExpiration, nil))
+}
+
+func TestValidateMemberReviewAndExpiration(t *testing.T) {
+	current := time.Now()
+
+	memberData := map[string]interface{}{
+		"expiration": current.AddDate(0, 0, 7).Format(EXPIRATION_LAYOUT),
+		"review":     current.AddDate(0, 0, 7).Format(EXPIRATION_LAYOUT),
+	}
+	expirationDays := 0
+	reviewDays := 0
+	memberType := MemberType(SERVICE)
+	assert.Nil(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType))
+
+	expirationDays = 8
+	reviewDays = 9
+	assert.Nil(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType))
+
+	expirationDays = 6
+	reviewDays = 8
+	expectedMessageErr := "one or more service_expiry_days is set past the expiration limit: 6"
+	assert.Error(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType), expectedMessageErr)
+
+	expirationDays = 5
+	reviewDays = 8
+	expectedMessageErr = "one or more service_expiry_days is set past the review limit: 5"
+	assert.Error(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType), expectedMessageErr)
+
+	memberData = map[string]interface{}{
+		"expiration": "",
+		"review":     current.AddDate(0, 0, 7).Format(EXPIRATION_LAYOUT),
+	}
+	expirationDays = 8
+	reviewDays = 6
+	expectedMessageErr = "settings.service_expiry_days is defined but for one or more service isn't set"
+	assert.Error(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType), expectedMessageErr)
+
+	memberData = map[string]interface{}{
+		"expiration": current.AddDate(0, 0, 7).Format(EXPIRATION_LAYOUT),
+		"review":     "",
+	}
+	expirationDays = 5
+	reviewDays = 5
+	expectedMessageErr = "settings.service_review_days is defined but for one or more service isn't set"
+	assert.Error(t, validateMemberReviewAndExpiration(memberData, expirationDays, reviewDays, memberType), expectedMessageErr)
+}
+
+func TestValidateMemberDate(t *testing.T) {
+	days := 10
+	dateString := "2022-12-29 23:59:59"
+	memberType := MemberType(GROUP)
+	settingType := SettingType(EXPIRATION)
+	assert.Nil(t, validateMemberDate(days, dateString, memberType, settingType))
+
+	current := time.Now()
+	days = 10
+	dateString = current.AddDate(0, 0, 30).Format(EXPIRATION_LAYOUT)
+	memberType = MemberType(GROUP)
+	settingType = SettingType(EXPIRATION)
+	expectedMessageErr := "one or more group_expiry_days is set past the expiration limit: 10"
+	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
+
+	days = 7
+	dateString = current.AddDate(0, 0, 30).Format(EXPIRATION_LAYOUT)
+	memberType = MemberType(GROUP)
+	settingType = SettingType(REVIEW)
+	expectedMessageErr = "one or more group_review_days is set past the review limit: 7"
+	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
+
+	days = 15
+	dateString = ""
+	memberType = MemberType(GROUP)
+	settingType = SettingType(EXPIRATION)
+	expectedMessageErr = "settings.group_expiry_days is defined but for one or more group isn't set"
+	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
+
+	days = 15
+	dateString = ""
+	memberType = MemberType(GROUP)
+	settingType = SettingType(REVIEW)
+	expectedMessageErr = "settings.group_review_days is defined but for one or more group isn't set"
+	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
 }

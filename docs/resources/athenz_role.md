@@ -47,6 +47,12 @@ resource "athenz_role" "foo_role" {
   settings {
     token_expiry_mins = 60
     cert_expiry_mins = 60
+    user_expiry_days = 7
+    user_review_days = 7
+    group_expiry_days = 14
+    group_review_days = 14
+    service_expiry_days = 21
+    service_review_days = 21
   }
   audit_ref = "create role"
   tags = {
@@ -93,6 +99,12 @@ The following arguments are supported:
 - `settings` - (Optional) A map of advanced settings with the following options:
   - `token_expiry_mins` - (Optional) Tokens issued for this role will have specified max timeout in mins
   - `cert_expiry_mins` - (Optional) Certs issued for this role will have specified max timeout in mins
+  - `user_expiry_days` - (Optional) All user members in the role will have specified max expiry days
+  - `user_review_days` - (Optional) All user members in the role will have specified max review days
+  - `group_expiry_days` - (Optional) All group members in the role will have specified max expiry days
+  - `group_review_days` - (Optional) All groups in the role will have specified max review days
+  - `service_expiry_days` - (Optional) All services in the role will have specified max expiry days
+  - `service_review_days` - (Optional) All service members in the role will have specified review days
 
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]

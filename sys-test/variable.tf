@@ -56,6 +56,11 @@ variable "athenz_provider_bar-member-0-expiration" {
   type = string
   description = "The expiration to use"
 }
+
+variable "athenz_provider_bar-member-0-review" {
+  type = string
+  description = "The review to use"
+}
 # ------------------ groups variables --------------------
 variable "athenz_provider_foo-group_members" {
   type = list(string)

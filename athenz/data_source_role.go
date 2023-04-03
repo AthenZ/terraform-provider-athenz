@@ -55,11 +55,30 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 	if role.CertExpiryMins != nil {
 		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
 	}
+	if role.MemberExpiryDays != nil {
+		zmsSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
+	}
+	if role.MemberReviewDays != nil {
+		zmsSettings["user_review_days"] = int(*role.MemberReviewDays)
+	}
+	if role.GroupExpiryDays != nil {
+		zmsSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
+	}
+	if role.GroupReviewDays != nil {
+		zmsSettings["group_review_days"] = int(*role.GroupReviewDays)
+	}
+	if role.ServiceExpiryDays != nil {
+		zmsSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
+	}
+	if role.ServiceReviewDays != nil {
+		zmsSettings["service_review_days"] = int(*role.ServiceReviewDays)
+	}
 	if len(zmsSettings) > 0 {
 		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	}
+
 	if role.Trust != "" {
 		if err = d.Set("trust", string(role.Trust)); err != nil {
 			return diag.FromErr(err)
