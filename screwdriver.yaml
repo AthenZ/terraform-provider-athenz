@@ -18,7 +18,9 @@ shared:
     screwdriver.cd/dockerRam: HIGH  
 
 parameters:
-  upgrade_test: "true"
+  upgrade_test: 
+    value: "true"
+    description: "upgrade test is needed when non-breaking schema changes are applied"
   
 jobs:
   certify-provider:
