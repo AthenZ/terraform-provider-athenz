@@ -78,8 +78,7 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interf
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Policy %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Policy %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -139,7 +138,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 	d.SetId(fullResourceName)
 
-	return resourcePolicyRead(ctx, d, meta)
+	return readAfterWrite(resourcePolicyRead, ctx, d, meta)
 }
 func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
@@ -165,7 +164,7 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 			return diag.FromErr(err)
 		}
 	}
-	return resourcePolicyRead(ctx, d, meta)
+	return readAfterWrite(resourcePolicyRead, ctx, d, meta)
 }
 
 func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

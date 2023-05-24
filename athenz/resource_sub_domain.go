@@ -93,7 +93,7 @@ func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta i
 		}
 	}
 	d.SetId(parentDomainName + SUB_DOMAIN_SEPARATOR + domainName)
-	return resourceSubDomainRead(ctx, d, meta)
+	return readAfterWrite(resourceSubDomainRead, ctx, d, meta)
 }
 
 func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -108,8 +108,7 @@ func resourceSubDomainRead(ctx context.Context, d *schema.ResourceData, meta int
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Sub Domain %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Sub Domain: %s", v)
 	case rdl.Any:

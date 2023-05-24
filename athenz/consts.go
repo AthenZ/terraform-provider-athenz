@@ -13,4 +13,5 @@ const (
 	MEMBER_EXPIRATION      = "member expiration"
 	DATE_PATTERN           = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 	MEMBER_REVIEW_REMINDER = "member review reminder"
+	NOT_FOUNT_ERR          = "NOT_FOUNT_ERR"
 )

@@ -115,8 +115,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		}
 	}
 	d.SetId(fullResourceName)
-
-	return resourceGroupRead(ctx, d, meta)
+	return readAfterWrite(resourceGroupRead, ctx, d, meta)
 }
 
 func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -138,8 +137,7 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Group %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Group %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -197,7 +195,7 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.Errorf("error updating group membership: %s", err)
 	}
 
-	return resourceGroupRead(ctx, d, meta)
+	return readAfterWrite(resourceGroupRead, ctx, d, meta)
 }
 
 func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
