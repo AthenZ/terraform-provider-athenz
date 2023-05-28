@@ -232,8 +232,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 		}
 	}
 	d.SetId(fullResourceName)
-
-	return resourceRoleRead(ctx, d, meta)
+	return readAfterWrite(resourceRoleRead, ctx, d, meta)
 }
 
 func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -254,8 +253,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Role %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -436,7 +434,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.Errorf("error updating group membership: %s", err)
 	}
 
-	return resourceRoleRead(ctx, d, meta)
+	return readAfterWrite(resourceRoleRead, ctx, d, meta)
 }
 
 func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

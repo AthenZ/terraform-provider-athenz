@@ -102,8 +102,7 @@ func resourcePolicyVersionRead(ctx context.Context, d *schema.ResourceData, meta
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Policy %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Policy %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -178,7 +177,7 @@ func resourcePolicyVersionCreate(ctx context.Context, d *schema.ResourceData, me
 		}
 	}
 	d.SetId(fullResourceName)
-	return resourcePolicyVersionRead(ctx, d, meta)
+	return readAfterWrite(resourcePolicyVersionRead, ctx, d, meta)
 }
 
 func validateSchema(activeVersion string, versions []interface{}) error {
@@ -255,7 +254,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 			return diag.FromErr(err)
 		}
 	}
-	return resourcePolicyVersionRead(ctx, d, meta)
+	return readAfterWrite(resourcePolicyVersionRead, ctx, d, meta)
 }
 
 func findPolicyVersion(policyVersions []*zms.Policy, lookingVersion string) *zms.Policy {

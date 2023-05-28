@@ -106,8 +106,7 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 		}
 	}
 	d.SetId(longName)
-
-	return resourceServiceRead(ctx, d, meta)
+	return readAfterWrite(resourceServiceRead, ctx, d, meta)
 }
 
 func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -131,8 +130,7 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Service %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Service: %s", v)
 	case rdl.Any:
@@ -190,7 +188,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.Errorf("error updating service membership: %s", err)
 	}
 
-	return resourceServiceRead(ctx, d, meta)
+	return readAfterWrite(resourceServiceRead, ctx, d, meta)
 }
 
 func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

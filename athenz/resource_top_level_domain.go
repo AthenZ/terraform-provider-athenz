@@ -70,7 +70,7 @@ func resourceTopLevelDomainCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("error creating Top Level Domain: %s", err)
 	}
 	d.SetId(domainName)
-	return resourceTopLevelDomainRead(ctx, d, meta)
+	return readAfterWrite(resourceTopLevelDomainRead, ctx, d, meta)
 }
 
 func resourceTopLevelDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -81,8 +81,7 @@ func resourceTopLevelDomainRead(ctx context.Context, d *schema.ResourceData, met
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Top Level Domain %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz Top level Domain: %s", v)
 	case rdl.Any:

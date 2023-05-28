@@ -54,7 +54,7 @@ func resourceUserDomainCreate(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.Errorf("error creating User Domain: %s", err)
 	}
 	d.SetId(PREFIX_USER_DOMAIN + domainName)
-	return resourceUserDomainRead(ctx, d, meta)
+	return readAfterWrite(resourceUserDomainRead, ctx, d, meta)
 }
 
 func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -66,8 +66,7 @@ func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta in
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz User Domain %s not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return diag.Errorf(NOT_FOUNT_ERR)
 		}
 		return diag.Errorf("error retrieving Athenz User Domain: %s", v)
 	case rdl.Any:

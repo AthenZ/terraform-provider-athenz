@@ -1,8 +1,10 @@
 package athenz
 
 import (
+	"context"
 	b64 "encoding/base64"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -565,4 +567,20 @@ func validateMemberDate(days int, dateString string, memberType MemberType, sett
 	}
 
 	return nil
+}
+
+func readAfterWrite(readFunc func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics, ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	diags := readFunc(ctx, d, meta)
+
+	// 2 more retries after 5 and 10 seconds
+	for i := 1; diags.HasError() && i < 3; i++ {
+		time.Sleep(time.Duration(i) * time.Duration(5) * time.Second)
+		log.Print("[WARN] resource did not found, about to try again")
+		diags = readFunc(ctx, d, meta)
+	}
+
+	if diags.HasError() && diags[0].Summary == NOT_FOUNT_ERR {
+		d.SetId("")
+	}
+	return diags
 }
