@@ -33,17 +33,17 @@ func TestMakeTagsValue(t *testing.T) {
 }
 
 // works if changing in line 59 from .(*schema.Set).List() to .([]interface)
-func TestExpandRoleTags(t *testing.T) {
-	actual := expandRoleTags(map[string]interface{}{"key1": "v1k1,v2k1", "key2": "v1k2,v2k2,v3k2"})
+func TestExpandTagsMap(t *testing.T) {
+	actual := expandTagsMap(map[string]interface{}{"key1": "v1k1,v2k1", "key2": "v1k2,v2k2,v3k2"})
 	expected := buildMapForSchemaTest([]string{"key1", "key2"}, []int{2, 3}, []string{"v1k1", "v2k1", "v1k2", "v2k2", "v3k2"})
 	checkMapEquals(t, expected, actual)
-	actual = expandRoleTags(map[string]interface{}{"key1": "", "key2": "v1k2,v2k2,v3k2"})
+	actual = expandTagsMap(map[string]interface{}{"key1": "", "key2": "v1k2,v2k2,v3k2"})
 	expected = buildMapForSchemaTest([]string{"key2"}, []int{3}, []string{"v1k2", "v2k2", "v3k2"})
 	checkMapEquals(t, expected, actual)
-	actual = expandRoleTags(map[string]interface{}{"key1": "v1k2,v2k2,v3k2", "key2": ""})
+	actual = expandTagsMap(map[string]interface{}{"key1": "v1k2,v2k2,v3k2", "key2": ""})
 	expected = buildMapForSchemaTest([]string{"key1"}, []int{3}, []string{"v1k2", "v2k2", "v3k2"})
 	checkMapEquals(t, expected, actual)
-	actual = expandRoleTags(map[string]interface{}{"key1": "v1k2,v2k2,v3k2", "key2": "yy,yy1", "key3": "zz1,zz2"})
+	actual = expandTagsMap(map[string]interface{}{"key1": "v1k2,v2k2,v3k2", "key2": "yy,yy1", "key3": "zz1,zz2"})
 	expected = buildMapForSchemaTest([]string{"key1", "key2", "key3"}, []int{3, 2, 2}, []string{"v1k2", "v2k2", "v3k2", "yy", "yy1", "zz1", "zz2"})
 	checkMapEquals(t, expected, actual)
 }

@@ -185,7 +185,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			}
 			auditRef := d.Get("audit_ref").(string)
 			if v, ok := d.GetOk("tags"); ok {
-				role.Tags = expandRoleTags(v.(map[string]interface{}))
+				role.Tags = expandTagsMap(v.(map[string]interface{}))
 			}
 			if v, ok := d.GetOk("trust"); ok {
 				if len(role.RoleMembers) != 0 {
@@ -390,7 +390,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	if d.HasChange("tags") {
 		isRoleChanged = true
 		_, n := d.GetChange("tags")
-		tags := expandRoleTags(n.(map[string]interface{}))
+		tags := expandTagsMap(n.(map[string]interface{}))
 		role.Tags = tags
 	}
 
