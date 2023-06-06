@@ -6,6 +6,9 @@ resource "athenz_group" "new_group" {
     name = var.athenz_provider_foo-group_member-0-name
     expiration = var.athenz_provider_foo-group_member-0-expiration
   }
+  tags = {
+    (var.athenz_provider_foo-tags-0-key) = var.athenz_provider_foo-tags-0-values
+  }
 }
 
 resource "athenz_group" "new_group_deprecated" {

@@ -39,7 +39,7 @@ func TestAccGroupConflictArgumentError(t *testing.T) {
 
 func testAccGroupMembersConflictingMember() string {
 	return fmt.Sprintf(`
-resource "athenz_role" "roleTest" {
+resource "athenz_group" "groupTest" {
   name = "test"
   domain = "sys.auth"
   members = ["user.jone"]
@@ -184,6 +184,26 @@ func TestAccGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resName, "member.0.name", member2),
 					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+				),
+			},
+			{
+				Config: testAccGroupConfigAddTags(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
+				),
+			},
+			{
+				Config: testAccGroupConfigRemoveTags(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
 		},
@@ -383,6 +403,11 @@ resource "athenz_group" "groupTest" {
   member {
 	name = "%s"
   }
+  tags = {
+	key1 = "s1,s2"
+	key2 = "s3,s4"
+  }
+	
 }
 `, name, domain, member1)
 }
@@ -498,4 +523,37 @@ resource "athenz_group" "groupTest" {
 	}
 }
 `)
+}
+
+func testAccGroupConfigAddTags(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+   member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+	key2 = "b1,b2"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccGroupConfigRemoveTags(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+  }
+}
+`, name, domain, member1)
 }
