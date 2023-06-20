@@ -346,8 +346,8 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	auditRef := d.Get("audit_ref").(string)
 	membersToDelete := make([]*zms.RoleMember, 0)
 	membersToAdd := make([]*zms.RoleMember, 0)
-	roleMeta := zms.RoleMeta{}
 
+	role, err := zmsClient.GetRole(dn, rn)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -367,23 +367,23 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 			serviceExpiryDays := int32(settings["service_expiry_days"].(int))
 			serviceReviewDays := int32(settings["service_review_days"].(int))
 
-			roleMeta.TokenExpiryMins = &tokenExpiryMins
-			roleMeta.CertExpiryMins = &certExpiryMins
-			roleMeta.MemberExpiryDays = &userExpiryDays
-			roleMeta.MemberReviewDays = &userReviewDays
-			roleMeta.GroupExpiryDays = &groupExpiryDays
-			roleMeta.GroupReviewDays = &groupReviewDays
-			roleMeta.ServiceExpiryDays = &serviceExpiryDays
-			roleMeta.ServiceReviewDays = &serviceReviewDays
+			role.TokenExpiryMins = &tokenExpiryMins
+			role.CertExpiryMins = &certExpiryMins
+			role.MemberExpiryDays = &userExpiryDays
+			role.MemberReviewDays = &userReviewDays
+			role.GroupExpiryDays = &groupExpiryDays
+			role.GroupReviewDays = &groupReviewDays
+			role.ServiceExpiryDays = &serviceExpiryDays
+			role.ServiceReviewDays = &serviceReviewDays
 		} else {
-			roleMeta.TokenExpiryMins = nil
-			roleMeta.CertExpiryMins = nil
-			roleMeta.MemberExpiryDays = nil
-			roleMeta.MemberReviewDays = nil
-			roleMeta.GroupExpiryDays = nil
-			roleMeta.GroupReviewDays = nil
-			roleMeta.ServiceExpiryDays = nil
-			roleMeta.ServiceReviewDays = nil
+			role.TokenExpiryMins = nil
+			role.CertExpiryMins = nil
+			role.MemberExpiryDays = nil
+			role.MemberReviewDays = nil
+			role.GroupExpiryDays = nil
+			role.GroupReviewDays = nil
+			role.ServiceExpiryDays = nil
+			role.ServiceReviewDays = nil
 		}
 	}
 
@@ -391,11 +391,11 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		isRoleChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
-		roleMeta.Tags = tags
+		role.Tags = tags
 	}
 
 	if isRoleChanged {
-		err = zmsClient.PutRoleMeta(dn, rn, auditRef, &roleMeta)
+		err = zmsClient.PutRole(dn, rn, auditRef, role)
 		if err != nil {
 			return diag.Errorf("error updating tags: %s", err)
 		}
