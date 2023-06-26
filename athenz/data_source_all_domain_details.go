@@ -81,7 +81,6 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 		d.Set("aws_account_id", domain.Account)
 	}
 	//gcp account number and gcp account name will be together.
-
 	if domain.GcpProject != "" && domain.GcpProjectNumber != "" {
 		d.Set("gcp_project_name", domain.GcpProject)
 		d.Set("gcp_project_number", domain.GcpProjectNumber)
