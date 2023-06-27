@@ -78,7 +78,7 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interf
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Policy %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Policy %s: %s", d.Id(), v)
 	case rdl.Any:

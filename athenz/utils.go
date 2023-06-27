@@ -579,7 +579,8 @@ func readAfterWrite(readFunc func(context.Context, *schema.ResourceData, interfa
 		diags = readFunc(ctx, d, meta)
 	}
 
-	if diags.HasError() && diags[0].Summary == NOT_FOUNT_ERR {
+	// if is a 404 error (not found)
+	if diags.HasError() && strings.HasPrefix(diags[0].Summary, "404") {
 		d.SetId("")
 	}
 	return diags

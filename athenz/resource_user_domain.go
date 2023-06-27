@@ -66,7 +66,7 @@ func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta in
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz User Domain %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz User Domain: %s", v)
 	case rdl.Any:

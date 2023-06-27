@@ -253,7 +253,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			log.Printf("[WARN] Athenz Role %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
 	case rdl.Any:
