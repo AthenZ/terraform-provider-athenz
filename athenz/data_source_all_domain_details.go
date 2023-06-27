@@ -30,6 +30,10 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"azure_subscription": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"role_list": {
 				Type:        schema.TypeSet,
 				Description: "set of all roles",
@@ -83,6 +87,9 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 	if domain.GcpProject != "" && domain.GcpProjectNumber != "" {
 		d.Set("gcp_project_name", domain.GcpProject)
 		d.Set("gcp_project_number", domain.GcpProjectNumber)
+	}
+	if domain.AzureSubscription != "" {
+		d.Set("azure_subscription", domain.AzureSubscription)
 	}
 	roleList, err := zmsClient.GetRoleList(domainName, nil, "")
 	if err != nil {
