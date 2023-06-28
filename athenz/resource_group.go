@@ -136,8 +136,12 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			log.Printf("[WARN] Athenz Group %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			if !d.IsNewResource() {
+				log.Printf("[WARN] Athenz Group %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Group %s: %s", d.Id(), v)
 	case rdl.Any:
