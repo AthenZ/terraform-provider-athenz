@@ -80,7 +80,11 @@ func resourceTopLevelDomainRead(ctx context.Context, d *schema.ResourceData, met
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			log.Printf("[WARN] Athenz Top Level Domain %s not found, removing from state", d.Id())
+			if !d.IsNewResource() {
+				log.Printf("[WARN] Athenz Top Level Domain %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
 			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Top level Domain: %s", v)
