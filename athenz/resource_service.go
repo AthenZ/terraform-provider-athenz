@@ -130,7 +130,7 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			if !d.IsNewResource() {
-				log.Printf("[WARN] Athenz Athenz %s not found, removing from state", d.Id())
+				log.Printf("[WARN] Athenz Service %s not found, removing from state", d.Id())
 				d.SetId("")
 				return nil
 			}
