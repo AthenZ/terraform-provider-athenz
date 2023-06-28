@@ -28,3 +28,16 @@ data "athenz_all_domain_details" "domain-test" {
 The arguments of this data source act as filters for querying the current Athenz domain.
 
 - `name` - (Required) The name of the specific Athenz domain. Must be fully qualified name.
+
+## Attribute Reference
+
+The following attributes are exported in addition to the `name`
+
+- `aws_account_id` - The accound id from aws if present for the domain
+- `gcp_project_name` - GCP project name if present for the domain
+- `gcp_project_number` - GCP project number if it is present for the domain
+- `azure_subscription` - Azure subscription if present for the domain
+- `role_list` - List of roles for the domain
+- `policy_list` - List of policies in the domain
+- `service_list` - List of services present in the domain
+- `group_list` - List of groups in the domain

@@ -18,6 +18,22 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"gcp_project_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"gcp_project_number": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"aws_account_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"azure_subscription": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"role_list": {
 				Type:        schema.TypeSet,
 				Description: "set of all roles",
@@ -64,6 +80,17 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 		return diag.Errorf("error retrieving Athenz domain: %s", domainName)
 	}
 	d.SetId(string(domain.Name))
+
+	if domain.Account != "" {
+		d.Set("aws_account_id", domain.Account)
+	}
+	if domain.GcpProject != "" && domain.GcpProjectNumber != "" {
+		d.Set("gcp_project_name", domain.GcpProject)
+		d.Set("gcp_project_number", domain.GcpProjectNumber)
+	}
+	if domain.AzureSubscription != "" {
+		d.Set("azure_subscription", domain.AzureSubscription)
+	}
 	roleList, err := zmsClient.GetRoleList(domainName, nil, "")
 	if err != nil {
 		return diag.FromErr(err)
