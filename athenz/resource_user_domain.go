@@ -91,7 +91,13 @@ func resourceUserDomainDelete(ctx context.Context, d *schema.ResourceData, meta 
 	domainName := shortName("", d.Id(), PREFIX_USER_DOMAIN)
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteUserDomain(domainName, auditRef)
-	if err != nil {
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
 	return nil

@@ -117,7 +117,13 @@ func resourceTopLevelDomainDelete(ctx context.Context, d *schema.ResourceData, m
 	domainName := d.Id()
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteTopLevelDomain(domainName, auditRef)
-	if err != nil {
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
 	return nil

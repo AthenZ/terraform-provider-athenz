@@ -203,9 +203,15 @@ func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	auditRef := d.Get("audit_ref").(string)
 	err = zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
-	if err != nil {
+
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
-
 	return nil
 }
