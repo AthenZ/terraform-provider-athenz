@@ -179,7 +179,15 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	auditRef := d.Get("audit_ref").(string)
-	if err := zmsClient.DeletePolicy(dn, pn, auditRef); err != nil {
+	err = zmsClient.DeletePolicy(dn, pn, auditRef)
+
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
 	return nil

@@ -147,7 +147,14 @@ func resourceSubDomainDelete(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	if err = zmsClient.DeleteSubDomain(parentDomainName, subDomainName, auditRef); err != nil {
+	err = zmsClient.DeleteSubDomain(parentDomainName, subDomainName, auditRef)
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
 	return nil
