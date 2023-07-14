@@ -18,7 +18,7 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"gcp_project_name": {
+			"gcp_project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -85,7 +85,7 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 		d.Set("aws_account_id", domain.Account)
 	}
 	if domain.GcpProject != "" && domain.GcpProjectNumber != "" {
-		d.Set("gcp_project_name", domain.GcpProject)
+		d.Set("gcp_project_id", domain.GcpProject)
 		d.Set("gcp_project_number", domain.GcpProjectNumber)
 	}
 	if domain.AzureSubscription != "" {

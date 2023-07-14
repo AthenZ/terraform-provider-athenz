@@ -34,7 +34,7 @@ The arguments of this data source act as filters for querying the current Athenz
 The following attributes are exported in addition to the `name`
 
 - `aws_account_id` - The accound id from aws if present for the domain
-- `gcp_project_name` - GCP project name if present for the domain
+- `gcp_project_id` - GCP project name if present for the domain
 - `gcp_project_number` - GCP project number if it is present for the domain
 - `azure_subscription` - Azure subscription if present for the domain
 - `role_list` - List of roles for the domain
