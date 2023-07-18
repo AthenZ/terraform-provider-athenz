@@ -200,7 +200,7 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	auditRef := d.Get("audit_ref").(string)
 	membersToDelete := make([]*zms.GroupMember, 0)
 	membersToAdd := make([]*zms.GroupMember, 0)
-	groupMeta := zms.GroupMeta{}
+	currentGroup, err := zmsClient.GetGroup(dn, gn)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -220,11 +220,11 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		isGroupChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
-		groupMeta.Tags = tags
+		currentGroup.Tags = tags
 	}
 
 	if isGroupChanged {
-		err := zmsClient.PutGroupMeta(dn, gn, auditRef, &groupMeta)
+		err := zmsClient.PutGroup(dn, gn, auditRef, currentGroup)
 		if err != nil {
 			return diag.Errorf("error updating tags: %s", err)
 		}

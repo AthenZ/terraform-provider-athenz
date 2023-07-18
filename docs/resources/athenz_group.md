@@ -25,6 +25,10 @@ resource "athenz_group" "newgrp" {
     expiration = "2022-12-29 23:59:59"
   }
   audit_ref = "create group"
+  tags = {
+    key1 = "val1,val2"
+    key2 = "val3,val4"
+  }
 }
 ```
 
@@ -61,6 +65,7 @@ The following arguments are supported:
 
 - `audit_ref` - (Optional Default = "done by terraform provider")  string containing audit specification or ticket number
 
+- `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
 
 ## Import
 Group resource can be imported using the group id: `<domain>:group.<group name>`, e.g.
