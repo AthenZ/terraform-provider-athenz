@@ -141,12 +141,12 @@ func TestGetShortName(t *testing.T) {
 	fullRoleName := dName + ROLE_SEPARATOR + roleName
 
 	// case: fully qualified name
-	ast.Equal(t, serviceName, shortName(dName, fullServiceName, SERVICE_SEPARATOR))
-	ast.Equal(t, roleName, shortName(dName, fullRoleName, ROLE_SEPARATOR))
+	ast.Equal(t, serviceName, getShortName(dName, fullServiceName, SERVICE_SEPARATOR))
+	ast.Equal(t, roleName, getShortName(dName, fullRoleName, ROLE_SEPARATOR))
 
 	// case short name
-	ast.Equal(t, serviceName, shortName(dName, serviceName, SERVICE_SEPARATOR))
-	ast.Equal(t, roleName, shortName(dName, roleName, ROLE_SEPARATOR))
+	ast.Equal(t, serviceName, getShortName(dName, serviceName, SERVICE_SEPARATOR))
+	ast.Equal(t, roleName, getShortName(dName, roleName, ROLE_SEPARATOR))
 }
 
 func TestFlattenPublicKeyEntryList(t *testing.T) {

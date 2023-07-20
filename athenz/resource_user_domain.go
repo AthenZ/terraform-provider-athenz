@@ -60,7 +60,7 @@ func resourceUserDomainCreate(ctx context.Context, d *schema.ResourceData, meta 
 func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Id()
-	shortDomainName := shortName("", domainName, PREFIX_USER_DOMAIN)
+	shortDomainName := getShortName("", domainName, PREFIX_USER_DOMAIN)
 	userDomain, err := zmsClient.GetDomain(domainName)
 	switch v := err.(type) {
 	case rdl.ResourceError:
@@ -88,7 +88,7 @@ func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta in
 
 func resourceUserDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	domainName := shortName("", d.Id(), PREFIX_USER_DOMAIN)
+	domainName := getShortName("", d.Id(), PREFIX_USER_DOMAIN)
 	auditRef := d.Get("audit_ref").(string)
 	err := zmsClient.DeleteUserDomain(domainName, auditRef)
 	switch v := err.(type) {

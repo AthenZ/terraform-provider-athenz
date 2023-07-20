@@ -22,6 +22,11 @@ func dataSourceService() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -31,10 +36,10 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 
 	domainName := d.Get("domain").(string)
 	serviceName := d.Get("name").(string)
-	shortServiceName := shortName(domainName, serviceName, SERVICE_SEPARATOR)
+	shortServiceName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
 	fullResourceName := domainName + SERVICE_SEPARATOR + shortServiceName
 
-	_, err := client.GetServiceIdentity(domainName, shortServiceName)
+	service, err := client.GetServiceIdentity(domainName, shortServiceName)
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
@@ -46,6 +51,11 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 	d.SetId(fullResourceName)
+	if len(service.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(service.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	return nil
 }

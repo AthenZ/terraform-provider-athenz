@@ -62,7 +62,7 @@ func getSubDomainSchemaAttributes(d *schema.ResourceData) (adminUsers []interfac
 func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	parentDomainName := d.Get("parent_name").(string)
-	domainName := shortName(parentDomainName, d.Get("name").(string), SUB_DOMAIN_SEPARATOR)
+	domainName := getShortName(parentDomainName, d.Get("name").(string), SUB_DOMAIN_SEPARATOR)
 	adminUsers, auditRef := getSubDomainSchemaAttributes(d)
 	subDomainDetail := zms.SubDomain{
 		Name:       zms.SimpleName(domainName),
