@@ -43,6 +43,13 @@ func ResourcePolicy() *schema.Resource {
 				Optional: true,
 				Default:  AUDIT_REF,
 			},
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 		// utilized CustomizeDiff method to achieve multi-attribute validation at terraform plan stage
 		CustomizeDiff: validatePolicySchema(),
@@ -62,7 +69,6 @@ func validatePolicySchema() schema.CustomizeDiffFunc {
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, pn, err := splitPolicyId(d.Id())
-	d.Get("assertion")
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -101,6 +107,16 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	}
+
+	if len(policy.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(policy.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("tags", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
@@ -122,7 +138,9 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 			} else {
 				policy.Assertions = make([]*zms.Assertion, 0)
 			}
-
+			if v, ok := d.GetOk("tags"); ok {
+				policy.Tags = expandRoleTags(v.(map[string]interface{}))
+			}
 			auditRef := d.Get("audit_ref").(string)
 			err = zmsClient.PutPolicy(dn, pn, auditRef, &policy)
 			if err != nil {
@@ -144,6 +162,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 
 	return readAfterWrite(resourcePolicyRead, ctx, d, meta)
 }
+
 func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, pn, err := splitPolicyId(d.Id())
@@ -152,6 +171,7 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	policy, err := zmsClient.GetPolicy(dn, pn)
+	auditRef := d.Get("audit_ref").(string)
 	if err != nil {
 		return diag.Errorf("error retrieving Athenz Policy: %s", err)
 	}
@@ -162,12 +182,19 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 		}
 		ns := newVal.(*schema.Set).List()
 		policy.Assertions = expandPolicyAssertions(dn, ns)
-		auditRef := d.Get("audit_ref").(string)
-		err = zmsClient.PutPolicy(dn, pn, auditRef, policy)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+
 	}
+
+	if d.HasChange("tags") {
+		_, n := d.GetChange("tags")
+		policy.Tags = expandRoleTags(n.(map[string]interface{}))
+	}
+
+	err = zmsClient.PutPolicy(dn, pn, auditRef, policy)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return readAfterWrite(resourcePolicyRead, ctx, d, meta)
 }
 
