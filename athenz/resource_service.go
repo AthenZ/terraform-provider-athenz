@@ -129,8 +129,12 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			log.Printf("[WARN] Athenz Service %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			if !d.IsNewResource() {
+				log.Printf("[WARN] Athenz Service %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Service: %s", v)
 	case rdl.Any:
@@ -199,9 +203,15 @@ func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	auditRef := d.Get("audit_ref").(string)
 	err = zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
-	if err != nil {
+
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
-
 	return nil
 }

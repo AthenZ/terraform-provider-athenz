@@ -146,8 +146,12 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			log.Printf("[WARN] Athenz Group %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			if !d.IsNewResource() {
+				log.Printf("[WARN] Athenz Group %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Group %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -245,8 +249,17 @@ func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	if err = zmsClient.DeleteGroup(dn, gn, auditRef); err != nil {
+	err = zmsClient.DeleteGroup(dn, gn, auditRef)
+
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
+
 	return nil
 }

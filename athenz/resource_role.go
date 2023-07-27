@@ -252,8 +252,12 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			log.Printf("[WARN] Athenz Role %s not found, removing from state", d.Id())
-			return diag.Errorf(NOT_FOUNT_ERR)
+			if !d.IsNewResource() {
+				log.Printf("[WARN] Athenz Role %s not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
 		}
 		return diag.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
 	case rdl.Any:
@@ -445,7 +449,14 @@ func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 	auditRef := d.Get("audit_ref").(string)
 	err = zmsClient.DeleteRole(dn, rn, auditRef)
-	if err != nil {
+
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code == 404 {
+			return nil
+		}
+		return diag.FromErr(err)
+	case rdl.Any:
 		return diag.FromErr(err)
 	}
 

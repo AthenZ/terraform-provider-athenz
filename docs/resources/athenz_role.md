@@ -35,13 +35,17 @@ resource "athenz_role" "foo_role" {
   domain = "some_domain"
   member {
     name = "domain1.user1"
+    expiration = "2022-12-29 23:59:59"
+    review = "2023-12-29 23:59:59"
   }
   member {
     name = "domain2.user2"
     expiration = "2022-12-29 23:59:59"
+    review = "2023-12-29 23:59:59"
   }
   member {
     name = "domain3.user3"
+    expiration = "2022-12-29 23:59:59"
     review = "2023-12-29 23:59:59"
   }
   settings {
@@ -106,6 +110,7 @@ The following arguments are supported:
   - `service_expiry_days` - (Optional) All services in the role will have specified max expiry days
   - `service_review_days` - (Optional) All service members in the role will have specified review days
 
+Note: if `user_expiry_days` or `user_review_days` are set, you are required to add to each member the expiration and review respectively.
 
 - `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
 
