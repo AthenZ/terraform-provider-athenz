@@ -31,4 +31,10 @@ The given filters must match exactly one group whose data will be exported as at
 
 - `domain` - (Required) The Athenz domain name.
 
-- `tags` - (Optional) Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
+## Attribute Reference
+
+The following attributes are exported in addition to the `name`
+
+- `tags` - Map of tags for the group.
+
+- `member` - List of all members in the group.
