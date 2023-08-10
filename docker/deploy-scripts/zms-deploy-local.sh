@@ -55,7 +55,7 @@ if ! docker network inspect "${DOCKER_NETWORK}" > /dev/null 2>&1; then
 fi
 
 echo '2. start ZMS DB' | colored_cat g
-docker run -d -h "${ZMS_DB_HOST}" \
+docker run --platform linux/x86_64 -d -h "${ZMS_DB_HOST}" \
     -p "${ZMS_DB_PORT}:3306" \
     --network="${DOCKER_NETWORK}" \
     --user mysql:mysql \
@@ -65,7 +65,7 @@ docker run -d -h "${ZMS_DB_HOST}" \
 
 echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
 
-docker run --rm -it \
+docker run --platform linux/x86_64 --rm -it \
       --network="${DOCKER_NETWORK}" \
       --user mysql:mysql \
       -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
@@ -96,7 +96,7 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}, DOCKER_DNS: ${DOCKER_DNS}" | colored_cat g
-docker run -t -h "${ZMS_HOST}" \
+docker run --platform linux/x86_64 -t -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
@@ -119,7 +119,7 @@ echo "wait for ZMS to be ready ZMS_HOST: ${ZMS_HOST} : "
 
 # wait for ZMS to be ready
 RETRY=1
-until docker run --rm --entrypoint curl \
+until docker run --platform linux/x86_64 --rm --entrypoint curl \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --name athenz-curl athenz/athenz-setup-env:latest \
