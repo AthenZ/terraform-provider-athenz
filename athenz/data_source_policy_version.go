@@ -26,11 +26,11 @@ func DataSourcePolicyVersion() *schema.Resource {
 			},
 			"active_version": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Computed:    true,
 				Description: "The policy version that will be active",
 			},
 			"version": {
-				Required: true,
+				Computed: true,
 				Type:     schema.TypeSet,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
