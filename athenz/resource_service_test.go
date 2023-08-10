@@ -69,6 +69,22 @@ func TestAccGroupServiceBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "this service is for acc test"),
 				),
 			},
+			{
+				Config: testAccServiceConfigAddTags(serviceName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+				),
+			},
+			{
+				Config: testAccServiceConfigRemoveTags(serviceName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
+				),
+			},
 		},
 	})
 }
@@ -224,4 +240,29 @@ resource "athenz_service" "serviceTest" {
 	name = "service.test"
 }
 `)
+}
+
+func testAccServiceConfigAddTags(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+  name = "%s"
+  domain = "%s"
+tags = {
+	key1 = "a1,a2"
+	key2 = "b1,b2"
+	}
+}
+`, name, domain)
+}
+
+func testAccServiceConfigRemoveTags(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+  name = "%s"
+  domain = "%s"
+tags = {
+	key1 = "a1,a2"
+  }
+}
+`, name, domain)
 }

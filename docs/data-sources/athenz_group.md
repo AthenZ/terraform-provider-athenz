@@ -30,3 +30,11 @@ The given filters must match exactly one group whose data will be exported as at
 - `name` - (Required) The name of the specific Athenz group.
 
 - `domain` - (Required) The Athenz domain name.
+
+## Attribute Reference
+
+The following attributes are exported in addition to the `name`
+
+- `tags` - Map of tags for the group.
+
+- `member` - List of all members in the group.

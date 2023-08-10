@@ -48,6 +48,7 @@ type ZmsClient interface {
 	DeletePolicyVersion(domainName string, policyName string, version string, auditRef string) error
 	DeleteAssertionPolicyVersion(domainName string, policyName string, version string, assertionId int64, auditRef string) error
 	GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error)
+	PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error
 }
 
 type Client struct {
@@ -292,4 +293,10 @@ func getTLSConfigFromFiles(certFile, keyFile string, caCert string) (*tls.Config
 	config.Renegotiation = tls.RenegotiateOnceAsClient
 
 	return config, err
+}
+
+func (c Client) PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error {
+	zmsClient := zms.NewClient(c.Url, c.Transport)
+	err := zmsClient.PutGroupMeta(zms.DomainName(domain), zms.EntityName(groupName), auditRef, group)
+	return err
 }
