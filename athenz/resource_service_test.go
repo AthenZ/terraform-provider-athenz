@@ -74,7 +74,7 @@ func TestAccGroupServiceBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupServiceExists(resourceName, &service),
 					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
 				),
 			},
 			{
@@ -82,7 +82,7 @@ func TestAccGroupServiceBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupServiceExists(resourceName, &service),
 					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
 		},

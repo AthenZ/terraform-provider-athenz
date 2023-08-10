@@ -81,7 +81,7 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyExists(resName, &policy),
 					resource.TestCheckResourceAttr(resName, "name", name),
-					testAccCheckCorrectTags(resName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
 				),
 			},
 			{
@@ -89,7 +89,7 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyExists(resName, &policy),
 					resource.TestCheckResourceAttr(resName, "name", name),
-					testAccCheckCorrectTags(resName, map[string][]string{"key1": {"a1", "a2"}}),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
 		},

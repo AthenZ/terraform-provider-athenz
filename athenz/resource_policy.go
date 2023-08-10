@@ -139,7 +139,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 				policy.Assertions = make([]*zms.Assertion, 0)
 			}
 			if v, ok := d.GetOk("tags"); ok {
-				policy.Tags = expandRoleTags(v.(map[string]interface{}))
+				policy.Tags = expandTagsMap(v.(map[string]interface{}))
 			}
 			auditRef := d.Get("audit_ref").(string)
 			err = zmsClient.PutPolicy(dn, pn, auditRef, &policy)
@@ -187,7 +187,7 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 
 	if d.HasChange("tags") {
 		_, n := d.GetChange("tags")
-		policy.Tags = expandRoleTags(n.(map[string]interface{}))
+		policy.Tags = expandTagsMap(n.(map[string]interface{}))
 	}
 
 	err = zmsClient.PutPolicy(dn, pn, auditRef, policy)
