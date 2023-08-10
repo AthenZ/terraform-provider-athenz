@@ -104,7 +104,7 @@ func TestAccGroupRoleBasicDeprecated(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
 				),
 			},
 			{
@@ -113,7 +113,7 @@ func TestAccGroupRoleBasicDeprecated(t *testing.T) {
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "members.#", "1"),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
 			{
@@ -196,7 +196,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
 				),
 			},
 			{
@@ -206,7 +206,7 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
-					testAccCheckCorrectTags(resourceName, map[string][]string{"key1": {"a1", "a2"}}),
+					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
 			{
@@ -788,35 +788,21 @@ func testAccCheckCorrectnessOfSet(n string, expectedSet []string, keyName string
 	}
 }
 
-func makeTestTags(attributes map[string]string) map[string][]string {
-	tagsSet := map[string][]string{}
-	allVales := map[string][]string{}
-	allKeys := map[string]string{}
+func makeTestTags(attributes map[string]string) map[string]string {
+	tagsSet := map[string]string{}
 	for key, val := range attributes {
 		theKeyArr := strings.Split(string(key), ".")
-		if len(theKeyArr) > 2 {
-			if theKeyArr[0] == "tags" {
-				if theKeyArr[2] == "values" {
-					if theKeyArr[3] != "#" {
-						if allVales[theKeyArr[1]] == nil {
-							allVales[theKeyArr[1]] = []string{val}
-						} else {
-							allVales[theKeyArr[1]] = append(allVales[theKeyArr[1]], val)
-						}
-					}
-				} else {
-					allKeys[theKeyArr[1]] = val
-				}
+		if theKeyArr[0] == "tags" {
+			if theKeyArr[1] != "%" {
+				tagsSet[theKeyArr[1]] = val
 			}
 		}
 	}
-	for key, val := range allKeys {
-		tagsSet[val] = allVales[key]
-	}
+
 	return tagsSet
 }
 
-func testAccCheckCorrectTags(n string, expectedTagsMap map[string][]string) resource.TestCheckFunc {
+func testAccCheckCorrectTags(n string, expectedTagsMap map[string]string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -827,8 +813,11 @@ func testAccCheckCorrectTags(n string, expectedTagsMap map[string][]string) reso
 			return fmt.Errorf("no Athenz Group Role ID is set")
 		}
 		toCheckTagMaps := makeTestTags(rs.Primary.Attributes)
+		if len(toCheckTagMaps) != len(expectedTagsMap) {
+			return fmt.Errorf("the tags map size is not equal for the size expected")
+		}
 		for key, valArr := range toCheckTagMaps {
-			if !compareStringSets(valArr, expectedTagsMap[key]) {
+			if valArr != expectedTagsMap[key] {
 				return fmt.Errorf("the key %s is not equal for the expected", key)
 			}
 		}

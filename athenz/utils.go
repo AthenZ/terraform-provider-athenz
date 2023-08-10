@@ -558,7 +558,7 @@ func validateMemberDate(days int, dateString string, memberType MemberType, sett
 
 		date, err := time.Parse(EXPIRATION_LAYOUT, dateString)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		if limit.Before(date) {

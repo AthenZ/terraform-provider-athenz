@@ -49,6 +49,12 @@ domain:
           members:
             - name: user.github-7654321
               expiration: 2022-12-29T23:59:59.000Z
+          tags:
+            - key: key1
+              values:
+                - v1
+                - v2
+                - v3
         - name: athenz_provider_foo_deprecated
           members:
             - name: user.github-7654321

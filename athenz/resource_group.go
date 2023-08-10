@@ -75,6 +75,13 @@ func ResourceGroup() *schema.Resource {
 				Optional: true,
 				Default:  AUDIT_REF,
 			},
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -97,6 +104,9 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 				group.GroupMembers = expandDeprecatedGroupMembers(v.(*schema.Set).List())
 			} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
 				group.GroupMembers = expandGroupMembers(v.(*schema.Set).List())
+			}
+			if v, ok := d.GetOk("tags"); ok {
+				group.Tags = expandTagsMap(v.(map[string]interface{}))
 			}
 			auditRef := d.Get("audit_ref").(string)
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
@@ -171,12 +181,22 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		}
 	}
 
+	if len(group.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(group.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("tags", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return nil
 }
 
 func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-
+	isGroupChanged := false
 	dn, gn, err := splitGroupId(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
@@ -184,6 +204,11 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	auditRef := d.Get("audit_ref").(string)
 	membersToDelete := make([]*zms.GroupMember, 0)
 	membersToAdd := make([]*zms.GroupMember, 0)
+	currentGroup, err := zmsClient.GetGroup(dn, gn)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	if d.HasChange("members") {
 		oldVal, newVal := handleChange(d, "members")
 		membersToDelete = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
@@ -194,6 +219,21 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		membersToDelete = append(membersToDelete, expandGroupMembers(oldVal.Difference(newVal).List())...)
 		membersToAdd = append(membersToAdd, expandGroupMembers(newVal.Difference(oldVal).List())...)
 	}
+
+	if d.HasChange("tags") {
+		isGroupChanged = true
+		_, n := d.GetChange("tags")
+		tags := expandTagsMap(n.(map[string]interface{}))
+		currentGroup.Tags = tags
+	}
+
+	if isGroupChanged {
+		err := zmsClient.PutGroup(dn, gn, auditRef, currentGroup)
+		if err != nil {
+			return diag.Errorf("error updating tags: %s", err)
+		}
+	}
+
 	err = updateGroupMembers(dn, gn, membersToDelete, membersToAdd, zmsClient, auditRef)
 	if err != nil {
 		return diag.Errorf("error updating group membership: %s", err)

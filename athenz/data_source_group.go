@@ -40,6 +40,13 @@ func DataSourceGroup() *schema.Resource {
 					},
 				},
 			},
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -66,6 +73,12 @@ func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta inter
 
 	if len(group.GroupMembers) > 0 {
 		if err = d.Set("member", flattenGroupMembers(group.GroupMembers)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if len(group.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(group.Tags)); err != nil {
 			return diag.FromErr(err)
 		}
 	}
