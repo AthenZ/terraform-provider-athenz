@@ -64,6 +64,13 @@ func ResourceService() *schema.Resource {
 					},
 				},
 			},
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -76,7 +83,7 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 	auditRef := d.Get("audit_ref").(string)
 	description := d.Get("description").(string)
 	publicKeys := d.Get("public_keys").(*schema.Set).List()
-	shortName := shortName(domainName, serviceName, SERVICE_SEPARATOR)
+	shortName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
 	longName := domainName + SERVICE_SEPARATOR + shortName
 	publicKeyList := convertToPublicKeyEntryList(publicKeys)
 
@@ -84,12 +91,15 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
-			detail := zms.ServiceIdentity{
+			service := zms.ServiceIdentity{
 				Name:        zms.ServiceName(longName),
 				Description: description,
 				PublicKeys:  publicKeyList,
 			}
-			err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, &detail)
+			if v, ok := d.GetOk("tags"); ok {
+				service.Tags = expandTagsMap(v.(map[string]interface{}))
+			}
+			err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, &service)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -157,6 +167,16 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 		}
 	}
 
+	if len(service.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(service.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("tags", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return nil
 }
 
@@ -168,12 +188,12 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 	description := d.Get("description").(string)
-	shortName := shortName(domainName, serviceName, SERVICE_SEPARATOR)
-	longName := domainName + SERVICE_SEPARATOR + shortName
+	shortName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
+	//longName := domainName + SERVICE_SEPARATOR + shortName
 	auditRef := d.Get("audit_ref").(string)
-	detail := zms.NewServiceIdentity()
-	detail.Description = description
-	detail.Name = zms.ServiceName(longName)
+	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
+	service.Description = description
+	//service.Name = zms.ServiceName(longName)
 
 	if d.HasChange("public_keys") {
 		_, newVal := d.GetChange("public_keys")
@@ -181,13 +201,18 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 			newVal = new(schema.Set)
 		}
 		newPublicKeyList := convertToPublicKeyEntryList(newVal.(*schema.Set).List())
-		detail.PublicKeys = newPublicKeyList
+		service.PublicKeys = newPublicKeyList
 	} else {
 		publicKeyList := d.Get("public_keys").(*schema.Set).List()
-		detail.PublicKeys = convertToPublicKeyEntryList(publicKeyList)
+		service.PublicKeys = convertToPublicKeyEntryList(publicKeyList)
 	}
 
-	err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, detail)
+	if d.HasChange("tags") {
+		_, n := d.GetChange("tags")
+		service.Tags = expandTagsMap(n.(map[string]interface{}))
+	}
+
+	err = zmsClient.PutServiceIdentity(domainName, shortName, auditRef, service)
 	if err != nil {
 		return diag.Errorf("error updating service membership: %s", err)
 	}

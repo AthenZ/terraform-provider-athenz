@@ -25,9 +25,6 @@ func flattenTag(tagsMap map[zms.CompoundName]*zms.TagValueList) map[string]inter
 	return tags
 }
 
-func expandRoleTags(tagsMap map[string]interface{}) map[zms.CompoundName]*zms.TagValueList {
-	return expandTagsMap(tagsMap)
-}
 func expandTagsMap(tagsMap map[string]interface{}) map[zms.CompoundName]*zms.TagValueList {
 	roleTags := map[zms.CompoundName]*zms.TagValueList{}
 	for key, listVal := range tagsMap {

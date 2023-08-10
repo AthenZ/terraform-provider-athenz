@@ -159,7 +159,7 @@ func convertEntityNameListToStringList(entityNames []zms.EntityName) []string {
 	return rolesNames
 }
 
-func shortName(domainName string, en string, separator string) string {
+func getShortName(domainName string, en string, separator string) string {
 	shortName := en
 	if strings.HasPrefix(shortName, domainName+separator) {
 		shortName = shortName[len(domainName)+len(separator):]

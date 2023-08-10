@@ -64,7 +64,7 @@ type ZmsConfig struct {
 
 func (c Client) GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.GetPolicies(zms.DomainName(domainName), &assertions, &includeNonActive)
+	return zmsClient.GetPolicies(zms.DomainName(domainName), &assertions, &includeNonActive, zms.CompoundName(""), zms.CompoundName(""))
 }
 
 func (c Client) DeletePolicyVersion(domainName string, policyName string, version string, auditRef string) error {
