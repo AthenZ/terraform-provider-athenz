@@ -59,7 +59,7 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupConfigAddAssertion(resourceRole, name, domainName, resourceRoleName),
+				Config: testAccPolicyConfigAddAssertion(resourceRole, name, domainName, resourceRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyExists(resName, &policy),
 					resource.TestCheckResourceAttr(resName, "name", name),
@@ -68,12 +68,28 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupConfigRemoveAssertion(resourceRole, name, domainName, resourceRoleName),
+				Config: testAccPolicyConfigRemoveAssertion(resourceRole, name, domainName, resourceRoleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupPolicyExists(resName, &policy),
 					resource.TestCheckResourceAttr(resName, "name", name),
 					resource.TestCheckResourceAttr(resName, "assertion.#", "1"),
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				),
+			},
+			{
+				Config: testAccPolicyConfigAddTags(resourceRole, name, domainName, resourceRoleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyExists(resName, &policy),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					testAccCheckCorrectTags(resName, map[string][]string{"key1": {"a1", "a2"}, "key2": {"b1", "b2"}}),
+				),
+			},
+			{
+				Config: testAccPolicyConfigRemoveTags(resourceRole, name, domainName, resourceRoleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyExists(resName, &policy),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					testAccCheckCorrectTags(resName, map[string][]string{"key1": {"a1", "a2"}}),
 				),
 			},
 		},
@@ -286,7 +302,7 @@ resource "athenz_policy" "policyTest" {
 `, name, domain)
 }
 
-func testAccGroupConfigAddAssertion(resourceRole, name, domain, resourceRoleName string) string {
+func testAccPolicyConfigAddAssertion(resourceRole, name, domain, resourceRoleName string) string {
 	return fmt.Sprintf(`
 %s
 resource "athenz_policy" "policyTest" {
@@ -308,7 +324,7 @@ name = "%s"
 `, resourceRole, name, domain, domain+RESOURCE_SEPARATOR, resourceRoleName, domain+RESOURCE_SEPARATOR)
 }
 
-func testAccGroupConfigRemoveAssertion(resourceRole, name, domain, resourceRoleName string) string {
+func testAccPolicyConfigRemoveAssertion(resourceRole, name, domain, resourceRoleName string) string {
 	return fmt.Sprintf(`
 %s
 resource "athenz_policy" "policyTest" {
@@ -319,6 +335,45 @@ name = "%s"
     action="*"
     role="${athenz_role.%s.name}"
     resource="%sservice.ows"
+  }
+}
+`, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccPolicyConfigAddTags(resourceRole, name, domain, resourceRoleName string) string {
+	return fmt.Sprintf(`
+%s
+resource "athenz_policy" "policyTest" {
+name = "%s"
+  domain = "%s"
+  assertion {
+    effect="DENY"
+    action="*"
+    role="${athenz_role.%s.name}"
+    resource="%sservice.ows"
+  }
+ tags = {
+	key1 = "a1,a2"
+	key2 = "b1,b2"
+	}
+}
+`, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)
+}
+
+func testAccPolicyConfigRemoveTags(resourceRole, name, domain, resourceRoleName string) string {
+	return fmt.Sprintf(`
+%s
+resource "athenz_policy" "policyTest" {
+name = "%s"
+  domain = "%s"
+  assertion {
+    effect="DENY"
+    action="*"
+    role="${athenz_role.%s.name}"
+    resource="%sservice.ows"
+  }
+tags = {
+	key1 = "a1,a2"
   }
 }
 `, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR)

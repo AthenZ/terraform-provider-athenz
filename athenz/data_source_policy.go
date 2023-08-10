@@ -23,6 +23,11 @@ func DataSourcePolicy() *schema.Resource {
 				Required: true,
 			},
 			"assertion": dataSourceAssertionSchema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -46,6 +51,11 @@ func dataSourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta inte
 	d.SetId(fullResourceName)
 	if len(policy.Assertions) > 0 {
 		d.Set("assertion", flattenPolicyAssertion(policy.Assertions))
+	}
+	if len(policy.Tags) > 0 {
+		if err = d.Set("tags", flattenTag(policy.Tags)); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	return nil
 }
