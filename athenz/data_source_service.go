@@ -22,6 +22,28 @@ func dataSourceService() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Description: "A description of the service",
+				Optional:    true,
+			},
+			"public_keys": {
+				Type:       schema.TypeSet,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Optional:   true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"key_value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -40,6 +62,12 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 	fullResourceName := domainName + SERVICE_SEPARATOR + shortServiceName
 
 	service, err := client.GetServiceIdentity(domainName, shortServiceName)
+	if err := d.Set("description", service.Description); err != nil {
+		return nil
+	}
+	if err := d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
+		return nil
+	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
