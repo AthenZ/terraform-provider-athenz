@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 set -o pipefail
@@ -34,14 +34,14 @@ BASE_DIR="$(git rev-parse --show-toplevel)"
 . "${DOCKER_DIR}/sample/env.dev.sh"
 
 echo '2. create the self-signed CAs' | colored_cat g
-sh "${DEV_CA_DIR}/create-self-signed-ca.sh"
+"${DEV_CA_DIR}/create-self-signed-ca.sh"
 
 echo '3. create self-signed Athenz domain admin user certificate' | colored_cat g
 echo "your setting: DEV_DOMAIN_ADMIN=${DEV_DOMAIN_ADMIN}" | colored_cat y
-sh "${DEV_DOMAIN_ADMIN_DIR}/create-self-signed-user-cert.sh"
+"${DEV_DOMAIN_ADMIN_DIR}/create-self-signed-user-cert.sh"
 
 echo '4. create ZMS server certificate' | colored_cat g
-sh "${DEV_ZMS_DIR}/create-self-signed-certs.sh"
+"${DEV_ZMS_DIR}/create-self-signed-certs.sh"
 
 
 ### ----------------------------------------------------------------
