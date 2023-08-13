@@ -21,11 +21,11 @@ deploy:
 deploy-local:
 	echo "BASE_DIR : $(BASE_DIR)"
 	# generate self-signed certificates
-	docker run --platform linux/x86_64 --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
+	docker run --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/self-signed-certificates.sh'
 	# ZMS
-	docker run --platform linux/x86_64 --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
+	docker run --rm -it -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/setup-scripts/zms-auto-config.sh'
 	./deploy-scripts/zms-deploy-local.sh
-	docker run --platform linux/x86_64 --rm -it --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
+	docker run --rm -it --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/terraform-provider-athenz" athenz/athenz-setup-env sh -c 'set -x ; /terraform-provider-athenz/docker/deploy-scripts/zms-debug.sh'
 
 
 CONTAINERS := $(shell docker ps -aq --filter 'label=org.label-schema.url=https://www.athenz.io/')
