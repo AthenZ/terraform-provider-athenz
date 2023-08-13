@@ -13,3 +13,4 @@ provider "athenz" {
   cert = var.cert
   key = var.key
 }
+
