@@ -265,26 +265,11 @@ func flattenRoleSettings(values map[string]int, allZeros bool) []interface{} {
 		if value > 0 || allZeros {
 			settings[key] = value
 		}
-		//else {
-		//	settings[key] = 0
-		//}
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)
 	return settingsSchemaSet
 }
-
-//func flattenRoleSettings2(values map[string]int) []interface{} {
-//	settingsSchemaSet := make([]interface{}, 0, 1)
-//	settings := map[string]interface{}{}
-//
-//	for key, value := range values {
-//		settings[key] = value
-//	}
-//
-//	settingsSchemaSet = append(settingsSchemaSet, settings)
-//	return settingsSchemaSet
-//}
 
 func timestampToString(timeStamp *rdl.Timestamp) string {
 	if timeStamp == nil {
