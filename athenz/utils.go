@@ -257,12 +257,12 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
-func flattenRoleSettings(values map[string]int, allZeros bool) []interface{} {
+func flattenRoleSettings(values map[string]int, emptySettings bool) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
 	for key, value := range values {
-		if value > 0 || allZeros {
+		if value > 0 || emptySettings {
 			settings[key] = value
 		}
 	}

@@ -341,6 +341,92 @@ func TestAccRoleSettings(t *testing.T) {
 	})
 }
 
+func TestAccEmptyRoleSettings(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	var role zms.Role
+	resourceName := "athenz_role.roleTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	roleName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	t.Cleanup(func() {
+		cleanAllAccTestRoles(domainName, []string{roleName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupRoleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleConfigWithEmptySetting(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2022-12-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+				),
+			},
+			{
+				Config: testAccRoleConfigWithEmptySetting(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2022-12-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+				),
+			},
+			{
+				Config: testAccRoleConfigWithEmptySettingChangedToOneSetting(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2022-12-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"token_expiry_mins": "7"}),
+				),
+			},
+			{
+				Config: testAccRoleConfigWithEmptySettingChangedToTwoSettings(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2022-12-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					testAccCheckCorrectSettings(resourceName, map[string]string{"token_expiry_mins": "7", "group_expiry_days": "21"}),
+				),
+			},
+			{
+				Config: testAccRoleConfigWithEmptySettingDeleted(roleName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "2022-12-29 23:59:59", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccRoleSettingsStartWithOneEditAndReplace(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
@@ -1622,4 +1708,84 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, member1, member2)
+}
+
+func testAccRoleConfigWithEmptySetting(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  settings {}
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccRoleConfigWithEmptySettingChangedToOneSetting(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  settings {
+	token_expiry_mins = 7
+  }
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccRoleConfigWithEmptySettingChangedToTwoSettings(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  settings {
+	token_expiry_mins = 7
+	group_expiry_days = 21
+  }
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
+}
+
+func testAccRoleConfigWithEmptySettingDeleted(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+	}
+}
+`, name, domain, member1)
 }
