@@ -329,12 +329,26 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	}
 
 	if len(zmsSettings) != 0 {
-		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+		if err = d.Set("settings", flattenRoleSettings(zmsSettings, false)); err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
-		if err = d.Set("settings", nil); err != nil {
-			return diag.FromErr(err)
+		if len(d.Get("settings").(*schema.Set).List()) == 0 && (!d.GetRawState().IsNull() && d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil) /* d.GetRawState().v.(map[string]interface{}) != nil)*/ {
+			if err = d.Set("settings", nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			zmsSettings["token_expiry_mins"] = 0
+			zmsSettings["cert_expiry_mins"] = 0
+			zmsSettings["user_expiry_days"] = 0
+			zmsSettings["user_review_days"] = 0
+			zmsSettings["group_expiry_days"] = 0
+			zmsSettings["group_review_days"] = 0
+			zmsSettings["service_expiry_days"] = 0
+			zmsSettings["service_review_days"] = 0
+			if err = d.Set("settings", flattenRoleSettings(zmsSettings, true)); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 
