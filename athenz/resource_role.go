@@ -333,7 +333,8 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	} else {
-		if len(d.Get("settings").(*schema.Set).List()) == 0 && (!d.GetRawState().IsNull() && d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil) /* d.GetRawState().v.(map[string]interface{}) != nil)*/ {
+		if len(d.Get("settings").(*schema.Set).List()) == 0 &&
+			(!d.GetRawState().IsNull() && d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil) {
 			if err = d.Set("settings", nil); err != nil {
 				return diag.FromErr(err)
 			}
