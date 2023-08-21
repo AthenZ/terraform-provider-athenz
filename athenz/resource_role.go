@@ -333,8 +333,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	} else {
-		if len(d.Get("settings").(*schema.Set).List()) == 0 &&
-			(!d.GetRawState().IsNull() && d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil) {
+		if hasNoSettings(d) {
 			if err = d.Set("settings", nil); err != nil {
 				return diag.FromErr(err)
 			}
@@ -347,6 +346,14 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func hasNoSettings(d *schema.ResourceData) bool {
+	isSettingsNotInResourceData := len(d.Get("settings").(*schema.Set).List()) == 0
+	isSettingsNotInState := !d.GetRawState().IsNull() &&
+		d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
+
+	return isSettingsNotInResourceData && isSettingsNotInState
 }
 
 func emptySettings() map[string]int {
