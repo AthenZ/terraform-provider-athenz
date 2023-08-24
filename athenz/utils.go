@@ -262,9 +262,7 @@ func flattenRoleSettings(values map[string]int) []interface{} {
 	settings := map[string]interface{}{}
 
 	for key, value := range values {
-		if value > 0 {
-			settings[key] = value
-		}
+		settings[key] = value
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)

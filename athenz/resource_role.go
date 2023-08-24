@@ -333,12 +333,39 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	} else {
-		if err = d.Set("settings", nil); err != nil {
-			return diag.FromErr(err)
+		if hasNoSettings(d) {
+			if err = d.Set("settings", nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			zmsSettings = emptySettings()
+			if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 
 	return nil
+}
+
+func hasNoSettings(d *schema.ResourceData) bool {
+	isSettingsNotInResourceData := len(d.Get("settings").(*schema.Set).List()) == 0
+	isSettingsNotInState := d.GetRawState().IsNull() || d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
+
+	return isSettingsNotInResourceData && isSettingsNotInState
+}
+
+func emptySettings() map[string]int {
+	zmsSettings := map[string]int{}
+	zmsSettings["token_expiry_mins"] = 0
+	zmsSettings["cert_expiry_mins"] = 0
+	zmsSettings["user_expiry_days"] = 0
+	zmsSettings["user_review_days"] = 0
+	zmsSettings["group_expiry_days"] = 0
+	zmsSettings["group_review_days"] = 0
+	zmsSettings["service_expiry_days"] = 0
+	zmsSettings["service_review_days"] = 0
+	return zmsSettings
 }
 
 func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
