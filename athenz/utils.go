@@ -257,14 +257,12 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
-func flattenRoleSettings(values map[string]int, emptySettings bool) []interface{} {
+func flattenRoleSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
 	for key, value := range values {
-		if value > 0 || emptySettings {
-			settings[key] = value
-		}
+		settings[key] = value
 	}
 
 	settingsSchemaSet = append(settingsSchemaSet, settings)
@@ -433,7 +431,7 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 		zmsSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
 	}
 	if len(zmsSettings) > 0 {
-		role["settings"] = flattenRoleSettings(zmsSettings, false)
+		role["settings"] = flattenRoleSettings(zmsSettings)
 	}
 	if zmsRole.Trust != "" {
 		role["trust"] = string(zmsRole.Trust)

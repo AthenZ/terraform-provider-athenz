@@ -329,7 +329,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	}
 
 	if len(zmsSettings) != 0 {
-		if err = d.Set("settings", flattenRoleSettings(zmsSettings, false)); err != nil {
+		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
@@ -339,7 +339,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			}
 		} else {
 			zmsSettings = emptySettings()
-			if err = d.Set("settings", flattenRoleSettings(zmsSettings, true)); err != nil {
+			if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -350,8 +350,7 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 
 func hasNoSettings(d *schema.ResourceData) bool {
 	isSettingsNotInResourceData := len(d.Get("settings").(*schema.Set).List()) == 0
-	isSettingsNotInState := !d.GetRawState().IsNull() &&
-		d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
+	isSettingsNotInState := d.GetRawState().IsNull() || d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
 
 	return isSettingsNotInResourceData && isSettingsNotInState
 }

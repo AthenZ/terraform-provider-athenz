@@ -74,7 +74,7 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 		zmsSettings["service_review_days"] = int(*role.ServiceReviewDays)
 	}
 	if len(zmsSettings) > 0 {
-		if err = d.Set("settings", flattenRoleSettings(zmsSettings, false)); err != nil {
+		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	}
