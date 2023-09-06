@@ -104,6 +104,103 @@ func TestExpandPolicyAssertions(t *testing.T) {
 	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false))
 }
 
+func TestExpandAssertionConditions(t *testing.T) {
+	conditionsList := []interface{}{
+		map[string]interface{}{
+			"instances": map[string]interface{}{
+				"operator": 1,
+				"value":    "*",
+			},
+			"scopeonprem": map[string]interface{}{
+				"operator": 1,
+				"value":    "true",
+			},
+			"scopeaws": map[string]interface{}{
+				"operator": 1,
+				"value":    "false",
+			},
+			"scopeall": map[string]interface{}{
+				"operator": 1,
+				"value":    "false",
+			},
+			"enforcementstate": map[string]interface{}{
+				"operator": 1,
+				"value":    "report",
+			},
+		},
+	}
+	r := expandAssertionConditions(conditionsList)
+	s := r
+	_ = s
+}
+
+func TestFlattenAssertionConditions(t *testing.T) {
+	id1 := int32(1)
+	c1 := &zms.AssertionCondition{
+		Id: &id1,
+		ConditionsMap: map[zms.AssertionConditionKey]*zms.AssertionConditionData{
+			"instances": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "csp0002.csp.corp.gq1.yahoo.com",
+			},
+			"scopeonprem": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "false",
+			},
+			"scopeaws": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "false",
+			},
+			"scopeall": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "true",
+			},
+			"id": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "1",
+			},
+			"enforcementstate": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "report",
+			},
+		},
+	}
+	id2 := int32(2)
+	c2 := &zms.AssertionCondition{
+		Id: &id2,
+		ConditionsMap: map[zms.AssertionConditionKey]*zms.AssertionConditionData{
+			"instances": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "csp0002.csp.corp.ne1.yahoo.com",
+			},
+			"scopeonprem": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "true",
+			},
+			"scopeaws": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "false",
+			},
+			"scopeall": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "false",
+			},
+			"id": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "2",
+			},
+			"enforcementstate": {
+				Operator: zms.AssertionConditionOperator(1),
+				Value:    "enforce",
+			},
+		},
+	}
+	conditionsList := []*zms.AssertionCondition{c1, c2}
+	c := flattenAssertionConditions(conditionsList)
+	o := c
+	_ = o
+}
+
 func TestValidateCaseSensitiveValue(t *testing.T) {
 	action := "PLAY"
 	resource := `dom:OWS`

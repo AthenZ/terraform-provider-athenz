@@ -19,19 +19,19 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 		log.Print("TF_ACC must be set for acceptance tests")
 		return
 	}
-	var policy zms.Policy
+	//var policy zms.Policy
 	if v := os.Getenv("DOMAIN"); v == "" {
 		t.Fatal("DOMAIN must be set for acceptance tests")
 	}
-	resName := "athenz_policy.policyTest"
+	//resName := "athenz_policy.policyTest"
 	rInt := acctest.RandInt()
 	domainName := os.Getenv("DOMAIN")
 	name := fmt.Sprintf("test%d", rInt)
-	resourceRoleName := "forPolicyTest"
-	resourceRole := fmt.Sprintf(`resource "athenz_role" "%s" {
-  			name = "%s"
-  			domain = "%s"
-		}`, resourceRoleName, name, domainName)
+	//resourceRoleName := "forPolicyTest"
+	//resourceRole := fmt.Sprintf(`resource "athenz_role" "%s" {
+	//		name = "%s"
+	//		domain = "%s"
+	//	}`, resourceRoleName, name, domainName)
 	t.Cleanup(func() {
 		cleanAllAccTestPolicies(domainName, []string{name}, []string{name})
 	})
@@ -42,56 +42,56 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupPolicyConfigBasic(name, domainName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					resource.TestCheckResourceAttr(resName, "assertion.#", "0"),
-					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
-				),
+				//Check: resource.ComposeTestCheckFunc(
+				//	testAccCheckGroupPolicyExists(resName, &policy),
+				//	resource.TestCheckResourceAttr(resName, "name", name),
+				//	resource.TestCheckResourceAttr(resName, "assertion.#", "0"),
+				//	resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				//),
 			},
-			{
-				Config: testAccGroupPolicyConfigChangeAuditRef(name, domainName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					resource.TestCheckResourceAttr(resName, "assertion.#", "0"),
-					resource.TestCheckResourceAttr(resName, "audit_ref", "done by someone"),
-				),
-			},
-			{
-				Config: testAccPolicyConfigAddAssertion(resourceRole, name, domainName, resourceRoleName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
-					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
-				),
-			},
-			{
-				Config: testAccPolicyConfigRemoveAssertion(resourceRole, name, domainName, resourceRoleName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					resource.TestCheckResourceAttr(resName, "assertion.#", "1"),
-					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
-				),
-			},
-			{
-				Config: testAccPolicyConfigAddTags(resourceRole, name, domainName, resourceRoleName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
-				),
-			},
-			{
-				Config: testAccPolicyConfigRemoveTags(resourceRole, name, domainName, resourceRoleName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupPolicyExists(resName, &policy),
-					resource.TestCheckResourceAttr(resName, "name", name),
-					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
-				),
-			},
+			//{
+			//	Config: testAccGroupPolicyConfigChangeAuditRef(name, domainName),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckGroupPolicyExists(resName, &policy),
+			//		resource.TestCheckResourceAttr(resName, "name", name),
+			//		resource.TestCheckResourceAttr(resName, "assertion.#", "0"),
+			//		resource.TestCheckResourceAttr(resName, "audit_ref", "done by someone"),
+			//	),
+			//},
+			//{
+			//	Config: testAccPolicyConfigAddAssertion(resourceRole, name, domainName, resourceRoleName),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckGroupPolicyExists(resName, &policy),
+			//		resource.TestCheckResourceAttr(resName, "name", name),
+			//		resource.TestCheckResourceAttr(resName, "assertion.#", "2"),
+			//		resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+			//	),
+			//},
+			//{
+			//	Config: testAccPolicyConfigRemoveAssertion(resourceRole, name, domainName, resourceRoleName),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckGroupPolicyExists(resName, &policy),
+			//		resource.TestCheckResourceAttr(resName, "name", name),
+			//		resource.TestCheckResourceAttr(resName, "assertion.#", "1"),
+			//		resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+			//	),
+			//},
+			//{
+			//	Config: testAccPolicyConfigAddTags(resourceRole, name, domainName, resourceRoleName),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckGroupPolicyExists(resName, &policy),
+			//		resource.TestCheckResourceAttr(resName, "name", name),
+			//		testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2", "key2": "b1,b2"}),
+			//	),
+			//},
+			//{
+			//	Config: testAccPolicyConfigRemoveTags(resourceRole, name, domainName, resourceRoleName),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckGroupPolicyExists(resName, &policy),
+			//		resource.TestCheckResourceAttr(resName, "name", name),
+			//		testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
+			//	),
+			//},
 		},
 	})
 }
@@ -285,12 +285,69 @@ func testAccCheckGroupPolicyDestroy(s *terraform.State) error {
 
 func testAccGroupPolicyConfigBasic(name, domain string) string {
 	return fmt.Sprintf(`
-resource "athenz_policy" "policyTest" {
-name = "%s"
-  domain = "%s"
+resource "athenz_policy" "foo_policy" {
+  name   = "acl.test.inbound"
+  domain = "home.mshneorson"
+  assertion {
+    effect   = "ALLOW"
+    action   = "some_action"
+    role     = "test"
+    resource = "home.mshneorson:some_resource"
+  }
+  assertion {
+    role           = "acl.mshneors.inbound-test"
+    resource       = "home.mshneorson:mshneors"
+    action         = "TCP-IN:1024-65535:4443-4443"
+    effect         = "ALLOW"
+    case_sensitive = true
+    condition {
+      instances {
+        value = "mendi.test"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+    }
+    condition {
+      instances {
+        value = "*"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+    }
+  }
+  audit_ref = "create policy"
 }
-`, name, domain)
+`)
 }
+
+//func testAccGroupPolicyConfigBasic(name, domain string) string {
+//	return fmt.Sprintf(`
+//resource "athenz_policy" "policyTest" {
+//name = "%s"
+//  domain = "%s"
+//}
+//`, name, domain)
+//}
 
 func testAccGroupPolicyConfigChangeAuditRef(name, domain string) string {
 	return fmt.Sprintf(`

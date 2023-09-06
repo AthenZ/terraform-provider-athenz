@@ -63,6 +63,16 @@ func validatePolicySchema() schema.CustomizeDiffFunc {
 			assertions := new.(*schema.Set).List()
 			return validateAssertion(assertions)
 		}),
+		customdiff.ValidateChange("assertion", func(ctx context.Context, old, new, meta any) error {
+			assertions := new.(*schema.Set).List()
+			for _, assertion := range assertions {
+				assertionMap := assertion.(map[string]interface{})
+				if err := validateAssertionConditions(assertionMap["condition"]); err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
 	)
 }
 
@@ -182,7 +192,6 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 		}
 		ns := newVal.(*schema.Set).List()
 		policy.Assertions = expandPolicyAssertions(dn, ns)
-
 	}
 
 	if d.HasChange("tags") {

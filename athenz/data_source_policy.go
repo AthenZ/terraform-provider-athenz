@@ -50,7 +50,10 @@ func dataSourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 	d.SetId(fullResourceName)
 	if len(policy.Assertions) > 0 {
-		d.Set("assertion", flattenPolicyAssertion(policy.Assertions))
+		err := d.Set("assertion", flattenPolicyAssertion(policy.Assertions))
+		if err != nil {
+			return nil
+		}
 	}
 	if len(policy.Tags) > 0 {
 		if err = d.Set("tags", flattenTag(policy.Tags)); err != nil {
