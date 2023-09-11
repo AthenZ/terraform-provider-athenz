@@ -9,10 +9,10 @@ import (
 	ast "gotest.tools/assert"
 )
 
-func getZmsPolicyVersionsList(policyName, version1, version2, active, role, resource, action string, effect1, effect2 zms.AssertionEffect) []*zms.Policy {
-	assertion1 := getZmsAssertion(role, resource, action, effect1)
+func getZmsPolicyVersionsList(policyName, version1, version2, active, role, resource, action string, id1, id2 *int64, effect1, effect2 zms.AssertionEffect) []*zms.Policy {
+	assertion1 := getZmsAssertion(role, resource, action, id1, effect1)
 	policy1 := getZmsPolicy(policyName, version1, active, []*zms.Assertion{&assertion1})
-	assertion2 := getZmsAssertion(role, resource, strings.ToUpper(action), effect2)
+	assertion2 := getZmsAssertion(role, resource, strings.ToUpper(action), id2, effect2)
 	policy2 := getZmsPolicy(policyName, version2, active, []*zms.Assertion{&assertion2})
 	return []*zms.Policy{&policy1, &policy2}
 }
@@ -26,15 +26,19 @@ func getZmsPolicy(policyName, versionName, activeVersion string, assertions []*z
 		Assertions: assertions,
 	}
 }
-func getZmsAssertion(role, resource, action string, effect zms.AssertionEffect) zms.Assertion {
-	return zms.Assertion{
+func getZmsAssertion(role, resource, action string, id *int64, effect zms.AssertionEffect) zms.Assertion {
+	a := zms.Assertion{
 		Resource: resource,
 		Role:     "some_domain" + ROLE_SEPARATOR + role,
 		Action:   action,
 		Effect:   &effect,
 	}
+	if id != nil {
+		a.Id = id
+	}
+	return a
 }
-func getPolicyVersions(versionName1, versionName2, roleName, resourceName, action string, effect1, effect2 zms.AssertionEffect) []interface{} {
+func getPolicyVersions(versionName1, versionName2, roleName, resourceName, action string, id1, id2 int, effect1, effect2 zms.AssertionEffect) []interface{} {
 	assertionList1 := []interface{}{
 		map[string]interface{}{
 			"role":           roleName,
@@ -42,6 +46,7 @@ func getPolicyVersions(versionName1, versionName2, roleName, resourceName, actio
 			"action":         action,
 			"effect":         effect1.String(),
 			"case_sensitive": false,
+			"id":             id1,
 		},
 	}
 	version1 := map[string]interface{}{
@@ -55,6 +60,7 @@ func getPolicyVersions(versionName1, versionName2, roleName, resourceName, actio
 			"action":         strings.ToUpper(action),
 			"effect":         effect2.String(),
 			"case_sensitive": true,
+			"id":             id2,
 		},
 	}
 	version2 := map[string]interface{}{
@@ -70,8 +76,10 @@ func TestFlattenPolicyVersions(t *testing.T) {
 	role := "test"
 	resource := "some_domain" + RESOURCE_SEPARATOR + "test"
 	action := "play_premium"
-	zmsVersionList := getZmsPolicyVersionsList("", version1, version2, "", role, resource, action, effect1, effect2)
-	versionList := getPolicyVersions(version1, version2, role, resource, action, effect1, effect2)
+	id1 := int64(1)
+	id2 := int64(2)
+	zmsVersionList := getZmsPolicyVersionsList("", version1, version2, "", role, resource, action, &id1, &id2, effect1, effect2)
+	versionList := getPolicyVersions(version1, version2, role, resource, action, int(id1), int(id2), effect1, effect2)
 	ast.DeepEqual(t, flattenPolicyVersions(zmsVersionList), versionList)
 }
 
@@ -103,7 +111,9 @@ func TestGetActiveVersionName(t *testing.T) {
 	resource := "test"
 	action := "play_premium"
 	active := version1
-	zmsVersionList := getZmsPolicyVersionsList("", version1, version2, active, role, resource, action, effect1, effect2)
+	id1 := int64(1)
+	id2 := int64(2)
+	zmsVersionList := getZmsPolicyVersionsList("", version1, version2, active, role, resource, action, &id1, &id2, effect1, effect2)
 	ast.Equal(t, getActiveVersionName(zmsVersionList), version1)
 
 	// case not found:
@@ -118,8 +128,10 @@ func TestGetRelevantPolicyVersions(t *testing.T) {
 	role := "test"
 	resource := "test"
 	action := "play_premium"
-	policyVersions1 := getZmsPolicyVersionsList(policyName1, version1, version2, "", role, resource, action, effect1, effect2)
-	policyVersions2 := getZmsPolicyVersionsList(policyName2, version1, version2, "", role, resource, action, effect1, effect2)
+	id1 := int64(1)
+	id2 := int64(2)
+	policyVersions1 := getZmsPolicyVersionsList(policyName1, version1, version2, "", role, resource, action, &id1, &id2, effect1, effect2)
+	policyVersions2 := getZmsPolicyVersionsList(policyName2, version1, version2, "", role, resource, action, &id1, &id2, effect1, effect2)
 	policies := make([]*zms.Policy, 0, len(policyVersions1)+len(policyVersions2))
 	policies = append(policies, policyVersions1...)
 	policies = append(policies, policyVersions2...)

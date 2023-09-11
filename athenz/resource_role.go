@@ -297,11 +297,8 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	} else {
-		//if err = d.Set("tags", nil); err != nil {
-		//	return diag.FromErr(err)
-		//}
 		tags := d.Get("tags").(map[string]interface{})
-		// if no tags in zms and there are tags configured, set tags to empty map to let terraform knows that tags needs to re added
+		// if no tags in zms and there are tags configured, we have a drift, so we set tags to empty map to let terraform know that tags need to be re added
 		if len(tags) > 0 {
 			if err = d.Set("tags", nil); err != nil {
 				return diag.FromErr(err)
