@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"fmt"
+	"github.com/AthenZ/athenz/clients/go/msd"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"strings"
@@ -177,9 +178,9 @@ func resourceAssertionSchema() *schema.Schema {
 				},
 				"condition": {
 					Type:     schema.TypeSet,
-					MaxItems: 2, // each assertion represent acl policy. Since in a given service,
-					// you can make the acl policy enforced on some hosts and not on others,
-					// therefor, to apply more than 2 conditions per assertion doesn't make sense
+					MaxItems: 2, /* each assertion represent acl policy. Since for a given service,
+					  			  you can make the acl policy enforced on some hosts and not on others,
+								  therefore, to apply more than 2 conditions per assertion doesn't make any sense */
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -191,7 +192,7 @@ func resourceAssertionSchema() *schema.Schema {
 								Type:     schema.TypeSet,
 								Required: true,
 								MaxItems: 1,
-								Elem:     resourceConditionSchema(nil),
+								Elem:     resourceConditionSchema(validatePatternFunc(ASSERTION_CONDITION_VALUE)),
 							},
 							"enforcementstate": {
 								Type:     schema.TypeSet,
@@ -199,7 +200,7 @@ func resourceAssertionSchema() *schema.Schema {
 								MaxItems: 1,
 								Elem: resourceConditionSchema(
 									validation.ToDiagFunc(
-										validation.StringInSlice([]string{"report", "enforce"}, false)),
+										validation.StringInSlice([]string{strings.ToLower(msd.REPORT.String()), strings.ToLower(msd.ENFORCE.String())}, false)),
 								),
 							},
 							"scopeonprem": {
@@ -269,9 +270,10 @@ func expandPolicyAssertions(dn string, configured []interface{}) []*zms.Assertio
 			Action:        action,
 			Effect:        &effect,
 			CaseSensitive: &caseSensitive,
-			Conditions:    expandAssertionConditions(data["condition"].(*schema.Set).List()),
 		}
-
+		if conditions, ok := data["condition"]; ok {
+			a.Conditions = expandAssertionConditions(conditions.(*schema.Set).List())
+		}
 		assertions = append(assertions, a)
 	}
 
@@ -284,12 +286,12 @@ func flattenAssertionConditions(list []*zms.AssertionCondition) []interface{} {
 		keys := []string{Instances, EnforcementState, ScopeONPREM, ScopeAWS, ScopeALL}
 
 		c := make(map[string]interface{}, len(keys))
-		c["id"] = condition.Id
+		c["id"] = (int)(*condition.Id)
 		for _, key := range keys {
 			c[key] = []map[string]interface{}{
 				{
-					"operator": condition.ConditionsMap[zms.AssertionConditionKey(key)].Operator,
-					"value":    condition.ConditionsMap[zms.AssertionConditionKey(key)].Value,
+					"operator": (int)(condition.ConditionsMap[zms.AssertionConditionKey(key)].Operator),
+					"value":    (string)(condition.ConditionsMap[zms.AssertionConditionKey(key)].Value),
 				},
 			}
 		}
@@ -314,7 +316,7 @@ func flattenPolicyAssertion(list []*zms.Assertion) []interface{} {
 			"action":         action,
 			"effect":         effect,
 			"case_sensitive": caseSensitive,
-			"id":             assertion.Id,
+			"id":             (int)(*assertion.Id),
 		}
 		if assertion.Conditions != nil {
 			a["condition"] = flattenAssertionConditions(assertion.Conditions.ConditionsList)
@@ -357,20 +359,23 @@ func validateAssertion(assertions []interface{}) error {
 	return nil
 }
 
-func getTheValueFromCondition(condition map[string]interface{}, key string) string {
-	return condition[key].(*schema.Set).List()[0].(map[string]interface{})["value"].(string)
-}
-
 func validateAssertionConditions(assertionConditions interface{}) error {
 	conditions := assertionConditions.(*schema.Set).List()
-	if len(conditions) == 2 {
-		c1 := conditions[0].(map[string]interface{})
-		c2 := conditions[1].(map[string]interface{})
-		enforcementState1 := getTheValueFromCondition(c1, EnforcementState)
-		enforcementState2 := getTheValueFromCondition(c2, EnforcementState)
-		if enforcementState1 == enforcementState2 {
-			return fmt.Errorf("enforcement state can't be same for differnet conditions in a msd policy")
-		}
+	if len(conditions) <= 1 {
+		return nil
+	}
+	c1 := conditions[0].(map[string]interface{})
+	c2 := conditions[1].(map[string]interface{})
+	enforcementState1 := getTheValueFromCondition(c1, EnforcementState)
+	enforcementState2 := getTheValueFromCondition(c2, EnforcementState)
+	if enforcementState1 == enforcementState2 {
+		return fmt.Errorf("enforcement state can't be same for different conditions in a msd policy")
+	}
+
+	instances1 := getTheValueFromCondition(c1, Instances)
+	instances2 := getTheValueFromCondition(c2, Instances)
+	if isSharedHostsBetweenConditionInstances(instances1, instances2) {
+		return fmt.Errorf("the same host can not exist in both \"report\" and \"enforce\" modes")
 	}
 	return nil
 }
