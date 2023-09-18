@@ -71,11 +71,12 @@ fi
 
 # run zms-cli against the sys test domain
 ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
+  -o yaml \
   -z https://localhost:4443/zms/v1 \
   -c ${SYS_TEST_CA_CERT} \
   -key ${SYS_TEST_KEY} \
   -cert ${SYS_TEST_CERT} \
-  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > sys-test/terraform-sys-test-results
+  show-domain terraform-provider | sed -e 's/signature: .*/signature: XXX/' -e 's/id: .*/id: XXX/' -e 's/modified: .*/modified: XXX/' > sys-test/terraform-sys-test-results
 
 echo 'Terraform results: '
 cat sys-test/terraform-sys-test-results

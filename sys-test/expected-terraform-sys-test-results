@@ -1,75 +1,173 @@
-domain:
-    name: terraform-provider
-    audit_enabled: false
-    modified: XXX
-    roles:
-        - name: athenz_provider_foo
-          members:
-            - name: user.github-7654321
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-        - name: athenz_provider_bar
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-        - name: athenz_provider_foobar
-          member_expiry_days: 14
-          service_expiry_days: 30
-          token_expiry_mins: 7
-          cert_expiry_mins: 8
-          member_review_days: 15
-          service_review_days: 31
-          group_expiry_days: 21
-          group_review_days: 22
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-              review: 2022-12-29T23:59:59.000Z
-        - name: athenz_provider_bar_deprecated
-          members:
-            - name: user.github-7654321
-        - name: admin
-          members:
-            - name: user.github-7654321
-        - name: athenz_provider_foo_deprecated
-          members:
-            - name: user.github-7654321
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-    groups:
-        - name: athenz_provider_foo
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-        - name: athenz_provider_foo_deprecated
-          members:
-            - name: user.github-7654321
+enabled: true
+auditenabled: false
+ypmid: XXX
+name: terraform-provider
+roles:
+- tags:
+    key1:
+      list:
+      - v1
+      - v2
+      - v3
+  name: terraform-provider:role.athenz_provider_foo
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    active: true
+    approved: true
+    principaltype: 1
+- name: terraform-provider:role.athenz_provider_bar
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    expiration: "2022-12-29T23:59:59Z"
+    active: true
+    approved: true
+    principaltype: 1
+- memberexpirydays: 14
+  tokenexpirymins: 7
+  certexpirymins: 8
+  serviceexpirydays: 30
+  memberreviewdays: 15
+  servicereviewdays: 31
+  groupexpirydays: 21
+  groupreviewdays: 22
+  name: terraform-provider:role.athenz_provider_foobar
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    expiration: "2022-12-29T23:59:59Z"
+    reviewreminder: "2022-12-29T23:59:59Z"
+    active: true
+    approved: true
+    principaltype: 1
+- name: terraform-provider:role.athenz_provider_bar_deprecated
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    active: true
+    approved: true
+    principaltype: 1
+- name: terraform-provider:role.admin
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    active: true
+    approved: true
+    principaltype: 1
+- tags:
+    key1:
+      list:
+      - v1
+      - v2
+      - v3
+  name: terraform-provider:role.athenz_provider_foo_deprecated
+  modified: XXX
+  rolemembers:
+  - membername: user.github-7654321
+    active: true
+    approved: true
+    principaltype: 1
+policies:
+  contents:
+    domain: terraform-provider
     policies:
-        - name: admin
-          assertions:
-            - grant * to admin on *
-        - name: athenz_provider_foo
-          assertions:
-            - deny play1 to athenz_provider_bar on athenz_provider_BAR
-            - grant * to athenz_provider_foo on athenz_provider_foo
-    services:
-        - name: terraform-provider.athenz_provider_foo
-          modified: XXX
-          publicKeys:
-            - keyId: v0
-              value: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t
+    - name: terraform-provider:policy.admin
+      modified: XXX
+      assertions:
+      - role: terraform-provider:role.admin
+        resource: terraform-provider:*
+        action: '*'
+        effect: 1
+        id: XXX
+      version: "0"
+      active: true
+    - name: terraform-provider:policy.athenz_provider_foo
+      modified: XXX
+      assertions:
+      - role: terraform-provider:role.athenz_provider_bar
+        resource: terraform-provider:athenz_provider_foo
+        action: TCP-IN:1024-65535:4443-4443
+        effect: 1
+        id: XXX
+        conditions:
+          conditionslist:
+          - id: XXX
+            conditionsmap:
+              enforcementstate:
+                operator: 1
+                value: enforce
+              instances:
+                operator: 1
+                value: yahoo.host1,yahoo.host2
+              scopeall:
+                operator: 1
+                value: "false"
+              scopeaws:
+                operator: 1
+                value: "true"
+              scopeonprem:
+                operator: 1
+                value: "false"
+          - id: XXX
+            conditionsmap:
+              enforcementstate:
+                operator: 1
+                value: report
+              instances:
+                operator: 1
+                value: yahoo.host3,yahoo.host4
+              scopeall:
+                operator: 1
+                value: "false"
+              scopeaws:
+                operator: 1
+                value: "true"
+              scopeonprem:
+                operator: 1
+                value: "false"
+      - role: terraform-provider:role.athenz_provider_bar
+        resource: terraform-provider:athenz_provider_BAR
+        action: play1
+        effect: 2
+        id: XXX
+      - role: terraform-provider:role.athenz_provider_foo
+        resource: terraform-provider:athenz_provider_foo
+        action: '*'
+        effect: 1
+        id: XXX
+      version: "0"
+      active: true
+  signature: XXX
+  keyid: XXX
+services:
+- name: terraform-provider.athenz_provider_foo
+  publickeys:
+  - key: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t
+    id: XXX
+  modified: XXX
+entities: []
+groups:
+- tags:
+    key1:
+      list:
+      - v1
+      - v2
+      - v3
+  name: terraform-provider:group.athenz_provider_foo
+  modified: XXX
+  groupmembers:
+  - membername: user.github-7654321
+    groupname: terraform-provider:group.athenz_provider_foo
+    expiration: "2022-12-29T23:59:59Z"
+    active: true
+    approved: true
+- name: terraform-provider:group.athenz_provider_foo_deprecated
+  modified: XXX
+  groupmembers:
+  - membername: user.github-7654321
+    groupname: terraform-provider:group.athenz_provider_foo_deprecated
+    active: true
+    approved: true
+modified: XXX
 
