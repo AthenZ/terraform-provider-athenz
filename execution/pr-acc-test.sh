@@ -69,6 +69,8 @@ if ! make acc_test ; then
     EXIT_CODE=1
 fi
 
+echo `${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli -yversion`
+
 # run zms-cli against the sys test domain
 ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
   -o json \

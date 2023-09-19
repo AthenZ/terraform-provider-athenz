@@ -49,7 +49,6 @@ if ! make acc_test ; then
     EXIT_CODE=1
 fi
 
-echo `zms-cli -yversion`
 # run zms-cli against the sys test domain
 zms-cli \
   -o json \
