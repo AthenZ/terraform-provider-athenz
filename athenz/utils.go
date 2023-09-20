@@ -584,3 +584,38 @@ func readAfterWrite(readFunc func(context.Context, *schema.ResourceData, interfa
 	}
 	return diags
 }
+
+func getTheValueFromCondition(condition map[string]interface{}, key string) string {
+	return condition[key].(*schema.Set).List()[0].(map[string]interface{})["value"].(string)
+}
+
+func isAllHosts(instances string) bool {
+	// If the instances is empty, it means all hosts.
+	if len(instances) == 0 {
+		return true
+	}
+	for _, host := range strings.Split(instances, ",") {
+		if host == "*" {
+			return true
+		}
+	}
+	return false
+}
+
+func isSharedHostsBetweenConditionInstances(instances1, instances2 string) bool {
+	if isAllHosts(instances1) || isAllHosts(instances2) {
+		// If one of the instances includes all host, any host listed on the other condition will be shared with it.
+		return true
+	}
+
+	set1 := stringSet{}
+	for _, host := range strings.Split(instances1, ",") {
+		set1.add(host)
+	}
+	for _, host := range strings.Split(instances2, ",") {
+		if set1.contains(host) {
+			return true
+		}
+	}
+	return false
+}

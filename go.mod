@@ -3,7 +3,7 @@ module github.com/AthenZ/terraform-provider-athenz
 go 1.18
 
 require (
-	github.com/AthenZ/athenz v1.11.38
+	github.com/AthenZ/athenz v1.11.42
 	github.com/ardielle/ardielle-go v1.5.2
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200723130312-85980079f637

@@ -47,6 +47,7 @@ type ZmsClient interface {
 	GetPolicyVersionList(domainName string, policyName string) (*zms.PolicyList, error)
 	DeletePolicyVersion(domainName string, policyName string, version string, auditRef string) error
 	DeleteAssertionPolicyVersion(domainName string, policyName string, version string, assertionId int64, auditRef string) error
+	PutAssertionConditions(domainName string, policyName string, assertionId int64, auditRef string, assertionConditions *zms.AssertionConditions) (*zms.AssertionConditions, error)
 	GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error)
 	PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error
 }
@@ -223,6 +224,11 @@ func (c Client) PutPolicy(domain string, policyName string, auditRef string, pol
 func (c Client) DeletePolicy(domain string, policyName string, auditRef string) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.DeletePolicy(zms.DomainName(domain), zms.EntityName(policyName), auditRef)
+}
+
+func (c Client) PutAssertionConditions(domainName string, policyName string, assertionId int64, auditRef string, assertionConditions *zms.AssertionConditions) (*zms.AssertionConditions, error) {
+	zmsClient := zms.NewClient(c.Url, c.Transport)
+	return zmsClient.PutAssertionConditions(zms.DomainName(domainName), zms.EntityName(policyName), assertionId, auditRef, assertionConditions)
 }
 
 func (c Client) GetRole(domain string, roleName string) (*zms.Role, error) {

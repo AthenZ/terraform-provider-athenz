@@ -14,3 +14,12 @@ const (
 	DATE_PATTERN           = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 	MEMBER_REVIEW_REMINDER = "member review reminder"
 )
+
+// assertion conditions data keys
+const (
+	Instances        string = "instances"
+	EnforcementState        = "enforcementstate"
+	ScopeONPREM             = "scopeonprem"
+	ScopeAWS                = "scopeaws"
+	ScopeALL                = "scopeall"
+)

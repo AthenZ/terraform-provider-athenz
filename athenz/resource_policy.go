@@ -63,6 +63,16 @@ func validatePolicySchema() schema.CustomizeDiffFunc {
 			assertions := new.(*schema.Set).List()
 			return validateAssertion(assertions)
 		}),
+		customdiff.ValidateChange("assertion", func(ctx context.Context, old, new, meta any) error {
+			assertions := new.(*schema.Set).List()
+			for _, assertion := range assertions {
+				assertionMap := assertion.(map[string]interface{})
+				if err := validateAssertionConditions(assertionMap["condition"]); err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
 	)
 }
 
@@ -113,8 +123,12 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	} else {
-		if err = d.Set("tags", nil); err != nil {
-			return diag.FromErr(err)
+		tags := d.Get("tags").(map[string]interface{})
+		// if no tags in zms and there are tags configured, we have a drift, so we set tags to empty map to let terraform know that tags need to be re added
+		if len(tags) > 0 {
+			if err = d.Set("tags", nil); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 	return nil
@@ -182,7 +196,6 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 		}
 		ns := newVal.(*schema.Set).List()
 		policy.Assertions = expandPolicyAssertions(dn, ns)
-
 	}
 
 	if d.HasChange("tags") {

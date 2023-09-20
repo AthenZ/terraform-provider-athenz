@@ -29,8 +29,8 @@ func TestAccGroupPolicyBasic(t *testing.T) {
 	name := fmt.Sprintf("test%d", rInt)
 	resourceRoleName := "forPolicyTest"
 	resourceRole := fmt.Sprintf(`resource "athenz_role" "%s" {
-  			name = "%s"
-  			domain = "%s"
+			name = "%s"
+			domain = "%s"
 		}`, resourceRoleName, name, domainName)
 	t.Cleanup(func() {
 		cleanAllAccTestPolicies(domainName, []string{name}, []string{name})
@@ -177,6 +177,46 @@ func TestAccGroupCreatePolicyCaseSensitiveAssertion(t *testing.T) {
 	})
 }
 
+func TestAccGroupCreatePolicyWithAssertionConditions(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	var policy zms.Policy
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	resName := "athenz_policy.policyTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	name := fmt.Sprintf("test%d", rInt)
+	resourceRoleName := "forPolicyTest"
+	resourceRole := fmt.Sprintf(`resource "athenz_role" "%s" {
+  			name = "%s"
+  			domain = "%s"
+		}`, resourceRoleName, name, domainName)
+	t.Cleanup(func() {
+		cleanAllAccTestPolicies(domainName, []string{name}, []string{name})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupPolicyWithAssertionConditions(resourceRole, name, domainName, resourceRoleName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupPolicyExists(resName, &policy),
+					resource.TestCheckResourceAttr(resName, "name", name),
+					resource.TestCheckResourceAttr(resName, "assertion.#", "1"),
+					resource.TestCheckResourceAttr(resName, "assertion.0.condition.#", "2"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+				),
+			},
+		},
+	})
+}
+
 func TestAccGroupPolicyInvalidResource(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Printf("TF_ACC must be set for acceptance tests, value is: %s", v)
@@ -210,6 +250,22 @@ func TestAccGroupPolicyInvalidResource(t *testing.T) {
 			{
 				Config:      testAccGroupPolicyInvalidCaseSensitive2Config(),
 				ExpectError: getErrorRegex("capitalized action or resource allowed only when enabling case_sensitive flag"),
+			},
+			{
+				Config:      testAccGroupPolicyInvalidEnforcementState(),
+				ExpectError: getErrorRegex("expected value to be one of \\[report enforce\\]"),
+			},
+			{
+				Config:      testAccGroupPolicyDifferentModesWithSameEnforcementState(),
+				ExpectError: getErrorRegex("enforcement state can't be same for different conditions in a msd policy"),
+			},
+			{
+				Config:      testAccGroupPolicySharedHostsBetweenModes1(),
+				ExpectError: getErrorRegex("the same host can not exist in both \"report\" and \"enforce\" modes"),
+			},
+			{
+				Config:      testAccGroupPolicySharedHostsBetweenModes2(),
+				ExpectError: getErrorRegex("the same host can not exist in both \"report\" and \"enforce\" modes"),
 			},
 		},
 	})
@@ -286,8 +342,8 @@ func testAccCheckGroupPolicyDestroy(s *terraform.State) error {
 func testAccGroupPolicyConfigBasic(name, domain string) string {
 	return fmt.Sprintf(`
 resource "athenz_policy" "policyTest" {
-name = "%s"
-  domain = "%s"
+	name = "%s"
+	domain = "%s"
 }
 `, name, domain)
 }
@@ -495,4 +551,238 @@ resource "athenz_policy" "invalid" {
   }
 }
 `)
+}
+
+func testAccGroupPolicyInvalidEnforcementState() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="TCP-IN:1024-65535:4443-4443"
+    role="role_test"
+    resource="sys.auth:ows"
+	case_sensitive=true
+    condition {
+      instances {
+        value = "*"
+      }
+      enforcementstate {
+        value = "no_valid"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}
+  }
+}
+`)
+}
+
+func testAccGroupPolicyDifferentModesWithSameEnforcementState() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="TCP-IN:1024-65535:4443-4443"
+    role="role_test"
+    resource="sys.auth:ows"
+	case_sensitive=true
+    condition {
+      instances {
+        value = "yahoo.host1,yahoo.host2"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}   
+	condition {
+      instances {
+        value = "yahoo.host3,yahoo.host4"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}
+  }
+}
+`)
+}
+
+func testAccGroupPolicySharedHostsBetweenModes1() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="TCP-IN:1024-65535:4443-4443"
+    role="role_test"
+    resource="sys.auth:ows"
+	case_sensitive=true
+    condition {
+      instances {
+        value = "yahoo.host1,yahoo.host2,yahoo.host3"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}   
+	condition {
+      instances {
+        value = "yahoo.host3,yahoo.host4"
+      }
+      enforcementstate {
+        value = "enforce"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}
+  }
+}
+`)
+}
+
+func testAccGroupPolicySharedHostsBetweenModes2() string {
+	return fmt.Sprintf(`
+resource "athenz_policy" "invalid" {
+  name = "policy_test"
+  domain = "sys.auth"
+  assertion {
+    effect="DENY"
+    action="TCP-IN:1024-65535:4443-4443"
+    role="role_test"
+    resource="sys.auth:ows"
+	case_sensitive=true
+    condition {
+      instances {
+        value = "yahoo.host1,yahoo.host2"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}   
+	condition {
+      instances {
+        value = "*"
+      }
+      enforcementstate {
+        value = "enforce"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+	}
+  }
+}
+`)
+}
+
+func testAccGroupPolicyWithAssertionConditions(resourceRole, name, domain, resourceRoleName string) string {
+	return fmt.Sprintf(`
+%s
+resource "athenz_policy" "policyTest" {
+  name   = "%s"
+  domain = "%s"
+  assertion {
+    role           = "${athenz_role.%s.name}"
+    resource       = "%s"
+    action         = "TCP-IN:1024-65535:4443-4443"
+    effect         = "ALLOW"
+    case_sensitive = true
+    condition {
+      instances {
+        value = "host1,host2"
+      }
+      enforcementstate {
+        value = "report"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+    }
+    condition {
+      instances {
+        value = "host3,host4"
+      }
+      enforcementstate {
+        value = "enforce"
+      }
+      scopeaws {
+        value = "true"
+      }
+      scopeonprem {
+        value = "false"
+      }
+      scopeall {
+        value = "false"
+      }
+    }
+  }
+}
+`, resourceRole, name, domain, resourceRoleName, domain+RESOURCE_SEPARATOR+"service")
 }

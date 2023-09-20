@@ -1,6 +1,8 @@
 package athenz
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
 	"testing"
 	"time"
@@ -41,15 +43,19 @@ func getFlattedRoleMembers() []interface{} {
 	return []interface{}{map[string]interface{}{"name": "member1", "expiration": "", "review": ""}, map[string]interface{}{"name": "member2", "expiration": "2022-05-29 23:59:59", "review": "2023-05-29 23:59:59"}}
 }
 
-func getZmsAssertions(roleName, resourceName string, caseSensitive bool) []*zms.Assertion {
+func getZmsAssertions(roleName, resourceName string, caseSensitive bool, assertionId *int64) []*zms.Assertion {
 	effect := zms.ALLOW
 	return []*zms.Assertion{
-		{Role: roleName, Resource: resourceName, Action: "*", Effect: &effect, CaseSensitive: &caseSensitive},
+		{Role: roleName, Resource: resourceName, Id: assertionId, Action: "*", Effect: &effect, CaseSensitive: &caseSensitive},
 	}
 }
-func getFlattedAssertions(roleName, resourceName string) []interface{} {
+func getFlattedAssertions(roleName, resourceName string, assertionId *int) []interface{} {
+	assertion := map[string]interface{}{"action": "*", "effect": "ALLOW", "resource": resourceName, "role": roleName, "case_sensitive": false}
+	if assertionId != nil {
+		assertion["id"] = *assertionId
+	}
 	return []interface{}{
-		map[string]interface{}{"action": "*", "effect": "ALLOW", "resource": resourceName, "role": roleName, "case_sensitive": false},
+		assertion,
 	}
 }
 
@@ -95,13 +101,131 @@ func TestExpandRoleMembers(t *testing.T) {
 func TestFlattenPolicyAssertion(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false)), getFlattedAssertions(roleName, resourceName))
+	assertionId := 1
+	zmsAssertionId := int64(assertionId)
+	ast.DeepEqual(t, flattenPolicyAssertion(getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false, &zmsAssertionId)), getFlattedAssertions(roleName, resourceName, &assertionId))
 }
 
 func TestExpandPolicyAssertions(t *testing.T) {
 	roleName := "foo"
 	resourceName := dName + ":foo_"
-	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false))
+	ast.DeepEqual(t, expandPolicyAssertions(dName, getFlattedAssertions(roleName, resourceName, nil)), getZmsAssertions(dName+ROLE_SEPARATOR+roleName, resourceName, false, nil))
+}
+
+func createSetForConditionEntry(value string) *schema.Set {
+	mockData := []map[string]interface{}{
+		{
+			"operator": 1,
+			"value":    value,
+		},
+	}
+
+	// Create a *schema.Set
+	set := schema.NewSet(
+		func(i interface{}) int {
+			// Define a hash function that generates a unique hash value for each item
+			return acctest.RandInt()
+		},
+		[]interface{}{}, // Initial slice of items (empty in this example)
+	)
+
+	// Populate the *schema.Set with mock data
+	for _, data := range mockData {
+		set.Add(data)
+	}
+	return set
+}
+
+func createAssertionConditionsMap(cm map[string]string) map[zms.AssertionConditionKey]*zms.AssertionConditionData {
+	toReturn := make(map[zms.AssertionConditionKey]*zms.AssertionConditionData)
+	for key, value := range cm {
+		toReturn[zms.AssertionConditionKey(key)] = &zms.AssertionConditionData{
+			Operator: zms.AssertionConditionOperator(1),
+			Value:    zms.AssertionConditionValue(value),
+		}
+	}
+	return toReturn
+}
+
+func createConditionMapEntry(value string) []map[string]interface{} {
+	return []map[string]interface{}{
+		{
+			"operator": 1,
+			"value":    value,
+		},
+	}
+}
+
+func TestExpandAssertionConditions(t *testing.T) {
+	conditionsList := []interface{}{
+		map[string]interface{}{
+			"instances":        createSetForConditionEntry("*"),
+			"scopeonprem":      createSetForConditionEntry("true"),
+			"scopeaws":         createSetForConditionEntry("false"),
+			"scopeall":         createSetForConditionEntry("false"),
+			"enforcementstate": createSetForConditionEntry("report"),
+		},
+	}
+	ac := &zms.AssertionCondition{
+		ConditionsMap: createAssertionConditionsMap(map[string]string{
+			"instances":        "*",
+			"scopeonprem":      "true",
+			"scopeaws":         "false",
+			"scopeall":         "false",
+			"enforcementstate": "report",
+		}),
+	}
+	expected := &zms.AssertionConditions{
+		ConditionsList: []*zms.AssertionCondition{ac},
+	}
+	actual := expandAssertionConditions(conditionsList)
+	ast.DeepEqual(t, actual, expected)
+}
+
+func TestFlattenAssertionConditions(t *testing.T) {
+	id1 := int32(1)
+	c1 := &zms.AssertionCondition{
+		Id: &id1,
+		ConditionsMap: createAssertionConditionsMap(map[string]string{
+			"instances":        "csp0001.csp.corp.gq1.yahoo.com,csp0002.csp.corp.gq1.yahoo.com",
+			"scopeonprem":      "false",
+			"scopeaws":         "false",
+			"scopeall":         "true",
+			"enforcementstate": "report",
+		}),
+	}
+	id2 := int32(2)
+	c2 := &zms.AssertionCondition{
+		Id: &id2,
+		ConditionsMap: createAssertionConditionsMap(map[string]string{
+			"instances":        "csp0003.csp.corp.gq1.yahoo.com",
+			"scopeonprem":      "true",
+			"scopeaws":         "false",
+			"scopeall":         "false",
+			"enforcementstate": "enforce",
+		}),
+	}
+	conditionsList := []*zms.AssertionCondition{c1, c2}
+	actual := flattenAssertionConditions(conditionsList)
+	expected := []interface{}{
+		map[string]interface{}{
+			"id":               1,
+			"instances":        createConditionMapEntry("csp0001.csp.corp.gq1.yahoo.com,csp0002.csp.corp.gq1.yahoo.com"),
+			"scopeonprem":      createConditionMapEntry("false"),
+			"scopeaws":         createConditionMapEntry("false"),
+			"scopeall":         createConditionMapEntry("true"),
+			"enforcementstate": createConditionMapEntry("report"),
+		},
+		map[string]interface{}{
+			"id":               2,
+			"instances":        createConditionMapEntry("csp0003.csp.corp.gq1.yahoo.com"),
+			"scopeonprem":      createConditionMapEntry("true"),
+			"scopeaws":         createConditionMapEntry("false"),
+			"scopeall":         createConditionMapEntry("false"),
+			"enforcementstate": createConditionMapEntry("enforce"),
+		},
+	}
+	ast.DeepEqual(t, actual, expected)
 }
 
 func TestValidateCaseSensitiveValue(t *testing.T) {
@@ -333,4 +457,19 @@ func TestValidateMemberDate(t *testing.T) {
 	settingType = SettingType(REVIEW)
 	expectedMessageErr = "settings.group_review_days is defined but for one or more group isn't set"
 	assert.Error(t, validateMemberDate(days, dateString, memberType, settingType), expectedMessageErr)
+}
+
+func TestIsSharedHostsBetweenConditionInstances(t *testing.T) {
+	hosts1 := "host1"
+	hosts2 := "host2"
+	assert.False(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
+	hosts1 = "*"
+	assert.True(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
+	hosts1 = "host1,host2,host3"
+	hosts2 = "host4,host5,host6"
+	assert.False(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
+	hosts1 += ",host4"
+	assert.True(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
+	hosts1 = ""
+	assert.True(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
 }
