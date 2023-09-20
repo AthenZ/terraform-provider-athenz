@@ -69,7 +69,7 @@ zms-cli \
   -c /athenz/CAs/athenz_ca.pem \
   -key /athenz/domain-admin/domain_admin_key.pem \
   -cert /athenz/domain-admin/domain_admin_cert.pem \
-  show-domain terraform-provider | \
+  show-domain terraform-provider | tee /dev/stderr | \
   # replace signature and modified time with XXX to avoid diff
   sed -e 's/"signature": ".*"/"signature": "XXX"/' \
       -e 's/"modified": ".*"/"modified": "XXX"/' | \
