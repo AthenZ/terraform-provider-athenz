@@ -47,7 +47,7 @@ find ${SD_ROOT_DIR}/zms-cli-share -ls
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run -t -h --user "$(id -u):$(id -g)" -v "${SD_ROOT_DIR}/zms-cli-share":/athenz centos find /athenz -ls
+        docker run -t -h --user "$(id -u):$(id -g)" -v "${SD_ROOT_DIR}/zms-cli-share":/athenz athenz/athenz-cli-util "$@"
     }
 fi
 
