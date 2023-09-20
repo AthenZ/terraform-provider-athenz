@@ -41,14 +41,13 @@ mkdir ${SD_ROOT_DIR}/zms-cli-share
 cat "${SYS_TEST_CA_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/ca
 cat "${SYS_TEST_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/cert
 cat "${SYS_TEST_KEY}" > ${SD_ROOT_DIR}/zms-cli-share/key
-chmod -R 777 ${SD_ROOT_DIR}/zms-cli-share
 
 find ${SD_ROOT_DIR}/zms-cli-share -ls
 
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run --rm -t -v "${SD_ROOT_DIR}/zms-cli-share":/athenz athenz/athenz-cli-util "$@"
+        docker run --rm -t --user "$(id -u):$(id -g)" -v "${SD_ROOT_DIR}/zms-cli-share":/athenz athenz/athenz-cli-util "$@"
     }
 fi
 
