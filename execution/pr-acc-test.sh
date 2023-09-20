@@ -41,13 +41,13 @@ mkdir ${SD_ROOT_DIR}/zms-cli-share
 cat "${SYS_TEST_CA_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/ca
 cat "${SYS_TEST_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/cert
 cat "${SYS_TEST_KEY}" > ${SD_ROOT_DIR}/zms-cli-share/key
-
+chmod -R 777 ${SD_ROOT_DIR}/zms-cli-share
 find ${SD_ROOT_DIR}/zms-cli-share -ls
 
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run -t -h --user "$(id -u):$(id -g)" -v "${SD_ROOT_DIR}/zms-cli-share":/athenz athenz/athenz-cli-util "$@"
+        docker run --rm -t --user "$(id -u):$(id -g)" -v "${SD_ROOT_DIR}/zms-cli-share":/zms-cli-share:z athenz/athenz-cli-util "$@"
     }
 fi
 
@@ -73,9 +73,9 @@ fi
 zms-cli \
   -o json \
   -z https://localhost:4443/zms/v1 \
-  -c /athenz/ca \
-  -key /athenz/key \
-  -cert /athenz/cert \
+  -c /zms-cli-share/ca \
+  -key /zms-cli-share/key \
+  -cert /zms-cli-share/cert \
   show-domain terraform-provider | tee /dev/stderr | \
   # replace signature and modified time with XXX to avoid diff
   sed -e 's/"signature": ".*"/"signature": "XXX"/' \
