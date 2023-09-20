@@ -589,14 +589,14 @@ resource "athenz_policy" "invalid" {
 func testAccGroupPolicyDifferentModesWithSameEnforcementState() string {
 	return fmt.Sprintf(`
 resource "athenz_policy" "invalid" {
-  name = "policy_test"
+  name   = "policy_test"
   domain = "sys.auth"
   assertion {
-    effect="DENY"
-    action="TCP-IN:1024-65535:4443-4443"
-    role="role_test"
-    resource="sys.auth:ows"
-	case_sensitive=true
+    effect         = "DENY"
+    action         = "TCP-IN:1024-65535:4443-4443"
+    role           = "role_test"
+    resource       = "sys.auth:ows"
+    case_sensitive = true
     condition {
       instances {
         value = "yahoo.host1,yahoo.host2"
@@ -613,8 +613,8 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}   
-	condition {
+    }
+    condition {
       instances {
         value = "yahoo.host3,yahoo.host4"
       }
@@ -630,7 +630,7 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}
+    }
   }
 }
 `)
@@ -639,14 +639,14 @@ resource "athenz_policy" "invalid" {
 func testAccGroupPolicySharedHostsBetweenModes1() string {
 	return fmt.Sprintf(`
 resource "athenz_policy" "invalid" {
-  name = "policy_test"
+  name   = "policy_test"
   domain = "sys.auth"
   assertion {
-    effect="DENY"
-    action="TCP-IN:1024-65535:4443-4443"
-    role="role_test"
-    resource="sys.auth:ows"
-	case_sensitive=true
+    effect         = "DENY"
+    action         = "TCP-IN:1024-65535:4443-4443"
+    role           = "role_test"
+    resource       = "sys.auth:ows"
+    case_sensitive = true
     condition {
       instances {
         value = "yahoo.host1,yahoo.host2,yahoo.host3"
@@ -663,8 +663,8 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}   
-	condition {
+    }
+    condition {
       instances {
         value = "yahoo.host3,yahoo.host4"
       }
@@ -680,7 +680,7 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}
+    }
   }
 }
 `)
@@ -689,14 +689,14 @@ resource "athenz_policy" "invalid" {
 func testAccGroupPolicySharedHostsBetweenModes2() string {
 	return fmt.Sprintf(`
 resource "athenz_policy" "invalid" {
-  name = "policy_test"
+  name   = "policy_test"
   domain = "sys.auth"
   assertion {
-    effect="DENY"
-    action="TCP-IN:1024-65535:4443-4443"
-    role="role_test"
-    resource="sys.auth:ows"
-	case_sensitive=true
+    effect         = "DENY"
+    action         = "TCP-IN:1024-65535:4443-4443"
+    role           = "role_test"
+    resource       = "sys.auth:ows"
+    case_sensitive = true
     condition {
       instances {
         value = "yahoo.host1,yahoo.host2"
@@ -713,8 +713,8 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}   
-	condition {
+    }
+    condition {
       instances {
         value = "*"
       }
@@ -730,7 +730,7 @@ resource "athenz_policy" "invalid" {
       scopeall {
         value = "false"
       }
-	}
+    }
   }
 }
 `)
