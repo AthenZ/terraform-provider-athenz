@@ -76,6 +76,12 @@ echo "Prev version is: $(cat PREVIOUS_VERSION)"
 
 echo "Getting git tag version"
 $GIT_VERSION --prefix "$PREFIX" bump $RELEASE_TYPE | tee VERSION
+
+if [[ -z "$( cat VERSION )" ]] ; then
+  echo "bump didn't succeed, assumed already bumped - proceed with prev version"
+  cp PREVIOUS_VERSION VERSION
+fi  
+
 /opt/sd/meta set git.version `cat VERSION`
 echo "New version is: $(cat VERSION)"
 
