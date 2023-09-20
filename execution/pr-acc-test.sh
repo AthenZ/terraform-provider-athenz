@@ -41,6 +41,7 @@ mkdir ${SD_ROOT_DIR}/zms-cli-share
 cat "${SYS_TEST_CA_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/ca
 cat "${SYS_TEST_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/cert
 cat "${SYS_TEST_KEY}" > ${SD_ROOT_DIR}/zms-cli-share/key
+chmod -R 777 ${SD_ROOT_DIR}/zms-cli-share
 
 find ${SD_ROOT_DIR}/zms-cli-share -ls
 
@@ -74,7 +75,7 @@ zms-cli \
   -o json \
   -z https://localhost:4443/zms/v1 \
   -c /athenz/ca \
-  -key /athenz \
+  -key /athenz/key \
   -cert /athenz/cert \
   show-domain terraform-provider | tee /dev/stderr | \
   # replace signature and modified time with XXX to avoid diff
