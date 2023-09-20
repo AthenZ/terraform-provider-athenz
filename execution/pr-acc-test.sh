@@ -42,10 +42,12 @@ cat "${SYS_TEST_CA_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/ca
 cat "${SYS_TEST_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/cert
 cat "${SYS_TEST_KEY}" > ${SD_ROOT_DIR}/zms-cli-share/key
 
+find ${SD_ROOT_DIR}/zms-cli-share -ls
+
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run --rm -t -v "${SD_ROOT_DIR}/zms-cli-share":/athenz:z athenz/athenz-cli-util "$@"
+        docker run --rm -t -v "${SD_ROOT_DIR}/zms-cli-share":/athenz athenz/athenz-cli-util "$@"
     }
 fi
 
