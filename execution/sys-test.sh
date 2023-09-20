@@ -34,22 +34,6 @@ if [[ ! $(which terraform) ]]; then
     terraform -v
 fi
 
-#install zms-cli
-if [[ ! $(which zms-cli) ]]; then
-    OS_ARCH=linux
-    FOLDER_URL="https://repo1.maven.org/maven2/com/yahoo/athenz/athenz-utils/"
-    VERSION="$(
-      wget -U "Athenz Authors" "$FOLDER_URL"  -O - |
-      gawk 'match($0, /<a href=[^>]*>([0-9]+\.[0-9]+\.[0-9]+)\/<\/a>/, m) { print m[1] }' |
-      sort -V |
-      tail -1
-    )"
-    
-    wget -U "Athenz Authors" -O "${SD_ROOT_DIR}/athenz-utils-${VERSION}-bin.tar.gz" "https://repo1.maven.org/maven2/com/yahoo/athenz/athenz-utils/${VERSION}/athenz-utils-${VERSION}-bin.tar.gz"
-    tar xvfz ${SD_ROOT_DIR}/athenz-utils-${VERSION}-bin.tar.gz -C ${SD_ROOT_DIR}/
-    ${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli
-fi
-
 if [[ "$UPGRADE_TEST" != "true" ]]; then
     ( cd docker ; make deploy )
 fi
@@ -59,6 +43,13 @@ EXIT_CODE=0
 export SYS_TEST_CA_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/CAs/athenz_ca.pem"
 export SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem"
 export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
+
+#install zms-cli
+if [[ ! $(which zms-cli) ]]; then
+    function zms-cli() {
+        docker run --rm -t -v "${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/":/athenz athenz/athenz-cli-util "$@"
+    }
+fi
 
 # First, create the sys test domain and run several tests using the latest terraform provider
 cd sys-test
@@ -82,12 +73,12 @@ if ! make acc_test ; then
 fi
 
 # run zms-cli against the sys test domain
-${SD_ROOT_DIR}/athenz-utils-${VERSION}/bin/${OS_ARCH}/zms-cli \
+zms-cli \
   -o json \
   -z https://localhost:4443/zms/v1 \
-  -c ${SYS_TEST_CA_CERT} \
-  -key ${SYS_TEST_KEY} \
-  -cert ${SYS_TEST_CERT} \
+  -c /athenz/CAs/athenz_ca.pem \
+  -key /athenz/domain-admin/domain_admin_key.pem \
+  -cert /athenz/domain-admin/domain_admin_cert.pem \
   show-domain terraform-provider | \
     # replace signature and modified time with XXX to avoid diff
     sed -e 's/"signature": ".*"/"signature": "XXX"/' \
