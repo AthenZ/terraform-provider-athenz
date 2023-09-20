@@ -74,7 +74,7 @@ zms-cli \
   -o json \
   -z https://localhost:4443/zms/v1 \
   -c /athenz/ca \
-  -key /athenz/key \
+  -key /athenz \
   -cert /athenz/cert \
   show-domain terraform-provider | tee /dev/stderr | \
   # replace signature and modified time with XXX to avoid diff
