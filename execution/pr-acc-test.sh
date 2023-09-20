@@ -37,17 +37,10 @@ export SYS_TEST_CA_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/
 export SYS_TEST_CERT="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_cert.pem"
 export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/domain-admin/domain_admin_key.pem"
 
-mkdir ${SD_ROOT_DIR}/zms-cli-share
-cat "${SYS_TEST_CA_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/ca
-cat "${SYS_TEST_CERT}" > ${SD_ROOT_DIR}/zms-cli-share/cert
-cat "${SYS_TEST_KEY}" > ${SD_ROOT_DIR}/zms-cli-share/key
-chmod -R 777 ${SD_ROOT_DIR}/zms-cli-share
-find ${SD_ROOT_DIR}/zms-cli-share -ls
-
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run --rm -t --user=root -v "${SD_ROOT_DIR}/zms-cli-share":/zms-cli-share:z athenz/athenz-cli-util "$@"
+        docker run --rm --user root:root -t -v "${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/":/athenz athenz/athenz-cli-util "$@"
     }
 fi
 
@@ -73,9 +66,9 @@ fi
 zms-cli \
   -o json \
   -z https://localhost:4443/zms/v1 \
-  -c /zms-cli-share/ca \
-  -key /zms-cli-share/key \
-  -cert /zms-cli-share/cert \
+  -c /athenz/CAs/athenz_ca.pem \
+  -key /athenz/domain-admin/domain_admin_key.pem \
+  -cert /athenz/domain-admin/domain_admin_cert.pem \
   show-domain terraform-provider | tee /dev/stderr | \
   # replace signature and modified time with XXX to avoid diff
   sed -e 's/"signature": ".*"/"signature": "XXX"/' \
