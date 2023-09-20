@@ -40,7 +40,7 @@ export SYS_TEST_KEY="${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/samp
 #install zms-cli
 if [[ ! $(which zms-cli) ]]; then
     function zms-cli() {
-        docker run --rm --user root:root --network=athenz -t -v "${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/":/athenz athenz/athenz-cli-util "$@"
+        docker run --rm --user root:root --network="host" -t -v "${SD_DIND_SHARE_PATH}/terraform-provider-athenz/docker/sample/":/athenz athenz/athenz-cli-util "$@"
     }
 fi
 
