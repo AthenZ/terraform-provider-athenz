@@ -1,75 +1,329 @@
-domain:
-    name: terraform-provider
-    audit_enabled: false
-    modified: XXX
-    roles:
-        - name: athenz_provider_foo
-          members:
-            - name: user.github-7654321
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-        - name: athenz_provider_bar
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-        - name: athenz_provider_foobar
-          member_expiry_days: 14
-          service_expiry_days: 30
-          token_expiry_mins: 7
-          cert_expiry_mins: 8
-          member_review_days: 15
-          service_review_days: 31
-          group_expiry_days: 21
-          group_review_days: 22
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-              review: 2022-12-29T23:59:59.000Z
-        - name: athenz_provider_bar_deprecated
-          members:
-            - name: user.github-7654321
-        - name: admin
-          members:
-            - name: user.github-7654321
-        - name: athenz_provider_foo_deprecated
-          members:
-            - name: user.github-7654321
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-    groups:
-        - name: athenz_provider_foo
-          members:
-            - name: user.github-7654321
-              expiration: 2022-12-29T23:59:59.000Z
-          tags:
-            - key: key1
-              values:
-                - v1
-                - v2
-                - v3
-        - name: athenz_provider_foo_deprecated
-          members:
-            - name: user.github-7654321
-    policies:
-        - name: admin
-          assertions:
-            - grant * to admin on *
-        - name: athenz_provider_foo
-          assertions:
-            - deny play1 to athenz_provider_bar on athenz_provider_BAR
-            - grant * to athenz_provider_foo on athenz_provider_foo
-    services:
-        - name: terraform-provider.athenz_provider_foo
-          modified: XXX
-          publicKeys:
-            - keyId: v0
-              value: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t
-
+{
+  "account": "",
+  "applicationId": "",
+  "auditEnabled": false,
+  "azureSubscription": "",
+  "businessService": "",
+  "certDnsDomain": "",
+  "description": "",
+  "enabled": true,
+  "entities": [],
+  "gcpProject": "",
+  "gcpProjectNumber": "",
+  "groups": [
+    {
+      "groupMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "expiration": "2022-12-29T23:59:59.000Z",
+          "groupName": "terraform-provider:group.athenz_provider_foo",
+          "memberName": "user.github-7654321",
+          "pendingState": ""
+        }
+      ],
+      "modified": "XXX",
+      "name": "terraform-provider:group.athenz_provider_foo",
+      "notifyRoles": "",
+      "tags": {
+        "key1": {
+          "list": [
+            "v1",
+            "v2",
+            "v3"
+          ]
+        }
+      },
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "groupMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "groupName": "terraform-provider:group.athenz_provider_foo_deprecated",
+          "memberName": "user.github-7654321",
+          "pendingState": ""
+        }
+      ],
+      "modified": "XXX",
+      "name": "terraform-provider:group.athenz_provider_foo_deprecated",
+      "notifyRoles": "",
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    }
+  ],
+  "modified": "XXX",
+  "name": "terraform-provider",
+  "policies": {
+    "contents": {
+      "domain": "terraform-provider",
+      "policies": [
+        {
+          "active": true,
+          "assertions": [
+            {
+              "action": "TCP-IN:1024-65535:4443-4443",
+              "conditions": {
+                "conditionsList": [
+                  {
+                    "conditionsMap": {
+                      "enforcementstate": {
+                        "operator": "EQUALS",
+                        "value": "enforce"
+                      },
+                      "instances": {
+                        "operator": "EQUALS",
+                        "value": "yahoo.host1,yahoo.host2"
+                      },
+                      "scopeall": {
+                        "operator": "EQUALS",
+                        "value": "false"
+                      },
+                      "scopeaws": {
+                        "operator": "EQUALS",
+                        "value": "true"
+                      },
+                      "scopeonprem": {
+                        "operator": "EQUALS",
+                        "value": "false"
+                      }
+                    },
+                    "id": 1
+                  },
+                  {
+                    "conditionsMap": {
+                      "enforcementstate": {
+                        "operator": "EQUALS",
+                        "value": "report"
+                      },
+                      "instances": {
+                        "operator": "EQUALS",
+                        "value": "yahoo.host3,yahoo.host4"
+                      },
+                      "scopeall": {
+                        "operator": "EQUALS",
+                        "value": "false"
+                      },
+                      "scopeaws": {
+                        "operator": "EQUALS",
+                        "value": "true"
+                      },
+                      "scopeonprem": {
+                        "operator": "EQUALS",
+                        "value": "false"
+                      }
+                    },
+                    "id": 2
+                  }
+                ]
+              },
+              "effect": "ALLOW",
+              "id": "@@@",
+              "resource": "terraform-provider:athenz_provider_foo",
+              "role": "terraform-provider:role.athenz_provider_bar"
+            },
+            {
+              "action": "*",
+              "effect": "ALLOW",
+              "id": "@@@",
+              "resource": "terraform-provider:athenz_provider_foo",
+              "role": "terraform-provider:role.athenz_provider_foo"
+            },
+            {
+              "action": "play1",
+              "effect": "DENY",
+              "id": "@@@",
+              "resource": "terraform-provider:athenz_provider_BAR",
+              "role": "terraform-provider:role.athenz_provider_bar"
+            }
+          ],
+          "description": "",
+          "modified": "XXX",
+          "name": "terraform-provider:policy.athenz_provider_foo",
+          "version": "0"
+        },
+        {
+          "active": true,
+          "assertions": [
+            {
+              "action": "*",
+              "effect": "ALLOW",
+              "id": "@@@",
+              "resource": "terraform-provider:*",
+              "role": "terraform-provider:role.admin"
+            }
+          ],
+          "description": "",
+          "modified": "XXX",
+          "name": "terraform-provider:policy.admin",
+          "version": "0"
+        }
+      ]
+    },
+    "keyId": "0",
+    "signature": "XXX"
+  },
+  "productId": "",
+  "roles": [
+    {
+      "certExpiryMins": 8,
+      "description": "",
+      "groupExpiryDays": 21,
+      "groupReviewDays": 22,
+      "memberExpiryDays": 14,
+      "memberReviewDays": 15,
+      "modified": "XXX",
+      "name": "terraform-provider:role.athenz_provider_foobar",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "expiration": "2022-12-29T23:59:59.000Z",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1,
+          "reviewReminder": "2022-12-29T23:59:59.000Z"
+        }
+      ],
+      "serviceExpiryDays": 30,
+      "serviceReviewDays": 31,
+      "tokenExpiryMins": 7,
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.athenz_provider_foo",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "tags": {
+        "key1": {
+          "list": [
+            "v1",
+            "v2",
+            "v3"
+          ]
+        }
+      },
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.athenz_provider_foo_deprecated",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "tags": {
+        "key1": {
+          "list": [
+            "v1",
+            "v2",
+            "v3"
+          ]
+        }
+      },
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.admin",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.athenz_provider_bar",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "expiration": "2022-12-29T23:59:59.000Z",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.athenz_provider_bar_deprecated",
+      "notifyRoles": "",
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    }
+  ],
+  "services": [
+    {
+      "description": "",
+      "executable": "",
+      "group": "",
+      "modified": "XXX",
+      "name": "terraform-provider.athenz_provider_foo",
+      "providerEndpoint": "",
+      "publicKeys": [
+        {
+          "id": "v0",
+          "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+        }
+      ],
+      "user": ""
+    }
+  ],
+  "userAuthorityFilter": "",
+  "ypmId": 0
+}

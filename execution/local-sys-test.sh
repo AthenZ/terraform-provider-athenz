@@ -51,11 +51,36 @@ fi
 
 # run zms-cli against the sys test domain
 zms-cli \
+  -o json \
   -z https://localhost:4443/zms/v1 \
   -c ${SYS_TEST_CA_CERT} \
   -key ${SYS_TEST_KEY} \
   -cert ${SYS_TEST_CERT} \
-  show-domain terraform-provider | sed 's/modified: .*/modified: XXX/' > sys-test/terraform-sys-test-results
+  show-domain terraform-provider | \
+  # replace signature and modified time with XXX to avoid diff
+  sed -e 's/"signature": ".*"/"signature": "XXX"/' \
+      -e 's/"modified": ".*"/"modified": "XXX"/' | \
+  # sort the result and replace the id of assertions with @@@ to avoid diff
+  jq -S '
+    def sorted_walk(f):
+      . as $in
+      | if type == "object" then
+          reduce keys[] as $key
+            ( {}; . + { ($key):  ($in[$key] | sorted_walk(f)) } )
+            | f
+            | if (type == "object") and (.assertions? | type == "array") then
+                .assertions[].id |= "@@@"
+              else
+                .
+              end
+      elif type == "array" then map( sorted_walk(f) ) | f
+      else f
+      end;
+
+    def normalize: sorted_walk(if type == "array" then sort else . end);
+
+    normalize
+  ' > sys-test/terraform-sys-test-results
 
 echo 'Terraform results: '
 cat sys-test/terraform-sys-test-results
