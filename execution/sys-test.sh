@@ -8,8 +8,8 @@ find ${SD_SOURCE_DIR}
 PROVIDER_VERSION=$(echo $PROVIDER_VERSION_WITH_PREFIX | sed 's/v//g')
 echo "About to update athenz provider version to : $PROVIDER_VERSION"
 
-sed -i "s|version = \"x.x.x\"|version = \"$PROVIDER_VERSION\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
-sed -i "s|source = \"yahoo/provider/athenz\"|source = \"AthenZ/athenz\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
+sed -i "s|version *= *\"x.x.x\"|version *= *\"$PROVIDER_VERSION\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
+sed -i "s|source *= *\"yahoo/provider/athenz\"|source *= *\"AthenZ/athenz\"|g" $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
 
 cat $SD_SOURCE_DIR/sys-test/sys-test_provider.tf
 
