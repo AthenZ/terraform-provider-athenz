@@ -14,3 +14,7 @@
 [status-image]: https://cd.screwdriver.cd/pipelines/8033/badge
 [publish-status-image]: https://cd.screwdriver.cd/pipelines/8033/certify-provider/badge
 [status-url]: https://cd.screwdriver.cd/pipelines/8033
+
+# Generating terraform docs
+
+Install [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs), then run `tfplugindocs generate`
