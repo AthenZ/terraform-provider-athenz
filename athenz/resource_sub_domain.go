@@ -87,7 +87,7 @@ func resourceSubDomainCreate(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(err)
 	case nil:
 		if subDomainCheck != nil {
-			return diag.Errorf("the sub-domain %s is already exists, use terraform import command", domainName)
+			return diag.Errorf("the sub-domain %s already exists, use terraform import command", domainName)
 		} else {
 			return diag.FromErr(err)
 		}

@@ -226,7 +226,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	case nil:
 		if roleCheck != nil {
-			return diag.Errorf("the role %s is already exists in the domain %s use terraform import command", rn, dn)
+			return diag.Errorf("the role %s already exists in the domain %s, use terraform import command", rn, dn)
 		} else {
 			return diag.FromErr(err)
 		}

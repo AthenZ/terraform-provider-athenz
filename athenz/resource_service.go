@@ -110,7 +110,7 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	case nil:
 		if serviceCheck != nil {
-			return diag.Errorf("the service %s is already exists in the domain %s use terraform import command", serviceName, domainName)
+			return diag.Errorf("the service %s already exists in the domain %s, use terraform import command", serviceName, domainName)
 		} else {
 			return diag.FromErr(err)
 		}
