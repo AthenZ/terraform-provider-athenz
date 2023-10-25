@@ -56,8 +56,6 @@ jobs:
 
   pull-request:
     requires: [~pr]
-    secrets:
-      - SD_DEPLOY_KEY
     steps:
       - install-deps: |
           ./scripts/goupdate.sh
