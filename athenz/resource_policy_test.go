@@ -253,7 +253,7 @@ func TestAccGroupPolicyInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupPolicyInvalidEnforcementState(),
-				ExpectError: getErrorRegex("expected value to be one of \\[report enforce\\]"),
+				ExpectError: getErrorRegex("expected value to be one of \\[\"report\" \"enforce\"\\]"),
 			},
 			{
 				Config:      testAccGroupPolicyDifferentModesWithSameEnforcementState(),
