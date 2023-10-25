@@ -119,7 +119,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	case nil:
 		if groupCheck != nil {
-			return diag.Errorf("the group %s is already exists in the domain %s use terraform import command", gn, dn)
+			return diag.Errorf("the group %s already exists in the domain %s, use terraform import command", gn, dn)
 		} else {
 			return diag.FromErr(err)
 		}

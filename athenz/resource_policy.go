@@ -167,7 +167,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	case nil:
 		if policyCheck != nil {
-			return diag.Errorf("the policy %s is already exists in the domain %s use terraform import command", pn, dn)
+			return diag.Errorf("the policy %s already exists in the domain %s, use terraform import command", pn, dn)
 		} else {
 			return diag.FromErr(err)
 		}
