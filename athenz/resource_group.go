@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -70,6 +71,32 @@ func ResourceGroup() *schema.Resource {
 					},
 				},
 			},
+			"settings": {
+				Type:        schema.TypeSet,
+				Description: "Advanced settings",
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"user_expiry_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"service_expiry_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
+			},
+			"last_reviewed_date": {
+				Type:             schema.TypeString,
+				Description:      "The last reviewed timestamp for the group",
+				Optional:         true,
+				ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, LAST_REVIEWED_DATE),
+			},
 			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -109,6 +136,19 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 				group.Tags = expandTagsMap(v.(map[string]interface{}))
 			}
 			auditRef := d.Get("audit_ref").(string)
+			if v, ok := d.GetOk("last_reviewed_date"); ok {
+				group.LastReviewedDate = stringToTimestamp(v.(string))
+			}
+			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
+				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
+				if ok {
+					userExpiryDays := int32(settings["user_expiry_days"].(int))
+					serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+
+					group.MemberExpiryDays = &userExpiryDays
+					group.ServiceExpiryDays = &serviceExpiryDays
+				}
+			}
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
 				return diag.FromErr(err)
 			}
@@ -191,6 +231,31 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		}
 	}
 
+	groupSettings := map[string]int{}
+	if group.MemberExpiryDays != nil {
+		groupSettings["user_expiry_days"] = int(*group.MemberExpiryDays)
+	}
+	if group.ServiceExpiryDays != nil {
+		groupSettings["service_expiry_days"] = int(*group.ServiceExpiryDays)
+	}
+
+	if len(groupSettings) != 0 {
+		if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if hasNoGroupSettings(d) {
+			if err = d.Set("settings", nil); err != nil {
+				return diag.FromErr(err)
+			}
+		} else {
+			groupSettings = emptyGroupSettings()
+			if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
+				return diag.FromErr(err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -262,4 +327,18 @@ func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func hasNoGroupSettings(d *schema.ResourceData) bool {
+	isSettingsNotInResourceData := len(d.Get("settings").(*schema.Set).List()) == 0
+	isSettingsNotInState := d.GetRawState().IsNull() || d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
+
+	return isSettingsNotInResourceData && isSettingsNotInState
+}
+
+func emptyGroupSettings() map[string]int {
+	groupSettings := map[string]int{}
+	groupSettings["user_expiry_days"] = 0
+	groupSettings["service_expiry_days"] = 0
+	return groupSettings
 }

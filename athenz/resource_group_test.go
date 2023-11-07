@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"fmt"
+	"github.com/ardielle/ardielle-go/rdl"
 	"log"
 	"os"
 	"regexp"
@@ -138,6 +139,8 @@ func TestAccGroupBasic(t *testing.T) {
 	groupName := fmt.Sprintf("test%d", rInt)
 	member1 := os.Getenv("MEMBER_1")
 	member2 := os.Getenv("MEMBER_2")
+	now := rdl.TimestampNow()
+	lastReviewedDate := timestampToString(&now)
 	t.Cleanup(func() {
 		cleanAllAccTestGroups(domainName, []string{groupName})
 	})
@@ -204,6 +207,17 @@ func TestAccGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "member.#", "1"),
 					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
 					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
+				),
+			},
+			{
+				Config: testAccGroupConfigLastReviewedDate(groupName, domainName, member1, lastReviewedDate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
+					resource.TestCheckResourceAttr(resName, "last_reviewed_date", lastReviewedDate),
 				),
 			},
 		},
@@ -556,4 +570,21 @@ resource "athenz_group" "groupTest" {
   }
 }
 `, name, domain, member1)
+}
+
+func testAccGroupConfigLastReviewedDate(name, domain, member1, lastReviewedDate string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  tags = {
+	key1 = "a1,a2"
+  }
+  last_reviewed_date = "%s"
+}
+`, name, domain, member1, lastReviewedDate)
 }

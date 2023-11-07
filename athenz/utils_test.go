@@ -1,6 +1,7 @@
 package athenz
 
 import (
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
@@ -472,4 +473,16 @@ func TestIsSharedHostsBetweenConditionInstances(t *testing.T) {
 	assert.True(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
 	hosts1 = ""
 	assert.True(t, isSharedHostsBetweenConditionInstances(hosts1, hosts2))
+}
+
+func TestTimestampToString(t *testing.T) {
+	// without nanoseconds
+	timeWithoutNano := time.Date(2023, 1, 2, 3, 10, 12, 0, time.UTC)
+	tsWithoutNano := rdl.Timestamp{Time: timeWithoutNano}
+	// with nanoseconds
+	timeWithNano := time.Date(2023, 1, 2, 3, 10, 12, 30, time.UTC)
+	tsWithNano := rdl.Timestamp{Time: timeWithNano}
+
+	assert.Equal(t, "2023-01-02 03:10:12", timestampToString(&tsWithNano))
+	assert.Equal(t, "2023-01-02 03:10:12", timestampToString(&tsWithoutNano))
 }

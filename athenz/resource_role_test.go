@@ -2,6 +2,7 @@ package athenz
 
 import (
 	"fmt"
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
@@ -161,6 +162,8 @@ func TestAccGroupRoleBasic(t *testing.T) {
 	roleName := fmt.Sprintf("test%d", rInt)
 	member1 := os.Getenv("MEMBER_1")
 	member2 := os.Getenv("MEMBER_2")
+	now := rdl.TimestampNow()
+	lastReviewedDate := timestampToString(&now)
 	t.Cleanup(func() {
 		cleanAllAccTestRoles(domainName, []string{roleName})
 	})
@@ -261,6 +264,17 @@ func TestAccGroupRoleBasic(t *testing.T) {
 					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": "2022-12-29 23:59:59"}, {"name": member2, "expiration": "", "review": "2023-01-29 23:59:59"}}),
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					testAccCheckCorrectSettings(resourceName, map[string]string{"cert_expiry_mins": "75", "user_review_days": "45"}),
+				),
+			},
+			{
+				Config: testAccGroupRoleLastReviewedDate(roleName, domainName, member1, lastReviewedDate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupRoleExists(resourceName, &role),
+					resource.TestCheckResourceAttr(resourceName, "name", roleName),
+					resource.TestCheckResourceAttr(resourceName, "member.#", "1"),
+					testAccCheckCorrectGroupMembers(resourceName, []map[string]string{{"name": member1, "expiration": "", "review": ""}}),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resourceName, "last_reviewed_date", lastReviewedDate),
 				),
 			},
 		},
@@ -1154,6 +1168,24 @@ resource "athenz_role" "roleTest" {
 	}
 }
 `, name, domain, member1)
+}
+
+func testAccGroupRoleLastReviewedDate(name, domain, member1, lastReviewedDate string) string {
+	return fmt.Sprintf(`
+resource "athenz_role" "roleTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }  
+  audit_ref="done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+  }
+  last_reviewed_date = "%s"
+}
+`, name, domain, member1, lastReviewedDate)
 }
 
 func testAccGroupRoleConfigWithTokenExpirySetting(name, domain, member1 string) string {
