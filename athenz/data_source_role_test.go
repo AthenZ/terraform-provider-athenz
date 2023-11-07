@@ -3,6 +3,7 @@ package athenz
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
@@ -32,6 +33,8 @@ func TestAccGroupRoleDataSource(t *testing.T) {
 	roleName := fmt.Sprintf("test%d", rInt)
 	member1 := os.Getenv("MEMBER_1")
 	member2 := os.Getenv("MEMBER_2")
+	now := rdl.TimestampNow()
+	lastReviewedDate := timestampToString(&now)
 	t.Cleanup(func() {
 		cleanAllAccTestRoles(domainName, []string{roleName})
 	})
@@ -41,7 +44,7 @@ func TestAccGroupRoleDataSource(t *testing.T) {
 		CheckDestroy:      testAccCheckGroupRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGroupRoleDataSourceConfig(roleName, domainName, member1, member2),
+				Config: testAccGroupRoleDataSourceConfig(roleName, domainName, member1, member2, lastReviewedDate),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupRoleExists(resourceName, &role),
 					resource.TestCheckResourceAttrPair(resourceName, "name", dataSourceName, "name"),
@@ -56,13 +59,14 @@ func TestAccGroupRoleDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "settings.#", dataSourceName, "settings.#"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.token_expiry_mins", dataSourceName, "settings.0.token_expiry_mins"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.cert_expiry_mins", dataSourceName, "settings.0.cert_expiry_mins"),
+					resource.TestCheckResourceAttrPair(resourceName, "last_reviewed_date", dataSourceName, "last_reviewed_date"),
 				),
 			},
 		},
 	})
 }
 
-func testAccGroupRoleDataSourceConfig(name, domain, member1, member2 string) string {
+func testAccGroupRoleDataSourceConfig(name, domain, member1, member2, lastReviewedDate string) string {
 	return fmt.Sprintf(`
 resource "athenz_role" "roleTest" {
   name = "%s"
@@ -75,20 +79,21 @@ resource "athenz_role" "roleTest" {
 	expiration = "2022-12-29 23:59:59"
 	review = "2022-12-29 23:59:59"
   }
-  audit_ref="done by someone"
+  audit_ref = "done by someone"
   tags = {
 	key1 = "v1,v2"
 	key2 = "v2,v3"
-	}
+  }
   settings {
 	token_expiry_mins = 5
 	cert_expiry_mins = 10
-  }  
+  }
+  last_reviewed_date = "%s"
 }
 
 data "athenz_role" "roleTest" {
   domain = athenz_role.roleTest.domain
   name = athenz_role.roleTest.name
 }
-`, name, domain, member1, member2)
+`, name, domain, member1, member2, lastReviewedDate)
 }

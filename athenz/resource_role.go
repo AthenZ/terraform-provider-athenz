@@ -134,6 +134,12 @@ func ResourceRole() *schema.Resource {
 				ForceNew:         true,
 				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
+			"last_reviewed_date": {
+				Type:             schema.TypeString,
+				Description:      "The last reviewed timestamp for the role",
+				Optional:         true,
+				ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, LAST_REVIEWED_DATE),
+			},
 			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -192,6 +198,9 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					return diag.Errorf("delegated roles cannot have members")
 				}
 				role.Trust = zms.DomainName(v.(string))
+			}
+			if v, ok := d.GetOk("last_reviewed_date"); ok {
+				role.LastReviewedDate = stringToTimestamp(v.(string))
 			}
 			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
 				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
@@ -306,44 +315,44 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 		}
 	}
 
-	zmsSettings := map[string]int{}
+	roleSettings := map[string]int{}
 	if role.TokenExpiryMins != nil {
-		zmsSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
+		roleSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
 	}
 	if role.CertExpiryMins != nil {
-		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
+		roleSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
 	}
 	if role.MemberExpiryDays != nil {
-		zmsSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
+		roleSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
 	}
 	if role.MemberReviewDays != nil {
-		zmsSettings["user_review_days"] = int(*role.MemberReviewDays)
+		roleSettings["user_review_days"] = int(*role.MemberReviewDays)
 	}
 	if role.GroupExpiryDays != nil {
-		zmsSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
+		roleSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
 	}
 	if role.GroupReviewDays != nil {
-		zmsSettings["group_review_days"] = int(*role.GroupReviewDays)
+		roleSettings["group_review_days"] = int(*role.GroupReviewDays)
 	}
 	if role.ServiceExpiryDays != nil {
-		zmsSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
+		roleSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
 	}
 	if role.ServiceReviewDays != nil {
-		zmsSettings["service_review_days"] = int(*role.ServiceReviewDays)
+		roleSettings["service_review_days"] = int(*role.ServiceReviewDays)
 	}
 
-	if len(zmsSettings) != 0 {
-		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+	if len(roleSettings) != 0 {
+		if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
-		if hasNoSettings(d) {
+		if hasNoRoleSettings(d) {
 			if err = d.Set("settings", nil); err != nil {
 				return diag.FromErr(err)
 			}
 		} else {
-			zmsSettings = emptySettings()
-			if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+			roleSettings = emptyRoleSettings()
+			if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
 				return diag.FromErr(err)
 			}
 		}
@@ -352,24 +361,24 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func hasNoSettings(d *schema.ResourceData) bool {
+func hasNoRoleSettings(d *schema.ResourceData) bool {
 	isSettingsNotInResourceData := len(d.Get("settings").(*schema.Set).List()) == 0
 	isSettingsNotInState := d.GetRawState().IsNull() || d.GetRawState().AsValueMap()["settings"].AsValueSet().Values() == nil
 
 	return isSettingsNotInResourceData && isSettingsNotInState
 }
 
-func emptySettings() map[string]int {
-	zmsSettings := map[string]int{}
-	zmsSettings["token_expiry_mins"] = 0
-	zmsSettings["cert_expiry_mins"] = 0
-	zmsSettings["user_expiry_days"] = 0
-	zmsSettings["user_review_days"] = 0
-	zmsSettings["group_expiry_days"] = 0
-	zmsSettings["group_review_days"] = 0
-	zmsSettings["service_expiry_days"] = 0
-	zmsSettings["service_review_days"] = 0
-	return zmsSettings
+func emptyRoleSettings() map[string]int {
+	roleSettings := map[string]int{}
+	roleSettings["token_expiry_mins"] = 0
+	roleSettings["cert_expiry_mins"] = 0
+	roleSettings["user_expiry_days"] = 0
+	roleSettings["user_review_days"] = 0
+	roleSettings["group_expiry_days"] = 0
+	roleSettings["group_review_days"] = 0
+	roleSettings["service_expiry_days"] = 0
+	roleSettings["service_review_days"] = 0
+	return roleSettings
 }
 
 func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

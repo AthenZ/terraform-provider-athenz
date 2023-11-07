@@ -131,6 +131,11 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"last_reviewed_date": {
+			Type:        schema.TypeString,
+			Description: "Last reviewed date for the role",
+			Optional:    true,
+		},
 		"trust": {
 			Type:        schema.TypeString,
 			Description: "The domain, which this role is trusted to",
@@ -257,7 +262,7 @@ func flattenRoleMembers(list []*zms.RoleMember) []interface{} {
 	return roleMembers
 }
 
-func flattenRoleSettings(values map[string]int) []interface{} {
+func flattenIntSettings(values map[string]int) []interface{} {
 	settingsSchemaSet := make([]interface{}, 0, 1)
 	settings := map[string]interface{}{}
 
@@ -274,9 +279,17 @@ func timestampToString(timeStamp *rdl.Timestamp) string {
 		return ""
 	}
 	str := timeStamp.Time.String()
-	// <yyyy>-<mm>-<dd> <hh>:<mm>:<ss> +0000 UTC
-	lastIndex := strings.Index(str, "+") - 1
-	return str[0:lastIndex]
+	// <yyyy>-<mm>-<dd> <hh>:<mm>:<ss> +0000 UTC - without nanoseconds
+	// <yyyy>-<mm>-<dd> <hh>:<mm>:<ss>.<SSSSSS> +0000 UTC - with nanoseconds
+	lastIndex := strings.LastIndex(str, ".")
+	if lastIndex == -1 {
+		lastIndex = strings.Index(str, " +")
+	}
+	if lastIndex == -1 {
+		return str
+	} else {
+		return str[0:lastIndex]
+	}
 }
 
 func convertToPublicKeyEntryList(publicKeys []interface{}) []*zms.PublicKeyEntry {
@@ -405,33 +418,33 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	if len(zmsRole.Tags) > 0 {
 		role["tags"] = flattenTag(zmsRole.Tags)
 	}
-	zmsSettings := map[string]int{}
+	roleSettings := map[string]int{}
 	if zmsRole.TokenExpiryMins != nil {
-		zmsSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
+		roleSettings["token_expiry_mins"] = int(*zmsRole.TokenExpiryMins)
 	}
 	if zmsRole.CertExpiryMins != nil {
-		zmsSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
+		roleSettings["cert_expiry_mins"] = int(*zmsRole.CertExpiryMins)
 	}
 	if zmsRole.MemberExpiryDays != nil {
-		zmsSettings["user_expiry_days"] = int(*zmsRole.MemberExpiryDays)
+		roleSettings["user_expiry_days"] = int(*zmsRole.MemberExpiryDays)
 	}
 	if zmsRole.MemberReviewDays != nil {
-		zmsSettings["user_review_days"] = int(*zmsRole.MemberReviewDays)
+		roleSettings["user_review_days"] = int(*zmsRole.MemberReviewDays)
 	}
 	if zmsRole.GroupExpiryDays != nil {
-		zmsSettings["group_expiry_days"] = int(*zmsRole.GroupExpiryDays)
+		roleSettings["group_expiry_days"] = int(*zmsRole.GroupExpiryDays)
 	}
 	if zmsRole.GroupReviewDays != nil {
-		zmsSettings["group_review_days"] = int(*zmsRole.GroupReviewDays)
+		roleSettings["group_review_days"] = int(*zmsRole.GroupReviewDays)
 	}
 	if zmsRole.ServiceExpiryDays != nil {
-		zmsSettings["service_expiry_days"] = int(*zmsRole.ServiceExpiryDays)
+		roleSettings["service_expiry_days"] = int(*zmsRole.ServiceExpiryDays)
 	}
 	if zmsRole.ServiceReviewDays != nil {
-		zmsSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
+		roleSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
 	}
-	if len(zmsSettings) > 0 {
-		role["settings"] = flattenRoleSettings(zmsSettings)
+	if len(roleSettings) > 0 {
+		role["settings"] = flattenIntSettings(roleSettings)
 	}
 	if zmsRole.Trust != "" {
 		role["trust"] = string(zmsRole.Trust)

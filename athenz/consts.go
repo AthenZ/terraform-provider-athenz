@@ -13,6 +13,7 @@ const (
 	MEMBER_EXPIRATION      = "member expiration"
 	DATE_PATTERN           = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 	MEMBER_REVIEW_REMINDER = "member review reminder"
+	LAST_REVIEWED_DATE     = "last reviewed date"
 )
 
 // assertion conditions data keys

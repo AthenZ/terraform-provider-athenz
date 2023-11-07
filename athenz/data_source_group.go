@@ -47,6 +47,29 @@ func DataSourceGroup() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"settings": {
+				Type:        schema.TypeSet,
+				Description: "Advanced settings",
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"user_expiry_days": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"service_expiry_days": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"last_reviewed_date": {
+				Type:        schema.TypeString,
+				Description: "Last reviewed date for the group",
+				Optional:    true,
+			},
 		},
 	}
 }
@@ -82,6 +105,23 @@ func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta inter
 			return diag.FromErr(err)
 		}
 	}
+	groupSettings := map[string]int{}
+	if group.MemberExpiryDays != nil {
+		groupSettings["user_expiry_days"] = int(*group.MemberExpiryDays)
+	}
+	if group.ServiceExpiryDays != nil {
+		groupSettings["service_expiry_days"] = int(*group.ServiceExpiryDays)
+	}
 
+	if len(groupSettings) > 0 {
+		if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.LastReviewedDate != nil {
+		if err = d.Set("last_reviewed_date", timestampToString(group.LastReviewedDate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }

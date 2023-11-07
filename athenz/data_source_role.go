@@ -48,39 +48,44 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	}
-	zmsSettings := map[string]int{}
+	roleSettings := map[string]int{}
 	if role.TokenExpiryMins != nil {
-		zmsSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
+		roleSettings["token_expiry_mins"] = int(*role.TokenExpiryMins)
 	}
 	if role.CertExpiryMins != nil {
-		zmsSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
+		roleSettings["cert_expiry_mins"] = int(*role.CertExpiryMins)
 	}
 	if role.MemberExpiryDays != nil {
-		zmsSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
+		roleSettings["user_expiry_days"] = int(*role.MemberExpiryDays)
 	}
 	if role.MemberReviewDays != nil {
-		zmsSettings["user_review_days"] = int(*role.MemberReviewDays)
+		roleSettings["user_review_days"] = int(*role.MemberReviewDays)
 	}
 	if role.GroupExpiryDays != nil {
-		zmsSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
+		roleSettings["group_expiry_days"] = int(*role.GroupExpiryDays)
 	}
 	if role.GroupReviewDays != nil {
-		zmsSettings["group_review_days"] = int(*role.GroupReviewDays)
+		roleSettings["group_review_days"] = int(*role.GroupReviewDays)
 	}
 	if role.ServiceExpiryDays != nil {
-		zmsSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
+		roleSettings["service_expiry_days"] = int(*role.ServiceExpiryDays)
 	}
 	if role.ServiceReviewDays != nil {
-		zmsSettings["service_review_days"] = int(*role.ServiceReviewDays)
+		roleSettings["service_review_days"] = int(*role.ServiceReviewDays)
 	}
-	if len(zmsSettings) > 0 {
-		if err = d.Set("settings", flattenRoleSettings(zmsSettings)); err != nil {
+	if len(roleSettings) > 0 {
+		if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
 			return diag.FromErr(err)
 		}
 	}
 
 	if role.Trust != "" {
 		if err = d.Set("trust", string(role.Trust)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.LastReviewedDate != nil {
+		if err = d.Set("last_reviewed_date", timestampToString(role.LastReviewedDate)); err != nil {
 			return diag.FromErr(err)
 		}
 	}

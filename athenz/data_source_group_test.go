@@ -3,11 +3,13 @@ package athenz
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestAccGroupDataSource(t *testing.T) {
@@ -32,6 +34,10 @@ func TestAccGroupDataSource(t *testing.T) {
 	groupName := fmt.Sprintf("test%d", rInt)
 	member1 := os.Getenv("MEMBER_1")
 	member2 := os.Getenv("MEMBER_2")
+	now := rdl.TimestampNow()
+	lastReviewedDate := timestampToString(&now)
+	monthExpiry := rdl.Timestamp{Time: time.Now().UTC().Add(time.Duration(720) * time.Hour)}
+	memberExpiry := timestampToString(&monthExpiry)
 	t.Cleanup(func() {
 		cleanAllAccTestGroups(domainName, []string{groupName})
 	})
@@ -41,7 +47,7 @@ func TestAccGroupDataSource(t *testing.T) {
 		CheckDestroy:      testAccCheckGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGroupDataSourceConfig(groupName, domainName, member1, member2),
+				Config: testAccGroupDataSourceConfig(groupName, domainName, member1, member2, memberExpiry, lastReviewedDate),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resourceName, &group),
 					resource.TestCheckResourceAttrPair(resourceName, "name", dataSourceName, "name"),
@@ -50,30 +56,45 @@ func TestAccGroupDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "member.0.expiration", dataSourceName, "member.0.expiration"),
 					resource.TestCheckResourceAttrPair(resourceName, "member.1.name", dataSourceName, "member.1.name"),
 					resource.TestCheckResourceAttrPair(resourceName, "member.1.expiration", dataSourceName, "member.1.expiration"),
+					resource.TestCheckResourceAttrPair(resourceName, "tags.%", dataSourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(resourceName, "settings.#", dataSourceName, "settings.#"),
+					resource.TestCheckResourceAttrPair(resourceName, "settings.0.user_expiry_days", dataSourceName, "settings.0.user_expiry_days"),
+					resource.TestCheckResourceAttrPair(resourceName, "settings.0.service_expiry_days", dataSourceName, "settings.0.service_expiry_days"),
+					resource.TestCheckResourceAttrPair(resourceName, "last_reviewed_date", dataSourceName, "last_reviewed_date"),
 				),
 			},
 		},
 	})
 }
 
-func testAccGroupDataSourceConfig(name, domain, member1, member2 string) string {
+func testAccGroupDataSourceConfig(name, domain, member1, member2, memberExpiry, lastReviewedDate string) string {
 	return fmt.Sprintf(`
 resource "athenz_group" "groupTest" {
   name = "%s"
   domain = "%s"
   member {
 	name = "%s"
+	expiration = "%s"
   }
   member {
 	name = "%s"
-	expiration = "2022-12-29 23:59:59"
+	expiration = "%s"
   }
-  audit_ref="done by someone"
+  audit_ref = "done by someone"
+  tags = {
+	key1 = "v1,v2"
+	key2 = "v2,v3"
+  }
+  settings {
+	user_expiry_days = 60
+	service_expiry_days = 90
+  }
+  last_reviewed_date = "%s"
 }
 
 data "athenz_group" "groupTest" {
   domain = athenz_group.groupTest.domain
   name = athenz_group.groupTest.name
 }
-`, name, domain, member1, member2)
+`, name, domain, member1, memberExpiry, member2, memberExpiry, lastReviewedDate)
 }
