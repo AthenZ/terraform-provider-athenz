@@ -17,7 +17,7 @@ while true ; do
     echo TIMEOUT
     false
   fi
-  echo "$(date) - GitHub asset didn't found - HTTP status code $VERSION_EXISTS - keep waiting..."
+  echo "$(date) - GitHub asset not found - HTTP status code $VERSION_EXISTS - keep waiting..."
   sleep 15
 done
 

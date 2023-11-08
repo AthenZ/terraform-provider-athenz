@@ -3,13 +3,12 @@
 page_title: "athenz_policy_version Resource - terraform-provider-athenz"
 subcategory: ""
 description: |-
-The policy version resource provides an Athenz policy with all its versions resource.
+  The policy version resource provides an Athenz policy with all its versions resource.
 ---
 
 # athenz_policy_version (Resource)
 
-
-`athenz_policy_version` provides an Athenz policy with all its versions resource.
+`athenz_policy_version` provides an Athenz policy resource with all of its versions.
 
 ## Example Usage
 

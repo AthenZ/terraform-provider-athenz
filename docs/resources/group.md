@@ -3,13 +3,12 @@
 page_title: "athenz_group Resource - terraform-provider-athenz"
 subcategory: ""
 description: |-
-The group resource provides an Athenz group resource.
+  The group resource provides an Athenz group resource.
 ---
   
 ---
 
 # athenz_group (Resource)
-
 
 `athenz_group` provides an Athenz group resource.
 
@@ -52,11 +51,7 @@ resource "athenz_group" "newgrp" {
 The following arguments are supported:
 
 - `name` - (Required) The group name.
-
-
 - `domain` - (Required) The Athenz domain name.
-
-
 - `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
 
 ### Required
@@ -67,8 +62,10 @@ The following arguments are supported:
 ### Optional
 
 - `audit_ref` (String)
+- `last_reviewed_date` (String) The last reviewed timestamp for the group
 - `member` (Block Set) Users or services to be added as members with attribute (see [below for nested schema](#nestedblock--member))
 - `members` (Set of String, Deprecated) \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
+- `settings` (Block Set, Max: 1) Advanced settings (see [below for nested schema](#nestedblock--settings))
 - `tags` (Map of String)
 
 ### Read-Only
@@ -85,3 +82,11 @@ Required:
 Optional:
 
 - `expiration` (String) - The expiration of the Athenz principal member. must be in this format: `<yyyy>-<mm>-<dd> <hh>:<MM>:<ss>`
+
+<a id="nestedblock--settings"></a>
+### Nested Schema for `settings`
+
+Optional:
+
+- `service_expiry_days` - (Number) All services in the role will have specified max expiry days
+- `user_expiry_days` - (Number) All user members in the role will have specified max expiry days

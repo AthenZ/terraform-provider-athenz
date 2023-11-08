@@ -3,12 +3,12 @@
 page_title: "athenz_all_domain_details Data Source - terraform-provider-athenz"
 subcategory: ""
 description: |-
-The all domain details data source provides full details about a specific Athenz domain.
+  The all domain details data source provides full details about a specific Athenz domain.
 ---
 
 # athenz_all_domain_details (Data Source)
 
-`athenz_all_domain_details` provides full details about a specific Athenz domain (top-level domain/ sub domain/ personal domain)
+`athenz_all_domain_details` provides full details about a specific Athenz domain (top-level domain/ subdomain/ personal domain)
 
 Note: It can be useful for import  
 

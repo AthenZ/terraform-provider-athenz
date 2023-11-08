@@ -3,7 +3,7 @@
 page_title: "athenz_policy Resource - terraform-provider-athenz"
 subcategory: ""
 description: |-
-The policy resource provides an Athenz policy resource.
+  The policy resource provides an Athenz policy resource.
 ---
 
 # athenz_policy (Resource)
