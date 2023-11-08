@@ -4,7 +4,6 @@ page_title: "athenz_role Resource - terraform-provider-athenz"
 subcategory: ""
 description: |-
   The role resource provides an Athenz role resource.
-
 ---
 
 # athenz_role (Resource)
@@ -91,6 +90,7 @@ resource "athenz_role" "foo_role" {
 ### Optional
 
 - `audit_ref` (String, Default = "done by terraform provider")  string containing audit specification or ticket number.
+- `last_reviewed_date` (String) The last reviewed timestamp for the role
 - `member` (Block Set) A set of Athenz principal members (see [below for nested schema](#nestedblock--member))
 - `members` (Set of String, Deprecated) \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
 - `settings` (Block Set, Max: 1) A map of advanced settings with the following options (see [below for nested schema](#nestedblock--settings))
@@ -119,11 +119,11 @@ Optional:
 
 Optional:
 
-- `token_expiry_mins` - (Number)   Tokens issued for this role will have specified max timeout in mins
-- `cert_expiry_mins` - (Number)    Certs issued for this role will have specified max timeout in mins
-- `user_expiry_days` - (Number)    All user members in the role will have specified max expiry days
-- `user_review_days` - (Number)    All user members in the role will have specified max review days
-- `group_expiry_days` - (Number)   All group members in the role will have specified max expiry days
-- `group_review_days` - (Number)   All groups in the role will have specified max review days
+- `cert_expiry_mins` - (Number) Certs issued for this role will have specified max timeout in mins
+- `group_expiry_days` - (Number) All group members in the role will have specified max expiry days
+- `group_review_days` - (Number) All groups in the role will have specified max review days
 - `service_expiry_days` - (Number) All services in the role will have specified max expiry days
 - `service_review_days` - (Number) All service members in the role will have specified review days
+- `token_expiry_mins` - (Number) Tokens issued for this role will have specified max timeout in mins
+- `user_expiry_days` - (Number) All user members in the role will have specified max expiry days
+- `user_review_days` - (Number) All user members in the role will have specified max review days
