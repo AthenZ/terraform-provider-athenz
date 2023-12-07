@@ -88,6 +88,11 @@ func ResourceGroup() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
+						"max_members": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
 					},
 				},
 			},
@@ -144,9 +149,11 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 				if ok {
 					userExpiryDays := int32(settings["user_expiry_days"].(int))
 					serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+					maxMembers := int32(settings["max_members"].(int))
 
 					group.MemberExpiryDays = &userExpiryDays
 					group.ServiceExpiryDays = &serviceExpiryDays
+					group.MaxMembers = &maxMembers
 				}
 			}
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
@@ -168,7 +175,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	return readAfterWrite(resourceGroupRead, ctx, d, meta)
 }
 
-func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn, gn, err := splitGroupId(d.Id())
@@ -238,6 +245,9 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interfa
 	if group.ServiceExpiryDays != nil {
 		groupSettings["service_expiry_days"] = int(*group.ServiceExpiryDays)
 	}
+	if group.MaxMembers != nil {
+		groupSettings["max_members"] = int(*group.MaxMembers)
+	}
 
 	if len(groupSettings) != 0 {
 		if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
@@ -269,7 +279,7 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	auditRef := d.Get("audit_ref").(string)
 	membersToDelete := make([]*zms.GroupMember, 0)
 	membersToAdd := make([]*zms.GroupMember, 0)
-	currentGroup, err := zmsClient.GetGroup(dn, gn)
+	group, err := zmsClient.GetGroup(dn, gn)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -289,11 +299,30 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		isGroupChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
-		currentGroup.Tags = tags
+		group.Tags = tags
+	}
+
+	if d.HasChange("settings") {
+		isGroupChanged = true
+		_, n := d.GetChange("settings")
+		if len(n.(*schema.Set).List()) != 0 {
+			settings := n.(*schema.Set).List()[0].(map[string]interface{})
+			userExpiryDays := int32(settings["user_expiry_days"].(int))
+			serviceExpiryDays := int32(settings["service_expiry_days"].(int))
+			maxMembers := int32(settings["max_members"].(int))
+
+			group.MemberExpiryDays = &userExpiryDays
+			group.ServiceExpiryDays = &serviceExpiryDays
+			group.MaxMembers = &maxMembers
+		} else {
+			group.MemberExpiryDays = nil
+			group.ServiceExpiryDays = nil
+			group.MaxMembers = nil
+		}
 	}
 
 	if isGroupChanged {
-		err := zmsClient.PutGroup(dn, gn, auditRef, currentGroup)
+		err := zmsClient.PutGroup(dn, gn, auditRef, group)
 		if err != nil {
 			return diag.Errorf("error updating tags: %s", err)
 		}
@@ -307,7 +336,7 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	return readAfterWrite(resourceGroupRead, ctx, d, meta)
 }
 
-func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceGroupDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, gn, err := splitGroupId(d.Id())
 	if err != nil {
@@ -340,5 +369,6 @@ func emptyGroupSettings() map[string]int {
 	groupSettings := map[string]int{}
 	groupSettings["user_expiry_days"] = 0
 	groupSettings["service_expiry_days"] = 0
+	groupSettings["max_members"] = 0
 	return groupSettings
 }

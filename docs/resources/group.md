@@ -61,12 +61,12 @@ The following arguments are supported:
 
 ### Optional
 
-- `audit_ref` (String)
+- `audit_ref` (String, Default = "done by terraform provider")  string containing audit specification or ticket number.
 - `last_reviewed_date` (String) The last reviewed timestamp for the group
 - `member` (Block Set) Users or services to be added as members with attribute (see [below for nested schema](#nestedblock--member))
 - `members` (Set of String, Deprecated) \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
 - `settings` (Block Set, Max: 1) Advanced settings (see [below for nested schema](#nestedblock--settings))
-- `tags` (Map of String)
+- `tags` (Map of String) map of group tags
 
 ### Read-Only
 
@@ -88,5 +88,6 @@ Optional:
 
 Optional:
 
+- `max_members` (Number) Max number of principals in the group
 - `service_expiry_days` - (Number) All services in the role will have specified max expiry days
 - `user_expiry_days` - (Number) All user members in the role will have specified max expiry days

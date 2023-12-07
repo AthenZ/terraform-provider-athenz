@@ -73,6 +73,9 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 	if role.ServiceReviewDays != nil {
 		roleSettings["service_review_days"] = int(*role.ServiceReviewDays)
 	}
+	if role.MaxMembers != nil {
+		roleSettings["max_members"] = int(*role.MaxMembers)
+	}
 	if len(roleSettings) > 0 {
 		if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
 			return diag.FromErr(err)

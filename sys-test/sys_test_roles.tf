@@ -57,5 +57,6 @@ resource "athenz_role" "with_all_settings" {
     group_review_days   = 22
     service_expiry_days = 30
     service_review_days = 31
+    max_members         = 20
   }
 }

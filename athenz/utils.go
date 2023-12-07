@@ -128,6 +128,10 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 						Type:     schema.TypeInt,
 						Optional: true,
 					},
+					"max_members": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		},
@@ -442,6 +446,9 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	}
 	if zmsRole.ServiceReviewDays != nil {
 		roleSettings["service_review_days"] = int(*zmsRole.ServiceReviewDays)
+	}
+	if zmsRole.MaxMembers != nil {
+		roleSettings["max_members"] = int(*zmsRole.MaxMembers)
 	}
 	if len(roleSettings) > 0 {
 		role["settings"] = flattenIntSettings(roleSettings)

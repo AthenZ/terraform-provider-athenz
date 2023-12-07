@@ -31,14 +31,27 @@ The arguments of this data source act as filters for querying the current Athenz
 
 ### Optional
 
-- `aws_account_id` (String) - The accound id from aws if present for the domain
+- `application_id` (String) associated application id
+- `aws_account_id` (String) - The account id from aws if present for the domain
+- `azure_subscription` (String) - Azure subscription if present for the domain
+- `business_service` (String) associated business service with domain
+- `contacts` (Map of String) map of domain contacts
+- `description` (String) description for the domain
 - `gcp_project_id` (String) - GCP project name if present for the domain
 - `gcp_project_number` (String) - GCP project number if it is present for the domain
-- `azure_subscription` (String) - Azure subscription if present for the domain
-- `role_list` (Set of String) - List of roles for the domain
-- `policy_list` (Set of String) - List of policies in the domain
-- `service_list` (Set of String) - List of services present in the domain
+- `group_expiry_days` (Number) all groups in the domain roles will have specified max expiry days
 - `group_list` (Set of String) - List of groups in the domain
+- `member_purge_expiry_days` (Number) purge role/group members with expiry date configured days in the past
+- `policy_list` (Set of String) - List of policies in the domain
+- `role_cert_expiry_mins` (Number) role certs issued for this domain will have specified max timeout in mins
+- `role_list` (Set of String) - List of roles for the domain
+- `service_cert_expiry_mins` (Number) service identity certs issued for this domain will have specified max timeout in mins
+- `service_expiry_days` (Number) all services in the domain roles will have specified max expiry days
+- `service_list` (Set of String) - List of services present in the domain
+- `tags` (Map of String) map of domain tags
+- `token_expiry_mins` (Number) tokens issued for this domain will have specified max timeout in mins
+- `user_authority_filter` (String) membership filtered based on user authority configured attributes
+- `user_expiry_days` (Number) all user members in the domain will have specified max expiry days
 
 ### Read-Only
 

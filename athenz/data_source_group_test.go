@@ -60,6 +60,7 @@ func TestAccGroupDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "settings.#", dataSourceName, "settings.#"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.user_expiry_days", dataSourceName, "settings.0.user_expiry_days"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.service_expiry_days", dataSourceName, "settings.0.service_expiry_days"),
+					resource.TestCheckResourceAttrPair(resourceName, "settings.0.max_members", dataSourceName, "settings.0.max_members"),
 					resource.TestCheckResourceAttrPair(resourceName, "last_reviewed_date", dataSourceName, "last_reviewed_date"),
 				),
 			},
@@ -88,6 +89,7 @@ resource "athenz_group" "groupTest" {
   settings {
 	user_expiry_days = 60
 	service_expiry_days = 90
+	max_members = 5
   }
   last_reviewed_date = "%s"
 }
