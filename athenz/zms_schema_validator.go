@@ -19,6 +19,7 @@ const (
 	MEMBER_NAME               = "MemberName"
 	GROUP_MEMBER_NAME         = "GroupMemberName"
 	ASSERTION_CONDITION_VALUE = "AssertionConditionValue"
+	RESOURCE_NAME             = "ResourceName"
 )
 
 var rdlSchema *rdl.Schema
@@ -34,6 +35,7 @@ func init() {
 		MEMBER_NAME:               buildRegexFromRdlSchema(MEMBER_NAME),
 		GROUP_MEMBER_NAME:         buildRegexFromRdlSchema(GROUP_MEMBER_NAME),
 		ASSERTION_CONDITION_VALUE: buildRegexFromRdlSchema(ASSERTION_CONDITION_VALUE),
+		RESOURCE_NAME:             buildRegexFromRdlSchema(RESOURCE_NAME),
 	}
 }
 

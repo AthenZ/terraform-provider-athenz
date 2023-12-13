@@ -7,7 +7,7 @@ import (
 )
 
 // flattenTag - takes the tag form the zms and return a tag schema
-func flattenTag(tagsMap map[zms.CompoundName]*zms.TagValueList) map[string]interface{} {
+func flattenTag(tagsMap map[zms.TagKey]*zms.TagValueList) map[string]interface{} {
 	tags := map[string]interface{}{}
 	for tagKey, valueList := range tagsMap {
 		tagValue := ""
@@ -25,18 +25,18 @@ func flattenTag(tagsMap map[zms.CompoundName]*zms.TagValueList) map[string]inter
 	return tags
 }
 
-func expandTagsMap(tagsMap map[string]interface{}) map[zms.CompoundName]*zms.TagValueList {
-	resourceTags := map[zms.CompoundName]*zms.TagValueList{}
+func expandTagsMap(tagsMap map[string]interface{}) map[zms.TagKey]*zms.TagValueList {
+	resourceTags := map[zms.TagKey]*zms.TagValueList{}
 	for key, listVal := range tagsMap {
 		tags := makeTagsValue(listVal.(string))
 		if len(tags.List) > 0 {
-			resourceTags[zms.CompoundName(key)] = tags
+			resourceTags[zms.TagKey(key)] = tags
 		}
 	}
 	if len(resourceTags) > 0 {
 		return resourceTags
 	}
-	return map[zms.CompoundName]*zms.TagValueList{zms.CompoundName("key"): &zms.TagValueList{List: []zms.TagCompoundValue{}}}
+	return map[zms.TagKey]*zms.TagValueList{"key": {List: []zms.TagCompoundValue{}}}
 }
 
 func makeTagsValue(tagsValues string) *zms.TagValueList {

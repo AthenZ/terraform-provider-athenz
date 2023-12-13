@@ -124,6 +124,11 @@ func ResourceRole() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
+						"max_members": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
 					},
 				},
 			},
@@ -157,7 +162,7 @@ func ResourceRole() *schema.Resource {
 	}
 }
 
-func validateRoleSchema(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func validateRoleSchema(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	_, mNew := d.GetChange("member")
 	members := mNew.(*schema.Set).List()
 
@@ -213,6 +218,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					groupReviewDays := int32(settings["group_review_days"].(int))
 					serviceExpiryDays := int32(settings["service_expiry_days"].(int))
 					serviceReviewDays := int32(settings["service_review_days"].(int))
+					maxMembers := int32(settings["max_members"].(int))
 
 					role.TokenExpiryMins = &tokenExpiryMins
 					role.CertExpiryMins = &certExpiryMins
@@ -222,6 +228,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					role.GroupReviewDays = &groupReviewDays
 					role.ServiceExpiryDays = &serviceExpiryDays
 					role.ServiceReviewDays = &serviceReviewDays
+					role.MaxMembers = &maxMembers
 				}
 			}
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
@@ -244,7 +251,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 	return readAfterWrite(resourceRoleRead, ctx, d, meta)
 }
 
-func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn, rn, err := splitRoleId(d.Id())
@@ -340,6 +347,9 @@ func resourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	if role.ServiceReviewDays != nil {
 		roleSettings["service_review_days"] = int(*role.ServiceReviewDays)
 	}
+	if role.MaxMembers != nil {
+		roleSettings["max_members"] = int(*role.MaxMembers)
+	}
 
 	if len(roleSettings) != 0 {
 		if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
@@ -378,6 +388,7 @@ func emptyRoleSettings() map[string]int {
 	roleSettings["group_review_days"] = 0
 	roleSettings["service_expiry_days"] = 0
 	roleSettings["service_review_days"] = 0
+	roleSettings["max_members"] = 0
 	return roleSettings
 }
 
@@ -410,6 +421,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 			groupReviewDays := int32(settings["group_review_days"].(int))
 			serviceExpiryDays := int32(settings["service_expiry_days"].(int))
 			serviceReviewDays := int32(settings["service_review_days"].(int))
+			maxMembers := int32(settings["max_members"].(int))
 
 			role.TokenExpiryMins = &tokenExpiryMins
 			role.CertExpiryMins = &certExpiryMins
@@ -419,6 +431,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 			role.GroupReviewDays = &groupReviewDays
 			role.ServiceExpiryDays = &serviceExpiryDays
 			role.ServiceReviewDays = &serviceReviewDays
+			role.MaxMembers = &maxMembers
 		} else {
 			role.TokenExpiryMins = nil
 			role.CertExpiryMins = nil
@@ -428,6 +441,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 			role.GroupReviewDays = nil
 			role.ServiceExpiryDays = nil
 			role.ServiceReviewDays = nil
+			role.MaxMembers = nil
 		}
 	}
 
@@ -481,7 +495,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	return readAfterWrite(resourceRoleRead, ctx, d, meta)
 }
 
-func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceRoleDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, rn, err := splitRoleId(d.Id())
 	if err != nil {

@@ -61,11 +61,12 @@ Optional:
 
 Optional:
 
-- `cert_expiry_mins` (Number)
-- `group_expiry_days` (Number)
-- `group_review_days` (Number)
-- `service_expiry_days` (Number)
-- `service_review_days` (Number)
-- `token_expiry_mins` (Number)
-- `user_expiry_days` (Number)
-- `user_review_days` (Number)
+- `cert_expiry_mins` (Number) certs issued for this role will have specified max timeout in mins
+- `group_expiry_days` (Number) all group members in the role will have specified max expiry days
+- `group_review_days` (Number) all group members in the role will have specified max review reminder days
+- `max_members` (Number) Max number of principals in the role
+- `service_expiry_days` (Number) all services in the role will have specified max expiry days
+- `service_review_days` (Number) all service members in the role will have specified max review reminder days
+- `token_expiry_mins` (Number) tokens issued for this role will have specified max timeout in mins
+- `user_expiry_days` (Number) all user members in the role will have specified max expiry days
+- `user_review_days` (Number) all user members in the role will have specified max review reminder days

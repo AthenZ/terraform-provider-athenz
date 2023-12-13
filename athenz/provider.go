@@ -61,6 +61,7 @@ func Provider() *schema.Provider {
 			"athenz_sub_domain":       ResourceSubDomain(),
 			"athenz_user_domain":      ResourceUserDomain(),
 			"athenz_top_level_domain": ResourceTopLevelDomain(),
+			"athenz_domain_meta":      ResourceDomainMeta(),
 		},
 
 		ConfigureContextFunc: configProvider,

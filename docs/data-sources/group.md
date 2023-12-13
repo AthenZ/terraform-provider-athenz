@@ -58,5 +58,6 @@ Optional:
 
 Optional:
 
-- `service_expiry_days` (Number)
-- `user_expiry_days` (Number)
+- `max_members` (Number) Max number of principals in the group
+- `service_expiry_days` (Number) all services in the group will have specified max expiry days
+- `user_expiry_days` (Number) all user members in the group will have specified max expiry days

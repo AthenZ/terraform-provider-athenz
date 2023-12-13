@@ -62,6 +62,10 @@ func DataSourceGroup() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
+						"max_members": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -112,7 +116,9 @@ func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta inter
 	if group.ServiceExpiryDays != nil {
 		groupSettings["service_expiry_days"] = int(*group.ServiceExpiryDays)
 	}
-
+	if group.MaxMembers != nil {
+		groupSettings["max_members"] = int(*group.MaxMembers)
+	}
 	if len(groupSettings) > 0 {
 		if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
 			return diag.FromErr(err)

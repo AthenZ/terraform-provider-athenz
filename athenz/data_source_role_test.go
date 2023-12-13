@@ -59,6 +59,7 @@ func TestAccGroupRoleDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "settings.#", dataSourceName, "settings.#"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.token_expiry_mins", dataSourceName, "settings.0.token_expiry_mins"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.cert_expiry_mins", dataSourceName, "settings.0.cert_expiry_mins"),
+					resource.TestCheckResourceAttrPair(resourceName, "settings.0.max_members", dataSourceName, "settings.0.max_members"),
 					resource.TestCheckResourceAttrPair(resourceName, "last_reviewed_date", dataSourceName, "last_reviewed_date"),
 				),
 			},
@@ -87,6 +88,7 @@ resource "athenz_role" "roleTest" {
   settings {
 	token_expiry_mins = 5
 	cert_expiry_mins = 10
+	max_members = 5
   }
   last_reviewed_date = "%s"
 }

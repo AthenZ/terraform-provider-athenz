@@ -48,7 +48,7 @@ func TestExpandTagsMap(t *testing.T) {
 	checkMapEquals(t, expected, actual)
 }
 
-func checkMapEquals(t *testing.T, expected map[zms.CompoundName]*zms.TagValueList, actual map[zms.CompoundName]*zms.TagValueList) {
+func checkMapEquals(t *testing.T, expected map[zms.TagKey]*zms.TagValueList, actual map[zms.TagKey]*zms.TagValueList) {
 	for key, val := range expected {
 		assert.ElementsMatch(t, (*val).List, (*actual[key]).List)
 	}
@@ -66,11 +66,11 @@ func TestFlattenTag(t *testing.T) {
 		flattenTag(buildMapForSchemaTest([]string{"key1", "key2"}, []int{0, 3}, []string{"v1k2", "v2k2", "v3k2"})))
 }
 
-func buildMapForSchemaTest(keys []string, sizes []int, val []string) map[zms.CompoundName]*zms.TagValueList {
-	finalMap := map[zms.CompoundName]*zms.TagValueList{}
+func buildMapForSchemaTest(keys []string, sizes []int, val []string) map[zms.TagKey]*zms.TagValueList {
+	finalMap := map[zms.TagKey]*zms.TagValueList{}
 	finalValues := makeZmsTagValueList(sizes, val)
 	for i, _ := range keys {
-		finalMap[zms.CompoundName(keys[i])] = finalValues[i]
+		finalMap[zms.TagKey(keys[i])] = finalValues[i]
 	}
 	return finalMap
 }

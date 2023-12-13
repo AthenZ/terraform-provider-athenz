@@ -5,7 +5,9 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -220,6 +222,17 @@ func TestAccGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "last_reviewed_date", lastReviewedDate),
 				),
 			},
+			{
+				Config: testAccGroupConfigSettings(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+					resource.TestCheckResourceAttr(resName, "settings.#", "1"),
+					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "10", "service_expiry_days": "20", "max_members": "30"}),
+				),
+			},
 		},
 	})
 }
@@ -342,7 +355,6 @@ func testAccCheckGroupExists(resourceName string, g *zms.Group) resource.TestChe
 		}
 
 		*g = *group
-
 		return nil
 	}
 }
@@ -421,7 +433,6 @@ resource "athenz_group" "groupTest" {
 	key1 = "s1,s2"
 	key2 = "s3,s4"
   }
-	
 }
 `, name, domain, member1)
 }
@@ -551,7 +562,7 @@ resource "athenz_group" "groupTest" {
   tags = {
 	key1 = "a1,a2"
 	key2 = "b1,b2"
-	}
+  }
 }
 `, name, domain, member1)
 }
@@ -587,4 +598,68 @@ resource "athenz_group" "groupTest" {
   last_reviewed_date = "%s"
 }
 `, name, domain, member1, lastReviewedDate)
+}
+
+func testAccGroupConfigSettings(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+	expiration = "2022-12-29 23:59:59"
+  }
+  settings {
+	user_expiry_days = 10
+	service_expiry_days = 20
+	max_members = 30
+  }
+}
+`, name, domain, member1)
+}
+
+func testAccCheckCorrectGroupSettings(n string, lookingForSettings map[string]string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no Athenz Group ID is set")
+		}
+		expectedSettings := make([]map[string]string, 1)
+		// for build the expected members, we look for all attribute from the following
+		// pattern: member.<index>.<attribute> (e.g. member.0.expiration)
+		for key, val := range rs.Primary.Attributes {
+			if !strings.HasPrefix(key, "settings.") {
+				continue
+			}
+			theKeyArr := strings.Split(key, ".")
+			if len(theKeyArr) == 3 && theKeyArr[2] != "%" {
+				_, err := strconv.Atoi(theKeyArr[1])
+				if err != nil {
+					return err
+				}
+				attributeKey := theKeyArr[2]
+				attributeVal := val
+				if attributeVal != "0" {
+					if expectedSettings[0] == nil {
+						settingsSchema := map[string]string{
+							attributeKey: attributeVal,
+						}
+						expectedSettings[0] = settingsSchema
+					} else {
+						expectedSettings[0][attributeKey] = attributeVal
+					}
+				}
+			}
+		}
+
+		if !reflect.DeepEqual(lookingForSettings, expectedSettings[0]) {
+			return fmt.Errorf("the settings %v is Not found", lookingForSettings)
+		}
+
+		return nil
+	}
 }
