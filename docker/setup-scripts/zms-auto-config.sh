@@ -82,15 +82,7 @@ openssl pkcs12 -export -noiter -nomaciter \
     -out "${ZMS_KEYSTORE_PATH}" -passout "pass:${ZMS_KEYSTORE_PASS}" \
     -in "${ZMS_CERT_PATH}" -inkey "${ZMS_CERT_KEY_PATH}"
 
-echo '6. config the Athenz domain admin' | colored_cat g
-echo "your setting: DOMAIN_ADMIN=${DOMAIN_ADMIN}" | colored_cat y
-sed -i "s/user\.github-.*$/${DOMAIN_ADMIN}/g" "${ZMS_CONF_DIR}/zms.properties"
-
-echo '7. configure the necessary user authorities to work in local / test environment.' | colored_cat g
-sed -i "s/athenz\.zms\.authority_classes=/athenz\.zms\.authority_classes=com\.yahoo\.athenz\.auth\.impl\.PrincipalAuthority,com\.yahoo\.athenz\.auth\.impl\.TestUserAuthority,/g" "${ZMS_CONF_DIR}/zms.properties"
-sed -i "s/athenz\.zms\.user_authority_class=/athenz\.zms\.user_authority_class=com\.yahoo\.athenz\.auth\.impl\.TestUserAuthority/g" "${ZMS_CONF_DIR}/zms.properties"
-
-echo '8. summary' | colored_cat g
+echo '6. summary' | colored_cat g
 tree "${CA_DIR}"
 tree "${PROD_ZMS_DIR}"
 tree "${ZMS_DIR}"

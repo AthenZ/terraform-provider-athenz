@@ -811,7 +811,7 @@ func TestAccGroupRoleInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupRoleInvalidSettingsConfig(),
-				ExpectError: regexp.MustCompile("expected settings.0.token_expiry_mins to be at least \\(1\\), got 0"),
+				ExpectError: regexp.MustCompile("expected settings.0.token_expiry_mins to be at least \\(0\\), got -1"),
 			},
 			{
 				Config:      testAccGroupRoleUserExpirationAfterSettingUserExpirationDays(date),
@@ -1548,7 +1548,7 @@ resource "athenz_role" "roleTest" {
 		name = "user.jone"
 	}
 	settings {
-		token_expiry_mins = 0
+		token_expiry_mins = -1
 		cert_expiry_mins = 60
   	} 
 }

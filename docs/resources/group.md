@@ -48,12 +48,6 @@ resource "athenz_group" "newgrp" {
 
 ## Argument Reference
 
-The following arguments are supported:
-
-- `name` - (Required) The group name.
-- `domain` - (Required) The Athenz domain name.
-- `members` - \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<user id> or <domain>.<service>`
-
 ### Required
 
 - `domain` (String) Name of the domain that group belongs to

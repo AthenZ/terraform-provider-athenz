@@ -54,7 +54,11 @@ func Provider() *schema.Provider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"athenz_role":             ResourceRole(),
+			"athenz_role_members":     ResourceRoleMembers(),
+			"athenz_role_meta":        ResourceRoleMeta(),
 			"athenz_group":            ResourceGroup(),
+			"athenz_group_members":    ResourceGroupMembers(),
+			"athenz_group_meta":       ResourceGroupMeta(),
 			"athenz_policy":           ResourcePolicy(),
 			"athenz_policy_version":   ResourcePolicyVersion(),
 			"athenz_service":          ResourceService(),

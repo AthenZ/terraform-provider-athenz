@@ -2,7 +2,6 @@ package athenz
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -69,6 +68,50 @@ func DataSourceGroup() *schema.Resource {
 					},
 				},
 			},
+			"self_serve": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"audit_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew_mins": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"delete_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"review_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"user_authority_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
+			"user_authority_expiration": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
+			"notify_roles": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 			"last_reviewed_date": {
 				Type:        schema.TypeString,
 				Description: "Last reviewed date for the group",
@@ -78,7 +121,7 @@ func DataSourceGroup() *schema.Resource {
 	}
 }
 
-func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	domainName := d.Get("domain").(string)
@@ -121,6 +164,51 @@ func dataSourceGroupRead(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 	if len(groupSettings) > 0 {
 		if err = d.Set("settings", flattenIntSettings(groupSettings)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.SelfServe != nil {
+		if err = d.Set("self_serve", *group.SelfServe); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.AuditEnabled != nil {
+		if err = d.Set("audit_enabled", *group.AuditEnabled); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.SelfRenew != nil {
+		if err = d.Set("self_renew", *group.SelfRenew); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.SelfRenewMins != nil {
+		if err = d.Set("self_renew_mins", *group.SelfRenewMins); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.DeleteProtection != nil {
+		if err = d.Set("delete_protection", *group.DeleteProtection); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.ReviewEnabled != nil {
+		if err = d.Set("review_enabled", *group.ReviewEnabled); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.UserAuthorityFilter != "" {
+		if err = d.Set("user_authority_filter", group.UserAuthorityFilter); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.UserAuthorityExpiration != "" {
+		if err = d.Set("user_authority_expiration", group.UserAuthorityExpiration); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.NotifyRoles != "" {
+		if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
 			return diag.FromErr(err)
 		}
 	}

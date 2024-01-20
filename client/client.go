@@ -50,6 +50,7 @@ type ZmsClient interface {
 	PutAssertionConditions(domainName string, policyName string, assertionId int64, auditRef string, assertionConditions *zms.AssertionConditions) (*zms.AssertionConditions, error)
 	GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error)
 	PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error
+	PutRoleMeta(domain string, roleName string, auditRef string, group *zms.RoleMeta) error
 }
 
 type Client struct {
@@ -85,10 +86,12 @@ func (c Client) PutPolicyVersion(domainName string, policyName string, policyOpt
 	_, err := zmsClient.PutPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), policyOptions, auditRef, &retObject)
 	return err
 }
+
 func (c Client) GetPolicyVersion(domainName string, policyName string, version string) (*zms.Policy, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.GetPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), zms.SimpleName(version))
 }
+
 func (c Client) GetPolicyVersionList(domainName string, policyName string) (*zms.PolicyList, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.GetPolicyVersionList(zms.DomainName(domainName), zms.EntityName(policyName))
@@ -98,6 +101,7 @@ func (c Client) DeleteAssertionPolicyVersion(domainName string, policyName strin
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.DeleteAssertionPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), zms.SimpleName(version), assertionId, auditRef)
 }
+
 func (c Client) PutAssertionPolicyVersion(domainName string, policyName string, version string, auditRef string, assertion *zms.Assertion) (*zms.Assertion, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.PutAssertionPolicyVersion(zms.DomainName(domainName), zms.EntityName(policyName), zms.SimpleName(version), auditRef, assertion)
@@ -127,10 +131,12 @@ func (c Client) GetRoleList(domainName string, limit *int32, skip string) (*zms.
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.GetRoleList(zms.DomainName(domainName), limit, skip)
 }
+
 func (c Client) PutDomainMeta(name string, auditRef string, detail *zms.DomainMeta) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.PutDomainMeta(zms.DomainName(name), auditRef, detail)
 }
+
 func (c Client) PostTopLevelDomain(auditRef string, detail *zms.TopLevelDomain) (*zms.Domain, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.PostTopLevelDomain(auditRef, detail)
@@ -145,10 +151,12 @@ func (c Client) DeleteSubDomain(parentDomain string, subDomainName string, audit
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.DeleteSubDomain(zms.DomainName(parentDomain), zms.SimpleName(subDomainName), auditRef)
 }
+
 func (c Client) PostSubDomain(parentDomain string, auditRef string, detail *zms.SubDomain) (*zms.Domain, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.PostSubDomain(zms.DomainName(parentDomain), auditRef, detail)
 }
+
 func (c Client) DeleteUserDomain(domainName string, auditRef string) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.DeleteUserDomain(zms.SimpleName(domainName), auditRef)
@@ -180,6 +188,7 @@ func (c Client) GetServiceIdentity(domain string, serviceName string) (*zms.Serv
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	return zmsClient.GetServiceIdentity(zms.DomainName(domain), zms.SimpleName(serviceName))
 }
+
 func (c Client) PutGroupMembership(domain string, groupName string, memberName zms.GroupMemberName, auditRef string, membership *zms.GroupMembership) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
 	retObject := false
@@ -301,8 +310,14 @@ func getTLSConfigFromFiles(certFile, keyFile string, caCert string) (*tls.Config
 	return config, err
 }
 
-func (c Client) PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error {
+func (c Client) PutGroupMeta(domain string, groupName string, auditRef string, groupMeta *zms.GroupMeta) error {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	err := zmsClient.PutGroupMeta(zms.DomainName(domain), zms.EntityName(groupName), auditRef, group)
+	err := zmsClient.PutGroupMeta(zms.DomainName(domain), zms.EntityName(groupName), auditRef, groupMeta)
+	return err
+}
+
+func (c Client) PutRoleMeta(domain string, roleName string, auditRef string, roleMeta *zms.RoleMeta) error {
+	zmsClient := zms.NewClient(c.Url, c.Transport)
+	err := zmsClient.PutRoleMeta(zms.DomainName(domain), zms.EntityName(roleName), auditRef, roleMeta)
 	return err
 }

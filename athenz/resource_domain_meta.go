@@ -42,43 +42,43 @@ func ResourceDomainMeta() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "all user members in the domain will have specified max expiry days",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"token_expiry_mins": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "tokens issued for this domain will have specified max timeout in mins",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"service_cert_expiry_mins": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "service identity certs issued for this domain will have specified max timeout in mins",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"role_cert_expiry_mins": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "role certs issued for this domain will have specified max timeout in mins",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"service_expiry_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "all services in the domain roles will have specified max expiry days",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"group_expiry_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "all groups in the domain roles will have specified max expiry days",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"member_purge_expiry_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Description:  "purge role/group members with expiry date configured days in the past",
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"user_authority_filter": {
 				Type:        schema.TypeString,
@@ -149,6 +149,11 @@ func resourceDomainMetaRead(_ context.Context, d *schema.ResourceData, meta inte
 	}
 	if domain.RoleCertExpiryMins != nil {
 		if err = d.Set("role_cert_expiry_mins", domain.RoleCertExpiryMins); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if domain.MemberExpiryDays != nil {
+		if err = d.Set("user_expiry_days", domain.MemberExpiryDays); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -251,41 +256,43 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 	}
 	domainMeta.Description = d.Get("description").(string)
 	domainMeta.ApplicationId = d.Get("application_id").(string)
-	if v, ok := d.GetOk("user_expiry_days"); ok {
-		memberExpiryDays := int32(v.(int))
-		domainMeta.MemberExpiryDays = &memberExpiryDays
-	}
-	if v, ok := d.GetOk("token_expiry_mins"); ok {
-		tokenExpiryMins := int32(v.(int))
-		domainMeta.TokenExpiryMins = &tokenExpiryMins
-	}
-	if v, ok := d.GetOk("service_cert_expiry_mins"); ok {
-		serviceCertExpiryMins := int32(v.(int))
-		domainMeta.ServiceCertExpiryMins = &serviceCertExpiryMins
-	}
-	if v, ok := d.GetOk("role_cert_expiry_mins"); ok {
-		roleCertExpiryMins := int32(v.(int))
-		domainMeta.RoleCertExpiryMins = &roleCertExpiryMins
-	}
-	if v, ok := d.GetOk("service_expiry_days"); ok {
-		serviceExpiryDays := int32(v.(int))
-		domainMeta.ServiceExpiryDays = &serviceExpiryDays
-	}
-	if v, ok := d.GetOk("group_expiry_days"); ok {
-		groupExpiryDays := int32(v.(int))
-		domainMeta.GroupExpiryDays = &groupExpiryDays
-	}
-	if v, ok := d.GetOk("member_purge_expiry_days"); ok {
-		memberPurgeExpiryDays := int32(v.(int))
-		domainMeta.MemberPurgeExpiryDays = &memberPurgeExpiryDays
-	}
 	domainMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	domainMeta.BusinessService = d.Get("business_service").(string)
-	if v, ok := d.GetOk("tags"); ok {
-		domainMeta.Tags = expandTagsMap(v.(map[string]interface{}))
+	if d.HasChange("user_expiry_days") {
+		memberExpiryDays := int32(d.Get("user_expiry_days").(int))
+		domainMeta.MemberExpiryDays = &memberExpiryDays
 	}
-	if v, ok := d.GetOk("contacts"); ok {
-		domainMeta.Contacts = expandContactsMap(v.(map[string]interface{}))
+	if d.HasChange("token_expiry_mins") {
+		tokenExpiryMins := int32(d.Get("token_expiry_mins").(int))
+		domainMeta.TokenExpiryMins = &tokenExpiryMins
+	}
+	if d.HasChange("service_cert_expiry_mins") {
+		serviceCertExpiryMins := int32(d.Get("service_cert_expiry_mins").(int))
+		domainMeta.ServiceCertExpiryMins = &serviceCertExpiryMins
+	}
+	if d.HasChange("role_cert_expiry_mins") {
+		roleCertExpiryMins := int32(d.Get("role_cert_expiry_mins").(int))
+		domainMeta.RoleCertExpiryMins = &roleCertExpiryMins
+	}
+	if d.HasChange("service_expiry_days") {
+		serviceExpiryDays := int32(d.Get("service_expiry_days").(int))
+		domainMeta.ServiceExpiryDays = &serviceExpiryDays
+	}
+	if d.HasChange("group_expiry_days") {
+		groupExpiryDays := int32(d.Get("group_expiry_days").(int))
+		domainMeta.GroupExpiryDays = &groupExpiryDays
+	}
+	if d.HasChange("member_purge_expiry_days") {
+		memberPurgeExpiryDays := int32(d.Get("member_purge_expiry_days").(int))
+		domainMeta.MemberPurgeExpiryDays = &memberPurgeExpiryDays
+	}
+	if d.HasChange("tags") {
+		_, n := d.GetChange("tags")
+		domainMeta.Tags = expandTagsMap(n.(map[string]interface{}))
+	}
+	if d.HasChange("contacts") {
+		_, n := d.GetChange("contacts")
+		domainMeta.Contacts = expandContactsMap(n.(map[string]interface{}))
 	}
 	auditRef := d.Get("audit_ref").(string)
 	err = zmsClient.PutDomainMeta(dn, auditRef, &domainMeta)

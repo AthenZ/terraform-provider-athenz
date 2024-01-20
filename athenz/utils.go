@@ -135,6 +135,60 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"self_serve": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"audit_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"self_renew": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"self_renew_mins": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"delete_protection": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"review_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"user_authority_filter": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+		"user_authority_expiration": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+		"notify_roles": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+		"sign_algorithm": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+		"description": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
 		"last_reviewed_date": {
 			Type:        schema.TypeString,
 			Description: "Last reviewed date for the role",
@@ -378,27 +432,6 @@ func addRoleMembers(dn string, rn string, members []*zms.RoleMember, auditRef st
 		}
 	}
 	return nil
-}
-
-// no double values
-func compareStringSets(set1 []string, set2 []string) bool {
-	if len(set1) != len(set2) {
-		return false
-	}
-	check := false
-	for _, val := range set1 {
-		for _, val2 := range set2 {
-			if val == val2 {
-				check = true
-				break
-			}
-		}
-		if !check {
-			return false
-		}
-		check = false
-	}
-	return true
 }
 
 func flattenRoles(zmsRoles []*zms.Role, domainName string) []interface{} {
