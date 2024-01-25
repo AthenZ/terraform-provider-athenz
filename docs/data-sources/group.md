@@ -33,10 +33,19 @@ data "athenz_group" "selected" {
 
 ### Optional
 
+- `audit_enabled` (Bool) audit enabled flag for the group
+- `delete_protection` (Bool) If true, ask for delete confirmation in audit and review enabled groups
 - `last_reviewed_date` (String) Last reviewed date for the group
 - `member` (Block Set) Users or services to be added as members (see [below for nested schema](#nestedblock--member))
+- `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
+- `review_enabled` (Bool) Flag indicates whether group updates require another review and approval
+- `self_renew` (Bool) Flag indicates whether to allow expired members to renew their membership
+- `self_renew_mins` (Number) Number of minutes members can renew their membership if self review option is enabled
+- `self_serve` (Bool) Flag indicates whether group allows self-service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.
 - `settings` (Block Set, Max: 1) Advanced settings (see [below for nested schema](#nestedblock--settings))
-- `tags` (Map of String) - Map of tags for the group.
+- `tags` (Map of String) map of group tags
+- `user_authority_filter` (String) membership filtered based on user authority configured attributes
+- `user_authority_expiration` (String) expiration enforced by a user authority configured attribute
 
 ### Read-Only
 

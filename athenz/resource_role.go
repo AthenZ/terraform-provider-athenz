@@ -87,47 +87,47 @@ func ResourceRole() *schema.Resource {
 						"token_expiry_mins": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"cert_expiry_mins": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"user_expiry_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"user_review_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"group_expiry_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"group_review_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"service_expiry_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"service_review_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 						"max_members": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
@@ -484,12 +484,12 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 
 	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient, membersToNotDelete)
 	if err != nil {
-		return diag.Errorf("error updating group membership: %s", err)
+		return diag.Errorf("error updating role membership: %s", err)
 	}
 
 	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
 	if err != nil {
-		return diag.Errorf("error updating group membership: %s", err)
+		return diag.Errorf("error updating role membership: %s", err)
 	}
 
 	return readAfterWrite(resourceRoleRead, ctx, d, meta)

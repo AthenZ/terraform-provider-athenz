@@ -17,7 +17,7 @@ func DataSourceRole() *schema.Resource {
 	}
 }
 
-func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn := d.Get("domain").(string)
@@ -81,7 +81,61 @@ func dataSourceRoleRead(ctx context.Context, d *schema.ResourceData, meta interf
 			return diag.FromErr(err)
 		}
 	}
-
+	if role.SelfServe != nil {
+		if err = d.Set("self_serve", *role.SelfServe); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.SelfRenew != nil {
+		if err = d.Set("self_renew", *role.SelfRenew); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.SelfRenewMins != nil {
+		if err = d.Set("self_renew_mins", int(*role.SelfRenewMins)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.DeleteProtection != nil {
+		if err = d.Set("delete_protection", *role.DeleteProtection); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.AuditEnabled != nil {
+		if err = d.Set("audit_enabled", *role.AuditEnabled); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.Description != "" {
+		if err = d.Set("description", role.Description); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.ReviewEnabled != nil {
+		if err = d.Set("review_enabled", *role.ReviewEnabled); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.UserAuthorityFilter != "" {
+		if err = d.Set("user_authority_filter", role.UserAuthorityFilter); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.UserAuthorityExpiration != "" {
+		if err = d.Set("user_authority_expiration", role.UserAuthorityExpiration); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.SignAlgorithm != "" {
+		if err = d.Set("sign_algorithm", role.SignAlgorithm); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if role.NotifyRoles != "" {
+		if err = d.Set("notify_roles", role.NotifyRoles); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	if role.Trust != "" {
 		if err = d.Set("trust", string(role.Trust)); err != nil {
 			return diag.FromErr(err)
