@@ -6,6 +6,34 @@ description: |-
   Group Meta Attribute resource.
 ---
 
+## Example Usage
+
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
+
+```hcl
+resource "athenz_group_meta" "group_meta" {
+  name = "some_group"
+  domain = "some_domain"
+
+  user_expiry_days = 90
+  service_expiry_days = 120
+  max_members = 0
+  self_serve = true
+  self_renew = false
+  self_renew_mins = 90
+  delete_protection = false
+  review_enabled = false
+  user_authority_filter = "OnShore-US"
+  user_authority_expiration = "ElevatedClearance"
+  notify_roles = "role1,role2"
+  tags = {
+    key1 = "val1,val2"
+    key2 = "val3,val4"
+  }
+  audit_ref = "update group meta"
+}
+```
+
 # athenz_group_meta (Resource)
 
 `athenz_group_meta` provides an Athenz group meta resource.

@@ -233,7 +233,7 @@ func updateRoleMeta(zmsClient client.ZmsClient, dn, rn string, d *schema.Resourc
 		certExpiryMins := int32(d.Get("cert_expiry_mins").(int))
 		roleMeta.CertExpiryMins = &certExpiryMins
 	}
-	roleMeta.SignAlgorithm = zms.SimpleName(d.Get("sign_algorithm").(string))
+	roleMeta.SignAlgorithm = d.Get("sign_algorithm").(string)
 	if d.HasChange("service_expiry_days") {
 		serviceExpiryDays := int32(d.Get("service_expiry_days").(int))
 		roleMeta.ServiceExpiryDays = &serviceExpiryDays

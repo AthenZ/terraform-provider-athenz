@@ -6,6 +6,42 @@ description: |-
   Role Meta Attribute resource.
 ---
 
+## Example Usage
+
+IMPORTANT NOTE: please do NOT use json syntax but only hcl syntax
+
+```hcl
+resource "athenz_role_meta" "role_meta" {
+  name = "some_role"
+  domain = "some_domain"
+
+  token_expiry_mins = 360
+  cert_expiry_mins = 720
+  user_expiry_days = 90
+  user_review_days = 60
+  group_expiry_days = 90
+  group_review_days = 60
+  service_review_days = 120
+  service_expiry_days = 90
+  max_members = 250
+  self_serve = true
+  self_renew = false
+  self_renew_mins = 90
+  delete_protection = false
+  review_enabled = false
+  sign_algorithm = "ec"
+  description = "meta role test description"
+  user_authority_filter = "OnShore-US"
+  user_authority_expiration = "ElevatedClearance"
+  notify_roles = "role1,role2"
+  tags = {
+    key1 = "val1,val2"
+    key2 = "val3,val4"
+  }
+  audit_ref = "update role meta"
+}
+```
+
 # athenz_role_meta (Resource)
 
 `athenz_role_meta` provides an Athenz role meta resource.
