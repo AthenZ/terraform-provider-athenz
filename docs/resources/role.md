@@ -94,7 +94,7 @@ resource "athenz_role" "foo_role" {
 - `member` (Block Set) A set of Athenz principal members (see [below for nested schema](#nestedblock--member))
 - `members` (Set of String, Deprecated) \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
 - `settings` (Block Set, Max: 1) A map of advanced settings with the following options (see [below for nested schema](#nestedblock--settings))
-- `tags` (Map of String) - Map of tags. The kay is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
+- `tags` (Map of String) - Map of tags. The key is the tag-name and value is the tag-values are represented as a string with a comma separator. e.g. key1 = "val1,val2", this will be converted to: key1 = ["val1", "val2"]
 - `trust` (String) The domain, which this role is trusted to.
 
 ### Read-Only

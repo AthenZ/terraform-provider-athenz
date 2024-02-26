@@ -13,7 +13,7 @@ description: |-
 ## Example Usage
 
 ```hcl
-variable "tag_kay" {
+variable "tag_key" {
   type = string
 }
 
@@ -23,7 +23,7 @@ variable "tag_value" {
 
 data "athenz_roles" "selected" {
   domain = "some_domain"
-  tag_kay =  var.tag_key
+  tag_key =  var.tag_key
   tag_value = var.tag_value
   include_members = false
 }
@@ -40,7 +40,7 @@ data "athenz_roles" "selected" {
 
 - `include_members` (Boolean, Default = true) If true - return list of members in the role.
 - `roles` (Block Set) (see [below for nested schema](#nestedblock--roles))
-- `tag_key` (String, Required if tag_value presented) Query all roles that have a given tag_kay.
+- `tag_key` (String, Required if tag_value presented) Query all roles that have a given tag_key.
 - `tag_value` (String) - Query all roles that have a given tag_key AND tag_value.
 
 ### Read-Only
