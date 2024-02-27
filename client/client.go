@@ -67,7 +67,7 @@ type ZmsConfig struct {
 
 func (c Client) GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.GetPolicies(zms.DomainName(domainName), &assertions, &includeNonActive, zms.CompoundName(""), zms.CompoundName(""))
+	return zmsClient.GetPolicies(zms.DomainName(domainName), &assertions, &includeNonActive, zms.TagKey(""), zms.TagCompoundValue(""))
 }
 
 func (c Client) DeletePolicyVersion(domainName string, policyName string, version string, auditRef string) error {
@@ -124,7 +124,7 @@ func (c Client) GetPolicyList(domainName string, limit *int32, skip string) (*zm
 
 func (c Client) GetRoles(domainName string, members *bool, tagKey string, tagValue string) (*zms.Roles, error) {
 	zmsClient := zms.NewClient(c.Url, c.Transport)
-	return zmsClient.GetRoles(zms.DomainName(domainName), members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+	return zmsClient.GetRoles(zms.DomainName(domainName), members, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 }
 
 func (c Client) GetRoleList(domainName string, limit *int32, skip string) (*zms.RoleList, error) {

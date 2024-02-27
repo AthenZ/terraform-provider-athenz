@@ -8,6 +8,7 @@
   "description": "",
   "enabled": true,
   "entities": [],
+  "environment": "",
   "gcpProject": "",
   "gcpProjectNumber": "",
   "groups": [
@@ -194,6 +195,7 @@
       ],
       "serviceExpiryDays": 30,
       "serviceReviewDays": 31,
+      "signAlgorithm": "",
       "tokenExpiryMins": 7,
       "userAuthorityExpiration": "",
       "userAuthorityFilter": ""
@@ -213,6 +215,7 @@
           "principalType": 1
         }
       ],
+      "signAlgorithm": "",
       "tags": {
         "key1": {
           "list": [
@@ -240,6 +243,7 @@
           "principalType": 1
         }
       ],
+      "signAlgorithm": "",
       "tags": {
         "key1": {
           "list": [
@@ -267,6 +271,7 @@
           "principalType": 1
         }
       ],
+      "signAlgorithm": "",
       "userAuthorityExpiration": "",
       "userAuthorityFilter": ""
     },
@@ -286,6 +291,7 @@
           "principalType": 1
         }
       ],
+      "signAlgorithm": "",
       "userAuthorityExpiration": "",
       "userAuthorityFilter": ""
     },
@@ -304,6 +310,7 @@
           "principalType": 1
         }
       ],
+      "signAlgorithm": "",
       "userAuthorityExpiration": "",
       "userAuthorityFilter": ""
     }
@@ -325,6 +332,7 @@
       "user": ""
     }
   ],
+  "signAlgorithm": "",
   "userAuthorityFilter": "",
   "ypmId": 0
 }
