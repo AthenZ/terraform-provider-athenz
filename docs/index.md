@@ -56,10 +56,12 @@ terraform {
 }
 
 provider "athenz" {
-  zms_url = "https://athenz.url"
-  cacert  = "<ca-cert-path>"
-  cert    = "<certificate-path>"
-  key     = "<key-path>"
+  zms_url                    = "https://athenz.url"
+  cacert                     = "<ca-cert-path>"
+  cert                       = "<certificate-path>"
+  key                        = "<key-path>"
+  disable_resource_ownership = false
+  resource_owner             = "resource-owner"
 }
 ```
 
@@ -76,3 +78,5 @@ provider "athenz" {
 - `cacert` (String) CA Certificate file path
 - `cert` (String) Athenz client x.509 certificate
 - `key` (String) Athenz client private key
+- `disable_resource_ownership` (Bool) Disable resource ownership. Default is false.
+- `resource_owner` (String) Resource owner. Default is "TF".
