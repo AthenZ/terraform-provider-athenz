@@ -24,6 +24,7 @@ description: |-
 - `business_service` (String) associated business service with domain
 - `contacts` (Map of String) map of domain contacts
 - `description` (String) description for the domain
+- `environment` (String) string specifying the environment this domain is used in (production, staging, etc.)
 - `group_expiry_days` (Number) all groups in the domain roles will have specified max expiry days
 - `member_purge_expiry_days` (Number) purge role/group members with expiry date configured days in the past
 - `role_cert_expiry_mins` (Number) role certs issued for this domain will have specified max timeout in mins

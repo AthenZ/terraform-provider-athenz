@@ -93,6 +93,11 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Description: "associated business service with domain",
 				Optional:    true,
 			},
+			"environment": {
+				Type:        schema.TypeString,
+				Description: "string specifying the environment this domain is used in (production, staging, etc.)",
+				Optional:    true,
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -199,6 +204,9 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	if domain.BusinessService != "" {
 		d.Set("business_service", domain.BusinessService)
+	}
+	if domain.Environment != "" {
+		d.Set("environment", domain.Environment)
 	}
 	if domain.Tags != nil {
 		d.Set("tags", flattenTag(domain.Tags))

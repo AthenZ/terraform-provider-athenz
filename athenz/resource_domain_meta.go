@@ -90,6 +90,11 @@ func ResourceDomainMeta() *schema.Resource {
 				Description: "associated business service with domain",
 				Optional:    true,
 			},
+			"environment": {
+				Type:        schema.TypeString,
+				Description: "string specifying the environment this domain is used in (production, staging, etc.)",
+				Optional:    true,
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -178,6 +183,9 @@ func resourceDomainMetaRead(_ context.Context, d *schema.ResourceData, meta inte
 	if err = d.Set("business_service", domain.BusinessService); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("environment", domain.Environment); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("tags", flattenTag(domain.Tags)); err != nil {
 		return diag.FromErr(err)
 	}
@@ -258,6 +266,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 	domainMeta.ApplicationId = d.Get("application_id").(string)
 	domainMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	domainMeta.BusinessService = d.Get("business_service").(string)
+	domainMeta.Environment = d.Get("environment").(string)
 	if d.HasChange("user_expiry_days") {
 		memberExpiryDays := int32(d.Get("user_expiry_days").(int))
 		domainMeta.MemberExpiryDays = &memberExpiryDays
