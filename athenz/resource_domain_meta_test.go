@@ -42,6 +42,7 @@ func TestAccGroupDomainMetaBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "service_cert_expiry_mins", "10"),
 					resource.TestCheckResourceAttr(resourceName, "member_purge_expiry_days", "25"),
 					resource.TestCheckResourceAttr(resourceName, "business_service", "test-service"),
+					resource.TestCheckResourceAttr(resourceName, "environment", "production"),
 					resource.TestCheckResourceAttr(resourceName, "contacts.security-contact", "user.joe"),
 					resource.TestCheckResourceAttr(resourceName, "contacts.pe-contact", "user.jack"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
@@ -131,6 +132,7 @@ resource "athenz_domain_meta" "test_domain_meta" {
   service_cert_expiry_mins = 10
   member_purge_expiry_days = 25
   business_service = "test-service"
+  environment = "production"
   contacts = {
     "security-contact" = "user.joe",
     "pe-contact" = "user.jack"

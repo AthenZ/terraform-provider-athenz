@@ -37,6 +37,7 @@ The arguments of this data source act as filters for querying the current Athenz
 - `business_service` (String) associated business service with domain
 - `contacts` (Map of String) map of domain contacts
 - `description` (String) description for the domain
+- `environment` (String) environment for the domain
 - `gcp_project_id` (String) - GCP project name if present for the domain
 - `gcp_project_number` (String) - GCP project number if it is present for the domain
 - `group_expiry_days` (Number) all groups in the domain roles will have specified max expiry days
