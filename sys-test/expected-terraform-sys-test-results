@@ -27,6 +27,11 @@
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "tags": {
         "key1": {
           "list": [
@@ -53,6 +58,11 @@
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo_deprecated",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "userAuthorityExpiration": "",
       "userAuthorityFilter": ""
     }
@@ -145,6 +155,10 @@
           "description": "",
           "modified": "XXX",
           "name": "terraform-provider:policy.athenz_provider_foo",
+          "resourceOwnership": {
+            "assertionsOwner": "TF",
+            "objectOwner": "TF"
+          },
           "version": "0"
         },
         {
@@ -181,6 +195,11 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foobar",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "roleMembers": [
         {
           "active": true,
@@ -205,6 +224,11 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "roleMembers": [
         {
           "active": true,
@@ -233,6 +257,11 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo_deprecated",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "roleMembers": [
         {
           "active": true,
@@ -259,27 +288,13 @@
     {
       "description": "",
       "modified": "XXX",
-      "name": "terraform-provider:role.admin",
-      "notifyRoles": "",
-      "roleMembers": [
-        {
-          "active": true,
-          "approved": true,
-          "auditRef": "",
-          "memberName": "user.github-7654321",
-          "pendingState": "",
-          "principalType": 1
-        }
-      ],
-      "signAlgorithm": "",
-      "userAuthorityExpiration": "",
-      "userAuthorityFilter": ""
-    },
-    {
-      "description": "",
-      "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar",
       "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
       "roleMembers": [
         {
           "active": true,
@@ -299,6 +314,30 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar_deprecated",
+      "notifyRoles": "",
+      "resourceOwnership": {
+        "membersOwner": "TF",
+        "metaOwner": "TF",
+        "objectOwner": "TF"
+      },
+      "roleMembers": [
+        {
+          "active": true,
+          "approved": true,
+          "auditRef": "",
+          "memberName": "user.github-7654321",
+          "pendingState": "",
+          "principalType": 1
+        }
+      ],
+      "signAlgorithm": "",
+      "userAuthorityExpiration": "",
+      "userAuthorityFilter": ""
+    },
+    {
+      "description": "",
+      "modified": "XXX",
+      "name": "terraform-provider:role.admin",
       "notifyRoles": "",
       "roleMembers": [
         {

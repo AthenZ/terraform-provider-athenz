@@ -39,6 +39,18 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_CA_CERT", ""),
 			},
+			"disable_resource_ownership": {
+				Type:        schema.TypeBool,
+				Description: fmt.Sprintf("Disable resource ownership feature"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_DISABLE_RESOURCE_OWNERSHIP", false),
+			},
+			"resource_owner": {
+				Type:        schema.TypeString,
+				Description: fmt.Sprintf("Resource Owner Identity"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_RESOURCE_OWNER", "TF"),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -79,6 +91,10 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 		Key:    d.Get("key").(string),
 		CaCert: d.Get("cacert").(string),
 	}
-	c, err := client.NewClient(zms.Url, zms.Cert, zms.Key, zms.CaCert)
+	// if resource ownership is not disabled, then load the resource owner
+	if !d.Get("disable_resource_ownership").(bool) {
+		zms.ResourceOwner = d.Get("resource_owner").(string)
+	}
+	c, err := client.NewClient(&zms)
 	return c, diag.FromErr(err)
 }
