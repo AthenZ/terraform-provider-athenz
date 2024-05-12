@@ -106,6 +106,11 @@ func ResourceGroupMeta() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"resource_state": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  -1,
+			},
 		},
 	}
 }
@@ -137,9 +142,12 @@ func resourceGroupMetaCreate(ctx context.Context, d *schema.ResourceData, meta i
 	gn := d.Get("name").(string)
 
 	// if the group doesn't exist, we need to create it first
-	err := createNewGroupIfNecessary(zmsClient, dn, gn)
-	if err != nil {
-		return diag.FromErr(err)
+	// but only if the object_state is set to create if necessary
+	if zmsClient.GetGroupMetaResourceState(d.Get("resource_state").(int), client.StateCreateIfNecessary) {
+		err := createNewGroupIfNecessary(zmsClient, dn, gn)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	// update our group meta data
@@ -297,30 +305,34 @@ func resourceGroupMetaDelete(_ context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	var zero int32
-	zero = 0
-	disabled := false
-	groupMeta := zms.GroupMeta{
-		SelfServe:               &disabled,
-		MemberExpiryDays:        &zero,
-		ServiceExpiryDays:       &zero,
-		ReviewEnabled:           &disabled,
-		NotifyRoles:             "",
-		UserAuthorityFilter:     "",
-		UserAuthorityExpiration: "",
-		Tags:                    make(map[zms.TagKey]*zms.TagValueList),
-		DeleteProtection:        &disabled,
-		SelfRenew:               &disabled,
-		SelfRenewMins:           &zero,
-		MaxMembers:              &zero,
-		AuditEnabled:            &disabled,
-	}
-	if v, ok := d.GetOk("tags"); ok {
-		for key := range v.(map[string]interface{}) {
-			groupMeta.Tags[zms.TagKey(key)] = &zms.TagValueList{List: []zms.TagCompoundValue{}}
+	if zmsClient.GetGroupMetaResourceState(d.Get("resource_state").(int), client.StateAlwaysDelete) {
+		err = zmsClient.DeleteGroup(dn, gn, auditRef)
+	} else {
+		var zero int32
+		zero = 0
+		disabled := false
+		groupMeta := zms.GroupMeta{
+			SelfServe:               &disabled,
+			MemberExpiryDays:        &zero,
+			ServiceExpiryDays:       &zero,
+			ReviewEnabled:           &disabled,
+			NotifyRoles:             "",
+			UserAuthorityFilter:     "",
+			UserAuthorityExpiration: "",
+			Tags:                    make(map[zms.TagKey]*zms.TagValueList),
+			DeleteProtection:        &disabled,
+			SelfRenew:               &disabled,
+			SelfRenewMins:           &zero,
+			MaxMembers:              &zero,
+			AuditEnabled:            &disabled,
 		}
+		if v, ok := d.GetOk("tags"); ok {
+			for key := range v.(map[string]interface{}) {
+				groupMeta.Tags[zms.TagKey(key)] = &zms.TagValueList{List: []zms.TagCompoundValue{}}
+			}
+		}
+		err = zmsClient.PutGroupMeta(dn, gn, auditRef, &groupMeta)
 	}
-	err = zmsClient.PutGroupMeta(dn, gn, auditRef, &groupMeta)
 	if err != nil {
 		return diag.FromErr(err)
 	}

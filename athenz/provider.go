@@ -51,6 +51,18 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_RESOURCE_OWNER", "TF"),
 			},
+			"role_meta_resource_state": {
+				Type:        schema.TypeInt,
+				Description: fmt.Sprintf("Default state for athenz_role_meta resources"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_ROLE_META_RESOURCE_STATE", client.StateCreateIfNecessary),
+			},
+			"group_meta_resource_state": {
+				Type:        schema.TypeInt,
+				Description: fmt.Sprintf("Default state for athenz_group_meta resources"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_GROUP_META_RESOURCE_STATE", client.StateCreateIfNecessary),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -86,10 +98,12 @@ func Provider() *schema.Provider {
 
 func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	zms := client.ZmsConfig{
-		Url:    d.Get("zms_url").(string),
-		Cert:   d.Get("cert").(string),
-		Key:    d.Get("key").(string),
-		CaCert: d.Get("cacert").(string),
+		Url:                    d.Get("zms_url").(string),
+		Cert:                   d.Get("cert").(string),
+		Key:                    d.Get("key").(string),
+		CaCert:                 d.Get("cacert").(string),
+		RoleMetaResourceState:  d.Get("role_meta_resource_state").(int),
+		GroupMetaResourceState: d.Get("group_meta_resource_state").(int),
 	}
 	// if resource ownership is not disabled, then load the resource owner
 	if !d.Get("disable_resource_ownership").(bool) {

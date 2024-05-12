@@ -10,6 +10,9 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
+const StateCreateIfNecessary = 0x01
+const StateAlwaysDelete = 0x02
+
 type ZmsClient interface {
 	GetRole(domain string, roleName string) (*zms.Role, error)
 	DeleteRole(domain string, roleName string, auditRef string) error
@@ -51,20 +54,26 @@ type ZmsClient interface {
 	GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error)
 	PutGroupMeta(domain string, groupName string, auditRef string, group *zms.GroupMeta) error
 	PutRoleMeta(domain string, roleName string, auditRef string, group *zms.RoleMeta) error
+	GetRoleMetaResourceState(roleMetaResourceState, requestedState int) bool
+	GetGroupMetaResourceState(groupMetaResourceState, requestedState int) bool
 }
 
 type Client struct {
-	Url           string
-	Transport     *http.Transport
-	ResourceOwner string
+	Url                    string
+	Transport              *http.Transport
+	ResourceOwner          string
+	RoleMetaResourceState  int
+	GroupMetaResourceState int
 }
 
 type ZmsConfig struct {
-	Url           string
-	Cert          string
-	Key           string
-	CaCert        string
-	ResourceOwner string
+	Url                    string
+	Cert                   string
+	Key                    string
+	CaCert                 string
+	ResourceOwner          string
+	RoleMetaResourceState  int
+	GroupMetaResourceState int
 }
 
 func (c Client) GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error) {
@@ -283,6 +292,24 @@ func (c Client) PutRoleMeta(domain string, roleName string, auditRef string, rol
 	return err
 }
 
+func (c Client) GetRoleMetaResourceState(roleMetaResourceState, requestedState int) bool {
+	return getResourceState(roleMetaResourceState, c.RoleMetaResourceState, requestedState)
+}
+
+func (c Client) GetGroupMetaResourceState(groupMetaResourceState, requestedState int) bool {
+	return getResourceState(groupMetaResourceState, c.GroupMetaResourceState, requestedState)
+}
+
+func getResourceState(resourceState, clientState, requestedState int) bool {
+	if resourceState == -1 {
+		resourceState = clientState
+	}
+	if resourceState == -1 {
+		return false
+	}
+	return (resourceState & requestedState) != 0
+}
+
 func NewClient(zmsConfig *ZmsConfig) (*Client, error) {
 	tlsConfig, err := getTLSConfigFromFiles(zmsConfig.Cert, zmsConfig.Key, zmsConfig.CaCert)
 	if err != nil {
@@ -292,9 +319,11 @@ func NewClient(zmsConfig *ZmsConfig) (*Client, error) {
 		TLSClientConfig: tlsConfig,
 	}
 	client := &Client{
-		Url:           zmsConfig.Url,
-		Transport:     &transport,
-		ResourceOwner: zmsConfig.ResourceOwner,
+		Url:                    zmsConfig.Url,
+		Transport:              &transport,
+		ResourceOwner:          zmsConfig.ResourceOwner,
+		RoleMetaResourceState:  zmsConfig.RoleMetaResourceState,
+		GroupMetaResourceState: zmsConfig.GroupMetaResourceState,
 	}
 	return client, err
 }

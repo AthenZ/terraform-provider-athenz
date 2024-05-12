@@ -144,6 +144,11 @@ func ResourceRoleMeta() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"resource_state": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  -1,
+			},
 		},
 	}
 }
@@ -175,9 +180,12 @@ func resourceRoleMetaCreate(ctx context.Context, d *schema.ResourceData, meta in
 	rn := d.Get("name").(string)
 
 	// if the role doesn't exist, we need to create it first
-	err := createNewRoleIfNecessary(zmsClient, dn, rn)
-	if err != nil {
-		return diag.FromErr(err)
+	// but only if the object_state is set to create if necessary
+	if zmsClient.GetRoleMetaResourceState(d.Get("resource_state").(int), client.StateCreateIfNecessary) {
+		err := createNewRoleIfNecessary(zmsClient, dn, rn)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	// update our role meta data
@@ -405,38 +413,42 @@ func resourceRoleMetaDelete(_ context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	var zero int32
-	zero = 0
-	disabled := false
-	roleMeta := zms.RoleMeta{
-		SelfServe:               &disabled,
-		MemberExpiryDays:        &zero,
-		TokenExpiryMins:         &zero,
-		CertExpiryMins:          &zero,
-		SignAlgorithm:           "",
-		ServiceExpiryDays:       &zero,
-		MemberReviewDays:        &zero,
-		ServiceReviewDays:       &zero,
-		ReviewEnabled:           &disabled,
-		NotifyRoles:             "",
-		UserAuthorityFilter:     "",
-		UserAuthorityExpiration: "",
-		GroupExpiryDays:         &zero,
-		GroupReviewDays:         &zero,
-		Tags:                    make(map[zms.TagKey]*zms.TagValueList),
-		Description:             "",
-		DeleteProtection:        &disabled,
-		SelfRenew:               &disabled,
-		SelfRenewMins:           &zero,
-		MaxMembers:              &zero,
-		AuditEnabled:            &disabled,
-	}
-	if v, ok := d.GetOk("tags"); ok {
-		for key := range v.(map[string]interface{}) {
-			roleMeta.Tags[zms.TagKey(key)] = &zms.TagValueList{List: []zms.TagCompoundValue{}}
+	if zmsClient.GetRoleMetaResourceState(d.Get("resource_state").(int), client.StateAlwaysDelete) {
+		err = zmsClient.DeleteRole(dn, rn, auditRef)
+	} else {
+		var zero int32
+		zero = 0
+		disabled := false
+		roleMeta := zms.RoleMeta{
+			SelfServe:               &disabled,
+			MemberExpiryDays:        &zero,
+			TokenExpiryMins:         &zero,
+			CertExpiryMins:          &zero,
+			SignAlgorithm:           "",
+			ServiceExpiryDays:       &zero,
+			MemberReviewDays:        &zero,
+			ServiceReviewDays:       &zero,
+			ReviewEnabled:           &disabled,
+			NotifyRoles:             "",
+			UserAuthorityFilter:     "",
+			UserAuthorityExpiration: "",
+			GroupExpiryDays:         &zero,
+			GroupReviewDays:         &zero,
+			Tags:                    make(map[zms.TagKey]*zms.TagValueList),
+			Description:             "",
+			DeleteProtection:        &disabled,
+			SelfRenew:               &disabled,
+			SelfRenewMins:           &zero,
+			MaxMembers:              &zero,
+			AuditEnabled:            &disabled,
 		}
+		if v, ok := d.GetOk("tags"); ok {
+			for key := range v.(map[string]interface{}) {
+				roleMeta.Tags[zms.TagKey(key)] = &zms.TagValueList{List: []zms.TagCompoundValue{}}
+			}
+		}
+		err = zmsClient.PutRoleMeta(dn, rn, auditRef, &roleMeta)
 	}
-	err = zmsClient.PutRoleMeta(dn, rn, auditRef, &roleMeta)
 	if err != nil {
 		return diag.FromErr(err)
 	}

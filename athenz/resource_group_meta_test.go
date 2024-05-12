@@ -1,8 +1,10 @@
 package athenz
 
 import (
+	"errors"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 	"log"
 	"os"
 	"testing"
@@ -148,6 +150,100 @@ resource "athenz_group_meta" "test_group_meta" {
   tags = {
     "zms.DisableExpirationNotifications" = "4"
   }
+  audit_ref = "test audit ref"
+}
+`, domainName, groupName)
+}
+
+func TestAccGroupMetaResourceStateDelete(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	domainName := os.Getenv("DOMAIN")
+	groupName := "test-group-meta-delete"
+	resourceName := "athenz_group_meta.test_group_meta_delete"
+	t.Cleanup(func() {
+		cleanAccTestGroupMeta(domainName, groupName)
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupMetaResourceStateDeleteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupMetaConfigResourceStateDelete(domainName, groupName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupMetaExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "domain", domainName),
+					resource.TestCheckResourceAttr(resourceName, "user_expiry_days", "30"),
+					resource.TestCheckResourceAttr(resourceName, "service_expiry_days", "70"),
+					resource.TestCheckResourceAttr(resourceName, "max_members", "90"),
+					resource.TestCheckResourceAttr(resourceName, "self_serve", "true"),
+					resource.TestCheckResourceAttr(resourceName, "self_renew", "true"),
+					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "100"),
+					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
+					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
+					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckGroupMetaResourceStateDeleteDestroy(s *terraform.State) error {
+	zmsClient := testAccProvider.Meta().(client.ZmsClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "athenz_group_meta" {
+			continue
+		}
+		dn, gn, err := splitGroupId(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		// make sure our group is deleted and 404 is returned
+		_, err = zmsClient.GetGroup(dn, gn)
+		if err == nil {
+			_ = zmsClient.DeleteGroup(dn, gn, AUDIT_REF)
+			return fmt.Errorf("athenz group still exists")
+		}
+		var v rdl.ResourceError
+		switch {
+		case errors.As(err, &v):
+			if v.Code == 404 {
+				return nil
+			}
+		}
+		return fmt.Errorf("unexpected error: %v", err)
+	}
+
+	return nil
+}
+
+func testAccGroupMetaConfigResourceStateDelete(domainName, groupName string) string {
+	return fmt.Sprintf(`
+resource "athenz_group_meta" "test_group_meta_delete" {
+  domain = "%s"
+  name = "%s"
+  user_expiry_days = 30
+  service_expiry_days = 70
+  max_members = 90
+  self_serve = true
+  self_renew = true
+  self_renew_mins = 100
+  delete_protection = true
+  review_enabled = true
+  notify_roles = "admin,security"
+  tags = {
+    "zms.DisableExpirationNotifications" = "4"
+  }
+  resource_state = 3
   audit_ref = "test audit ref"
 }
 `, domainName, groupName)
