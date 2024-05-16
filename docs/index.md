@@ -75,8 +75,10 @@ provider "athenz" {
 
 ### Optional
 
-- `cacert` (String) CA Certificate file path
-- `cert` (String) Athenz client x.509 certificate
 - `key` (String) Athenz client private key
-- `disable_resource_ownership` (Bool) Disable resource ownership. Default is false.
-- `resource_owner` (String) Resource owner. Default is "TF".
+- `cert` (String) Athenz client x.509 certificate
+- `cacert` (String) CA Certificate file path
+- `disable_resource_ownership` (Bool) Disable resource ownership. Default is false
+- `resource_owner` (String) Resource owner. Default is "TF"
+- `role_meta_resource_state` (Number) Bitmask of object state flags controlling role behavior when creating or destroying role_meta resources. 0x01: create the role if not already present, 0x02: always delete the role when destroying the resource. Default value is 1. The value is used when the resource_state attribute at the athenz_role_meta level is set to -1
+- `group_meta_resource_state` (Number) Bitmask of object state flags controlling group behavior when creating or destroying group_meta resources. 0x01: create the group if not already present, 0x02: always delete the group when destroying the resource. Default value is 1. The value is used when the resource_state attribute at the athenz_group_meta level is set to -1

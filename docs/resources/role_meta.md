@@ -65,6 +65,7 @@ resource "athenz_role_meta" "role_meta" {
 - `group_review_days` (Number) all groups in the role will have specified review reminder days
 - `max_members` (Number) maximum number of members allowed in the role
 - `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
+- `resource_state` (Number) Bitmask of resource state flags controlling role behavior when creating or destroying the resource. 0x01: create the role if not already present, 0x02: always delete the role when destroying the resource. Default value is -1 indicating to inherit the value defined at the provider configuration level
 - `review_enabled` (Bool) Flag indicates whether role updates require another review and approval
 - `self_renew` (Bool) Flag indicates whether to allow expired members to renew their membership
 - `self_renew_mins` (Number) Number of minutes members can renew their membership if self review option is enabled
