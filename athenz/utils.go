@@ -204,6 +204,11 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"principal_domain_filter": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
 	}
 }
 
