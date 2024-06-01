@@ -61,6 +61,7 @@ func TestAccGroupRoleDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.cert_expiry_mins", dataSourceName, "settings.0.cert_expiry_mins"),
 					resource.TestCheckResourceAttrPair(resourceName, "settings.0.max_members", dataSourceName, "settings.0.max_members"),
 					resource.TestCheckResourceAttrPair(resourceName, "last_reviewed_date", dataSourceName, "last_reviewed_date"),
+					resource.TestCheckResourceAttrPair(resourceName, "principal_domain_filter", dataSourceName, "principal_domain_filter"),
 				),
 			},
 		},
@@ -91,11 +92,12 @@ resource "athenz_role" "roleTest" {
 	max_members = 5
   }
   last_reviewed_date = "%s"
+  principal_domain_filter = "user,sys.auth,%s"
 }
 
 data "athenz_role" "roleTest" {
   domain = athenz_role.roleTest.domain
   name = athenz_role.roleTest.name
 }
-`, name, domain, member1, member2, lastReviewedDate)
+`, name, domain, member1, member2, lastReviewedDate, domain)
 }

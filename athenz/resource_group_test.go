@@ -160,6 +160,7 @@ func TestAccGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
 					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
+					resource.TestCheckResourceAttr(resName, "principal_domain_filter", domainName),
 				),
 			},
 			{
@@ -433,8 +434,9 @@ resource "athenz_group" "groupTest" {
 	key1 = "s1,s2"
 	key2 = "s3,s4"
   }
+  principal_domain_filter = "%s"
 }
-`, name, domain, member1)
+`, name, domain, member1, domain)
 }
 
 func testAccGroupConfigBasicChangeAuditRef(name, domain, member1 string) string {

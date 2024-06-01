@@ -223,7 +223,7 @@ func dataSourceGroupRead(_ context.Context, d *schema.ResourceData, meta interfa
 		}
 	}
 	if group.PrincipalDomainFilter != "" {
-		if err = d.Set("principal_domain_filter", group.NotifyRoles); err != nil {
+		if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
 			return diag.FromErr(err)
 		}
 	}

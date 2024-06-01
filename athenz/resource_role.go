@@ -157,6 +157,10 @@ func ResourceRole() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 		CustomizeDiff: validateRoleSchema,
 	}
@@ -231,6 +235,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 					role.MaxMembers = &maxMembers
 				}
 			}
+			role.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
 				return diag.FromErr(err)
@@ -367,7 +372,11 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 			}
 		}
 	}
-
+	if role.PrincipalDomainFilter != "" {
+		if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
@@ -450,6 +459,11 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
 		role.Tags = tags
+	}
+
+	if d.HasChange("principal_domain_filter") {
+		isRoleChanged = true
+		role.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	}
 
 	if isRoleChanged {
