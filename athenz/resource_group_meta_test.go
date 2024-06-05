@@ -47,6 +47,7 @@ func TestAccGroupMetaBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
 				),
@@ -76,6 +77,7 @@ func cleanAccTestGroupMeta(domainName, groupName string) {
 			SelfRenewMins:           &zero,
 			MaxMembers:              &zero,
 			AuditEnabled:            &disabled,
+			PrincipalDomainFilter:   "",
 		}
 		if err = zmsClient.PutGroupMeta(domainName, groupName, AUDIT_REF, &groupMeta); err != nil {
 			log.Printf("unable to reset group meta for %s:group.%s: %v\n", domainName, groupName, err)
@@ -147,6 +149,7 @@ resource "athenz_group_meta" "test_group_meta" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  principal_domain_filter = "user,sys.auth"
   tags = {
     "zms.DisableExpirationNotifications" = "4"
   }
@@ -188,6 +191,7 @@ func TestAccGroupMetaResourceStateDelete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
 				),
@@ -240,6 +244,7 @@ resource "athenz_group_meta" "test_group_meta_delete" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  principal_domain_filter = "user"
   tags = {
     "zms.DisableExpirationNotifications" = "4"
   }

@@ -316,6 +316,7 @@ func TestAccRoleSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "done by someone"),
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					testAccCheckCorrectRoleSettings(resourceName, map[string]string{"token_expiry_mins": "5", "cert_expiry_mins": "10", "user_expiry_days": "90", "max_members": "5"}),
+					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", domainName),
 				),
 			},
 			{
@@ -1285,8 +1286,9 @@ resource "athenz_role" "roleTest" {
 	key1 = "v1,v2"
 	key2 = "v2,v3"
 	}
+  principal_domain_filter = "%s"
 }
-`, name, domain, member1)
+`, name, domain, member1, domain)
 }
 
 func testAccGroupRoleConfigChangeAuditRef(name, domain, member1 string) string {

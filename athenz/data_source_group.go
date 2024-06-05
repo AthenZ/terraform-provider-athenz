@@ -117,6 +117,11 @@ func DataSourceGroup() *schema.Resource {
 				Description: "Last reviewed date for the group",
 				Optional:    true,
 			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 		},
 	}
 }
@@ -214,6 +219,11 @@ func dataSourceGroupRead(_ context.Context, d *schema.ResourceData, meta interfa
 	}
 	if group.LastReviewedDate != nil {
 		if err = d.Set("last_reviewed_date", timestampToString(group.LastReviewedDate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.PrincipalDomainFilter != "" {
+		if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
 			return diag.FromErr(err)
 		}
 	}

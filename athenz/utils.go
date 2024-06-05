@@ -204,6 +204,11 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
 		},
+		"principal_domain_filter": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
 	}
 }
 
@@ -488,6 +493,9 @@ func flattenRole(zmsRole *zms.Role, domainName string) map[string]interface{} {
 	}
 	if zmsRole.Trust != "" {
 		role["trust"] = string(zmsRole.Trust)
+	}
+	if zmsRole.PrincipalDomainFilter != "" {
+		role["principal_domain_filter"] = zmsRole.PrincipalDomainFilter
 	}
 	return role
 }

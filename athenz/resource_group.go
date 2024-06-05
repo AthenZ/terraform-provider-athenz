@@ -114,6 +114,11 @@ func ResourceGroup() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 		},
 	}
 }
@@ -144,6 +149,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 			if v, ok := d.GetOk("last_reviewed_date"); ok {
 				group.LastReviewedDate = stringToTimestamp(v.(string))
 			}
+			group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
 				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
 				if ok {
@@ -266,6 +272,11 @@ func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface
 		}
 	}
 
+	if group.PrincipalDomainFilter != "" {
+		if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
@@ -319,6 +330,11 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 			group.ServiceExpiryDays = nil
 			group.MaxMembers = nil
 		}
+	}
+
+	if d.HasChange("principal_domain_filter") {
+		isGroupChanged = true
+		group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	}
 
 	if isGroupChanged {

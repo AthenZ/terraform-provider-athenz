@@ -146,6 +146,11 @@ func dataSourceRoleRead(_ context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	}
+	if role.PrincipalDomainFilter != "" {
+		if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	return nil
 }

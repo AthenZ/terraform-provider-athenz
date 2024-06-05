@@ -149,6 +149,10 @@ func ResourceRoleMeta() *schema.Resource {
 				Optional: true,
 				Default:  -1,
 			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -257,6 +261,7 @@ func updateRoleMeta(zmsClient client.ZmsClient, dn, rn string, d *schema.Resourc
 	reviewEnabled := d.Get("review_enabled").(bool)
 	roleMeta.ReviewEnabled = &reviewEnabled
 	roleMeta.NotifyRoles = d.Get("notify_roles").(string)
+	roleMeta.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	roleMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	roleMeta.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
 	if d.HasChange("group_expiry_days") {
@@ -318,6 +323,9 @@ func resourceRoleMetaRead(_ context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	if err = d.Set("notify_roles", role.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
 		return diag.FromErr(err)
 	}
 	if err = d.Set("sign_algorithm", role.SignAlgorithm); err != nil {
@@ -441,6 +449,7 @@ func resourceRoleMetaDelete(_ context.Context, d *schema.ResourceData, meta inte
 			SelfRenewMins:           &zero,
 			MaxMembers:              &zero,
 			AuditEnabled:            &disabled,
+			PrincipalDomainFilter:   "",
 		}
 		if v, ok := d.GetOk("tags"); ok {
 			for key := range v.(map[string]interface{}) {

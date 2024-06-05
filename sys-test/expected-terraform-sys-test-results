@@ -27,6 +27,7 @@
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -58,6 +59,7 @@
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo_deprecated",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -195,6 +197,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foobar",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -224,6 +227,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -257,6 +261,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo_deprecated",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -290,6 +295,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -315,6 +321,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar_deprecated",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "resourceOwnership": {
         "membersOwner": "TF",
         "metaOwner": "TF",
@@ -339,6 +346,7 @@
       "modified": "XXX",
       "name": "terraform-provider:role.admin",
       "notifyRoles": "",
+      "principalDomainFilter": "",
       "roleMembers": [
         {
           "active": true,
@@ -368,6 +376,10 @@
           "key": "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
         }
       ],
+      "resourceOwnership": {
+        "objectOwner": "TF",
+        "publicKeysOwner": "TF"
+      },
       "user": ""
     }
   ],

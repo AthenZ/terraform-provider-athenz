@@ -111,6 +111,10 @@ func ResourceGroupMeta() *schema.Resource {
 				Optional: true,
 				Default:  -1,
 			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -194,6 +198,7 @@ func updateGroupMeta(zmsClient client.ZmsClient, dn, gn string, d *schema.Resour
 	reviewEnabled := d.Get("review_enabled").(bool)
 	groupMeta.ReviewEnabled = &reviewEnabled
 	groupMeta.NotifyRoles = d.Get("notify_roles").(string)
+	groupMeta.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	groupMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	groupMeta.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
 	if d.HasChange("tags") {
@@ -246,6 +251,9 @@ func resourceGroupMetaRead(_ context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
 		return diag.FromErr(err)
 	}
 	if err = d.Set("self_serve", group.SelfServe); err != nil {
@@ -325,6 +333,7 @@ func resourceGroupMetaDelete(_ context.Context, d *schema.ResourceData, meta int
 			SelfRenewMins:           &zero,
 			MaxMembers:              &zero,
 			AuditEnabled:            &disabled,
+			PrincipalDomainFilter:   "",
 		}
 		if v, ok := d.GetOk("tags"); ok {
 			for key := range v.(map[string]interface{}) {
