@@ -7,7 +7,7 @@ apt-get clean
 apt-get autoremove
 
 echo "-----------------Install libs: -----------------"
-apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude net-tools
+apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude net-tools gawk
 
 echo "-----------------Install gcc: -----------------"
 apt-get install -y software-properties-common
