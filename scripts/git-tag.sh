@@ -60,7 +60,6 @@ if [ -z $RELEASE_TYPE ]; then
 fi
 
 echo "Downloading gitversion"
-yum install -y wget
 wget -O - https://github.com/screwdriver-cd/gitversion/releases/latest |
   egrep -o 'https://github.com/screwdriver-cd/gitversion/releases/expanded_assets/v[0-9.]*' |
   wget -O - -i - |
