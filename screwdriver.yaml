@@ -1,7 +1,7 @@
 # Copyright Yahoo. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
 
 shared:
-  image: ubuntu:focal
+  image: ubuntu:22.04
   settings:
     email:
       addresses: [athenz@yahooinc.com]
