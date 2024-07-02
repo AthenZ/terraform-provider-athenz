@@ -288,11 +288,14 @@ func flattenAssertionConditions(list []*zms.AssertionCondition) []interface{} {
 		c := make(map[string]interface{}, len(keys))
 		c["id"] = (int)(*condition.Id)
 		for _, key := range keys {
-			c[key] = []map[string]interface{}{
-				{
-					"operator": (int)(condition.ConditionsMap[zms.AssertionConditionKey(key)].Operator),
-					"value":    (string)(condition.ConditionsMap[zms.AssertionConditionKey(key)].Value),
-				},
+			conditionKey, ok := condition.ConditionsMap[zms.AssertionConditionKey(key)]
+			if ok {
+				c[key] = []map[string]interface{}{
+					{
+						"operator": (int)(conditionKey.Operator),
+						"value":    (string)(conditionKey.Value),
+					},
+				}
 			}
 		}
 		assertionConditions = append(assertionConditions, c)
