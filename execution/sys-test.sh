@@ -29,7 +29,7 @@ if [[ ! $(which terraform) ]]; then
     unzip "${SD_ROOT_DIR}/terraform/terraform_${VERSION}_${OS_ARCH}.zip" -d ${SD_ROOT_DIR}/terraform
     ls ${SD_ROOT_DIR}/terraform
     chmod +x ${SD_ROOT_DIR}/terraform/terraform
-    sudo ln -sf ${SD_ROOT_DIR}/terraform/terraform /usr/local/bin
+    ln -sf ${SD_ROOT_DIR}/terraform/terraform /usr/local/bin
     ls /usr/local/bin
     terraform -v
 fi
