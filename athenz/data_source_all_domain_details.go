@@ -33,6 +33,14 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"azure_client": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"azure_tenant": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"description": {
 				Type:        schema.TypeString,
 				Description: "description for the domain",
@@ -168,6 +176,12 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	if domain.AzureSubscription != "" {
 		d.Set("azure_subscription", domain.AzureSubscription)
+	}
+	if domain.AzureTenant != "" {
+		d.Set("azure_tenant", domain.AzureTenant)
+	}
+	if domain.AzureClient != "" {
+		d.Set("azure_client", domain.AzureClient)
 	}
 	if domain.Org != "" {
 		d.Set("org", domain.Org)
