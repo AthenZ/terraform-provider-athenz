@@ -33,7 +33,9 @@ The arguments of this data source act as filters for querying the current Athenz
 
 - `application_id` (String) associated application id
 - `aws_account_id` (String) - The account id from aws if present for the domain
+- `azure_client` (String) - associated Azure Client id if present for the domain
 - `azure_subscription` (String) - Azure subscription if present for the domain
+- `azure_tenant` (String) - associated Azure Tenant id  if present for the domain
 - `business_service` (String) associated business service with domain
 - `contacts` (Map of String) map of domain contacts
 - `description` (String) description for the domain
