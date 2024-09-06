@@ -1,0 +1,9 @@
+v1.0.42 Release / Sep 05, 2024
+------------------------------
+
+- Update athenz_role and athenz_group resources to support all meta attributes
+- Allow update of trust attribute in the athenz_role resource
+- Allow conversion of athenz_role resource from delegated to regular role and vice versa
+- Eliminate unnecessary role and group member management calls. Instead, use the role and
+  group members from the role and group objects are updated in a single putRole and
+  putGroup methods

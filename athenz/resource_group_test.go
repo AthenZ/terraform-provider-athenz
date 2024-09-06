@@ -238,6 +238,153 @@ func TestAccGroupBasic(t *testing.T) {
 	})
 }
 
+func TestAccGroupAllAttributes(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var group zms.Group
+	resName := "athenz_group.groupTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	groupName := fmt.Sprintf("test%d", rInt)
+	member1 := os.Getenv("MEMBER_1")
+	member2 := os.Getenv("MEMBER_2")
+	t.Cleanup(func() {
+		cleanAllAccTestGroups(domainName, []string{groupName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupConfigAllAttributes(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
+					resource.TestCheckResourceAttr(resName, "principal_domain_filter", "user,"+domainName),
+					resource.TestCheckResourceAttr(resName, "self_serve", "true"),
+					resource.TestCheckResourceAttr(resName, "self_renew", "true"),
+					resource.TestCheckResourceAttr(resName, "self_renew_mins", "100"),
+					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
+					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "20", "max_members": "30"}),
+				),
+			},
+			{
+				Config: testAccGroupConfigAllAttributesChanged(groupName, domainName, member1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", "done by someone"),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member1),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
+					resource.TestCheckResourceAttr(resName, "principal_domain_filter", "user,"+domainName),
+					resource.TestCheckResourceAttr(resName, "self_serve", "false"),
+					resource.TestCheckResourceAttr(resName, "self_renew", "false"),
+					resource.TestCheckResourceAttr(resName, "self_renew_mins", "50"),
+					resource.TestCheckResourceAttr(resName, "delete_protection", "false"),
+					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "15", "max_members": "20"}),
+				),
+			},
+			{
+				Config: testAccGroupConfigAllAttributesAddMember(groupName, domainName, member1, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "2"),
+					resource.TestCheckResourceAttr(resName, "principal_domain_filter", "user,"+domainName),
+					resource.TestCheckResourceAttr(resName, "self_serve", "true"),
+					resource.TestCheckResourceAttr(resName, "self_renew", "false"),
+					resource.TestCheckResourceAttr(resName, "self_renew_mins", "50"),
+					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
+					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "notify_roles", ""),
+					resource.TestCheckResourceAttr(resName, "settings.#", "0"),
+				),
+			},
+			{
+				Config: testAccGroupConfigAllAttributesRemoveMember(groupName, domainName, member2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.name", member2),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", ""),
+					resource.TestCheckResourceAttr(resName, "principal_domain_filter", "user,"+domainName),
+					resource.TestCheckResourceAttr(resName, "self_serve", "true"),
+					resource.TestCheckResourceAttr(resName, "self_renew", "false"),
+					resource.TestCheckResourceAttr(resName, "self_renew_mins", "50"),
+					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
+					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "notify_roles", ""),
+					resource.TestCheckResourceAttr(resName, "settings.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccGroupReviewEnabled(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
+		log.Print("TF_ACC must be set for acceptance tests")
+		return
+	}
+	if v := os.Getenv("DOMAIN"); v == "" {
+		t.Fatal("DOMAIN must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_1"); v == "" {
+		t.Fatal("MEMBER_1 must be set for acceptance tests")
+	}
+	if v := os.Getenv("MEMBER_2"); v == "" {
+		t.Fatal("MEMBER_2 must be set for acceptance tests")
+	}
+	var group zms.Group
+	resName := "athenz_group.groupTest"
+	rInt := acctest.RandInt()
+	domainName := os.Getenv("DOMAIN")
+	groupName := fmt.Sprintf("test%d", rInt)
+	t.Cleanup(func() {
+		cleanAllAccTestGroups(domainName, []string{groupName})
+	})
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGroupConfigReviewEnabled(groupName, domainName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "0"),
+					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
+					resource.TestCheckResourceAttr(resName, "review_enabled", "true"),
+					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccGroupTransitionFromMembersToMember(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
 		log.Print("TF_ACC must be set for acceptance tests")
@@ -618,6 +765,119 @@ resource "athenz_group" "groupTest" {
   }
 }
 `, name, domain, member1)
+}
+
+func testAccGroupConfigReviewEnabled(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  review_enabled = true
+  notify_roles = "admin"
+}
+`, name, domain)
+}
+
+func testAccGroupConfigAllAttributes(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  tags = {
+	key1 = "s1,s2"
+	key2 = "s3,s4"
+  }
+  settings {
+	user_expiry_days = 20
+	max_members = 30
+  }
+  principal_domain_filter = "user,%s"
+  self_serve = true
+  self_renew = true
+  self_renew_mins = 100
+  delete_protection = true
+  review_enabled = false
+  notify_roles = "admin"
+}
+`, name, domain, member1, domain)
+}
+
+func testAccGroupConfigAllAttributesChanged(name, domain, member1 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  tags = {
+	key1 = "s1,s2"
+	key2 = "s3,s4"
+  }
+  settings {
+	user_expiry_days = 15
+	max_members = 20
+  }
+  principal_domain_filter = "user,%s"
+  self_serve = false
+  self_renew = false
+  self_renew_mins = 50
+  delete_protection = false
+  review_enabled = false
+  notify_roles = "admin"
+  audit_ref = "done by someone"
+}
+`, name, domain, member1, domain)
+}
+
+func testAccGroupConfigAllAttributesAddMember(name, domain, member1, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  member {
+	name = "%s"
+  }
+  tags = {
+	key1 = "s1,s2"
+	key2 = "s3,s4"
+  }
+  principal_domain_filter = "user,%s"
+  self_serve = true
+  self_renew = false
+  self_renew_mins = 50
+  delete_protection = true
+  review_enabled = false
+}
+`, name, domain, member1, member2, domain)
+}
+
+func testAccGroupConfigAllAttributesRemoveMember(name, domain, member2 string) string {
+	return fmt.Sprintf(`
+resource "athenz_group" "groupTest" {
+  name = "%s"
+  domain = "%s"
+  member {
+	name = "%s"
+  }
+  tags = {
+	key1 = "s1,s2"
+	key2 = "s3,s4"
+  }
+  principal_domain_filter = "user,%s"
+  self_serve = true
+  self_renew = false
+  self_renew_mins = 50
+  delete_protection = true
+  review_enabled = false
+}
+`, name, domain, member2, domain)
 }
 
 func testAccCheckCorrectGroupSettings(n string, lookingForSettings map[string]string) resource.TestCheckFunc {
