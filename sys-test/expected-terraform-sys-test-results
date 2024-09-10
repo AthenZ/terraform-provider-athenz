@@ -386,6 +386,8 @@
     }
   ],
   "signAlgorithm": "",
+  "sshCertSignerKeyId": "",
   "userAuthorityFilter": "",
+  "x509CertSignerKeyId": "",
   "ypmId": 0
 }

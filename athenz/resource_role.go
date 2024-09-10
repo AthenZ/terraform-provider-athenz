@@ -2,16 +2,14 @@ package athenz
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
 	"github.com/AthenZ/terraform-provider-athenz/client"
-
 	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceRole() *schema.Resource {
@@ -136,7 +134,6 @@ func ResourceRole() *schema.Resource {
 				Type:             schema.TypeString,
 				Description:      "The domain, which this role is trusted to",
 				Optional:         true,
-				ForceNew:         true,
 				ValidateDiagFunc: validatePatternFunc(DOMAIN_NAME),
 			},
 			"last_reviewed_date": {
@@ -145,10 +142,59 @@ func ResourceRole() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, LAST_REVIEWED_DATE),
 			},
-			"audit_ref": {
+			"self_serve": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"audit_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew_mins": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+			"delete_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"review_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"user_authority_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  AUDIT_REF,
+			},
+			"user_authority_expiration": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"notify_roles": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"sign_algorithm": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"principal_domain_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"tags": {
 				Type:     schema.TypeMap,
@@ -157,9 +203,10 @@ func ResourceRole() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"principal_domain_filter": {
+			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  AUDIT_REF,
 			},
 		},
 		CustomizeDiff: validateRoleSchema,
@@ -236,6 +283,25 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 				}
 			}
 			role.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
+			selfServe := d.Get("self_serve").(bool)
+			role.SelfServe = &selfServe
+			role.SignAlgorithm = d.Get("sign_algorithm").(string)
+			reviewEnabled := d.Get("review_enabled").(bool)
+			role.ReviewEnabled = &reviewEnabled
+			role.NotifyRoles = d.Get("notify_roles").(string)
+			role.UserAuthorityFilter = d.Get("user_authority_filter").(string)
+			role.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
+			role.Description = d.Get("description").(string)
+			deleteProtection := d.Get("delete_protection").(bool)
+			role.DeleteProtection = &deleteProtection
+			selfRenew := d.Get("self_renew").(bool)
+			role.SelfRenew = &selfRenew
+			if d.HasChange("self_renew_mins") {
+				selfRenewMins := int32(d.Get("self_renew_mins").(int))
+				role.SelfRenewMins = &selfRenewMins
+			}
+			auditEnabled := d.Get("audit_enabled").(bool)
+			role.AuditEnabled = &auditEnabled
 			err = zmsClient.PutRole(dn, rn, auditRef, &role)
 			if err != nil {
 				return diag.FromErr(err)
@@ -311,6 +377,10 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 		if err = d.Set("trust", string(role.Trust)); err != nil {
 			return diag.FromErr(err)
 		}
+	} else {
+		if err = d.Set("trust", nil); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	// added for role tag
 	if len(role.Tags) > 0 {
@@ -319,7 +389,8 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 		}
 	} else {
 		tags := d.Get("tags").(map[string]interface{})
-		// if no tags in zms and there are tags configured, we have a drift, so we set tags to empty map to let terraform know that tags need to be re added
+		// if no tags in zms and there are tags configured, we have a drift,
+		// so we set tags to empty map to let terraform know that tags need to be re added
 		if len(tags) > 0 {
 			if err = d.Set("tags", nil); err != nil {
 				return diag.FromErr(err)
@@ -355,7 +426,6 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 	if role.MaxMembers != nil {
 		roleSettings["max_members"] = int(*role.MaxMembers)
 	}
-
 	if len(roleSettings) != 0 {
 		if err = d.Set("settings", flattenIntSettings(roleSettings)); err != nil {
 			return diag.FromErr(err)
@@ -372,10 +442,39 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 			}
 		}
 	}
-	if role.PrincipalDomainFilter != "" {
-		if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
-			return diag.FromErr(err)
-		}
+
+	if err = d.Set("user_authority_filter", role.UserAuthorityFilter); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("user_authority_expiration", role.UserAuthorityExpiration); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("notify_roles", role.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("sign_algorithm", role.SignAlgorithm); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("description", role.Description); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("self_serve", role.SelfServe); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("self_renew", role.SelfRenew); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("delete_protection", role.DeleteProtection); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("review_enabled", role.ReviewEnabled); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("audit_enabled", role.AuditEnabled); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }
@@ -408,17 +507,13 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	membersToDelete := make([]*zms.RoleMember, 0)
-	membersToAdd := make([]*zms.RoleMember, 0)
 
 	role, err := zmsClient.GetRole(dn, rn)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	isRoleChanged := false
 
 	if d.HasChange("settings") {
-		isRoleChanged = true
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
 			settings := n.(*schema.Set).List()[0].(map[string]interface{})
@@ -455,55 +550,73 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 
 	if d.HasChange("tags") {
-		isRoleChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
 		role.Tags = tags
 	}
 
+	if v, ok := d.GetOk("members"); ok {
+		role.RoleMembers = expandDeprecatedRoleMembers(v.(*schema.Set).List())
+	} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
+		role.RoleMembers = expandRoleMembers(v.(*schema.Set).List())
+	} else {
+		role.RoleMembers = nil
+	}
+	if v, ok := d.GetOk("trust"); ok {
+		if len(role.RoleMembers) != 0 {
+			return diag.Errorf("delegated roles cannot have members")
+		}
+		role.Trust = zms.DomainName(v.(string))
+	} else {
+		role.Trust = ""
+	}
+
 	if d.HasChange("principal_domain_filter") {
-		isRoleChanged = true
 		role.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	}
-
-	if isRoleChanged {
-		err = zmsClient.PutRole(dn, rn, auditRef, role)
-		if err != nil {
-			return diag.Errorf("error updating tags: %s", err)
-		}
+	if d.HasChange("self_serve") {
+		selfServe := d.Get("self_serve").(bool)
+		role.SelfServe = &selfServe
+	}
+	if d.HasChange("sign_algorithm") {
+		role.SignAlgorithm = d.Get("sign_algorithm").(string)
+	}
+	if d.HasChange("review_enabled") {
+		reviewEnabled := d.Get("review_enabled").(bool)
+		role.ReviewEnabled = &reviewEnabled
+	}
+	if d.HasChange("notify_roles") {
+		role.NotifyRoles = d.Get("notify_roles").(string)
+	}
+	if d.HasChange("user_authority_filter") {
+		role.UserAuthorityFilter = d.Get("user_authority_filter").(string)
+	}
+	if d.HasChange("user_authority_expiration") {
+		role.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
+	}
+	if d.HasChange("description") {
+		role.Description = d.Get("description").(string)
+	}
+	if d.HasChange("delete_protection") {
+		deleteProtection := d.Get("delete_protection").(bool)
+		role.DeleteProtection = &deleteProtection
+	}
+	if d.HasChange("self_renew") {
+		selfRenew := d.Get("self_renew").(bool)
+		role.SelfRenew = &selfRenew
+	}
+	if d.HasChange("self_renew_mins") {
+		selfRenewMins := int32(d.Get("self_renew_mins").(int))
+		role.SelfRenewMins = &selfRenewMins
+	}
+	if d.HasChange("audit_enabled") {
+		auditEnabled := d.Get("audit_enabled").(bool)
+		role.AuditEnabled = &auditEnabled
 	}
 
-	if d.HasChange("members") {
-		if _, ok := d.GetOk("trust"); ok {
-			return diag.Errorf("delegated roles cannot change members")
-		}
-		os, ns := handleChange(d, "members")
-		membersToDelete = expandDeprecatedRoleMembers(os.Difference(ns).List())
-		membersToAdd = expandDeprecatedRoleMembers(ns.Difference(os).List())
-	}
-	if d.HasChange("member") {
-		if _, ok := d.GetOk("trust"); ok {
-			return diag.Errorf("delegated roles cannot change members")
-		}
-		os, ns := handleChange(d, "member")
-		membersToDelete = append(membersToDelete, expandRoleMembers(os.Difference(ns).List())...)
-		membersToAdd = append(membersToAdd, expandRoleMembers(ns.Difference(os).List())...)
-	}
-
-	// we don't want to delete a member that should be added right after
-	membersToNotDelete := stringSet{}
-	for _, member := range membersToAdd {
-		membersToNotDelete.add(string(member.MemberName))
-	}
-
-	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient, membersToNotDelete)
+	err = zmsClient.PutRole(dn, rn, auditRef, role)
 	if err != nil {
-		return diag.Errorf("error updating role membership: %s", err)
-	}
-
-	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
-	if err != nil {
-		return diag.Errorf("error updating role membership: %s", err)
+		return diag.Errorf("error updating role: %s", err)
 	}
 
 	return readAfterWrite(resourceRoleRead, ctx, d, meta)

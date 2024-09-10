@@ -2,16 +2,14 @@ package athenz
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
-
 	"github.com/AthenZ/terraform-provider-athenz/client"
-
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceGroup() *schema.Resource {
@@ -102,10 +100,52 @@ func ResourceGroup() *schema.Resource {
 				Optional:         true,
 				ValidateDiagFunc: validateDatePatternFunc(DATE_PATTERN, LAST_REVIEWED_DATE),
 			},
-			"audit_ref": {
+			"principal_domain_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  AUDIT_REF,
+				Default:  "",
+			},
+			"self_serve": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"audit_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"self_renew_mins": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+			"delete_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"review_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"user_authority_filter": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"user_authority_expiration": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"notify_roles": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"tags": {
 				Type:     schema.TypeMap,
@@ -114,10 +154,10 @@ func ResourceGroup() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"principal_domain_filter": {
+			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
+				Default:  AUDIT_REF,
 			},
 		},
 	}
@@ -149,7 +189,6 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 			if v, ok := d.GetOk("last_reviewed_date"); ok {
 				group.LastReviewedDate = stringToTimestamp(v.(string))
 			}
-			group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 			if v, ok := d.GetOk("settings"); ok && v.(*schema.Set).Len() > 0 {
 				settings, ok := v.(*schema.Set).List()[0].(map[string]interface{})
 				if ok {
@@ -162,6 +201,22 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 					group.MaxMembers = &maxMembers
 				}
 			}
+			selfServe := d.Get("self_serve").(bool)
+			group.SelfServe = &selfServe
+			reviewEnabled := d.Get("review_enabled").(bool)
+			group.ReviewEnabled = &reviewEnabled
+			group.NotifyRoles = d.Get("notify_roles").(string)
+			group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
+			group.UserAuthorityFilter = d.Get("user_authority_filter").(string)
+			group.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
+			deleteProtection := d.Get("delete_protection").(bool)
+			group.DeleteProtection = &deleteProtection
+			selfRenew := d.Get("self_renew").(bool)
+			group.SelfRenew = &selfRenew
+			selfRenewMins := int32(d.Get("self_renew_mins").(int))
+			group.SelfRenewMins = &selfRenewMins
+			auditEnabled := d.Get("audit_enabled").(bool)
+			group.AuditEnabled = &auditEnabled
 			if err = zmsClient.PutGroup(dn, gn, auditRef, &group); err != nil {
 				return diag.FromErr(err)
 			}
@@ -272,49 +327,63 @@ func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface
 		}
 	}
 
-	if group.PrincipalDomainFilter != "" {
-		if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
-			return diag.FromErr(err)
-		}
+	if err = d.Set("user_authority_filter", group.UserAuthorityFilter); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("user_authority_expiration", group.UserAuthorityExpiration); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("self_serve", group.SelfServe); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("self_renew", group.SelfRenew); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("delete_protection", group.DeleteProtection); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("review_enabled", group.ReviewEnabled); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("audit_enabled", group.AuditEnabled); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }
 
 func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	isGroupChanged := false
 	dn, gn, err := splitGroupId(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	membersToDelete := make([]*zms.GroupMember, 0)
-	membersToAdd := make([]*zms.GroupMember, 0)
 	group, err := zmsClient.GetGroup(dn, gn)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if d.HasChange("members") {
-		oldVal, newVal := handleChange(d, "members")
-		membersToDelete = expandDeprecatedGroupMembers(oldVal.Difference(newVal).List())
-		membersToAdd = expandDeprecatedGroupMembers(newVal.Difference(oldVal).List())
-	}
-	if d.HasChange("member") {
-		oldVal, newVal := handleChange(d, "member")
-		membersToDelete = append(membersToDelete, expandGroupMembers(oldVal.Difference(newVal).List())...)
-		membersToAdd = append(membersToAdd, expandGroupMembers(newVal.Difference(oldVal).List())...)
+	if v, ok := d.GetOk("members"); ok {
+		group.GroupMembers = expandDeprecatedGroupMembers(v.(*schema.Set).List())
+	} else if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
+		group.GroupMembers = expandGroupMembers(v.(*schema.Set).List())
+	} else {
+		group.GroupMembers = nil
 	}
 
 	if d.HasChange("tags") {
-		isGroupChanged = true
 		_, n := d.GetChange("tags")
 		tags := expandTagsMap(n.(map[string]interface{}))
 		group.Tags = tags
 	}
 
 	if d.HasChange("settings") {
-		isGroupChanged = true
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
 			settings := n.(*schema.Set).List()[0].(map[string]interface{})
@@ -333,20 +402,45 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	if d.HasChange("principal_domain_filter") {
-		isGroupChanged = true
 		group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	}
-
-	if isGroupChanged {
-		err := zmsClient.PutGroup(dn, gn, auditRef, group)
-		if err != nil {
-			return diag.Errorf("error updating tags: %s", err)
-		}
+	if d.HasChange("self_serve") {
+		selfServe := d.Get("self_serve").(bool)
+		group.SelfServe = &selfServe
+	}
+	if d.HasChange("review_enabled") {
+		reviewEnabled := d.Get("review_enabled").(bool)
+		group.ReviewEnabled = &reviewEnabled
+	}
+	if d.HasChange("notify_roles") {
+		group.NotifyRoles = d.Get("notify_roles").(string)
+	}
+	if d.HasChange("user_authority_filter") {
+		group.UserAuthorityFilter = d.Get("user_authority_filter").(string)
+	}
+	if d.HasChange("user_authority_expiration") {
+		group.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
+	}
+	if d.HasChange("delete_protection") {
+		deleteProtection := d.Get("delete_protection").(bool)
+		group.DeleteProtection = &deleteProtection
+	}
+	if d.HasChange("self_renew") {
+		selfRenew := d.Get("self_renew").(bool)
+		group.SelfRenew = &selfRenew
+	}
+	if d.HasChange("self_renew_mins") {
+		selfRenewMins := int32(d.Get("self_renew_mins").(int))
+		group.SelfRenewMins = &selfRenewMins
+	}
+	if d.HasChange("audit_enabled") {
+		auditEnabled := d.Get("audit_enabled").(bool)
+		group.AuditEnabled = &auditEnabled
 	}
 
-	err = updateGroupMembers(dn, gn, membersToDelete, membersToAdd, zmsClient, auditRef)
+	err = zmsClient.PutGroup(dn, gn, auditRef, group)
 	if err != nil {
-		return diag.Errorf("error updating group membership: %s", err)
+		return diag.Errorf("error updating group: %s", err)
 	}
 
 	return readAfterWrite(resourceGroupRead, ctx, d, meta)
