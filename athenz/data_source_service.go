@@ -2,11 +2,11 @@ package athenz
 
 import (
 	"context"
+	"github.com/ardielle/ardielle-go/rdl"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -62,12 +62,6 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 	fullResourceName := domainName + SERVICE_SEPARATOR + shortServiceName
 
 	service, err := client.GetServiceIdentity(domainName, shortServiceName)
-	if err := d.Set("description", service.Description); err != nil {
-		return nil
-	}
-	if err := d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
-		return nil
-	}
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
@@ -78,6 +72,14 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 	case rdl.Any:
 		return diag.FromErr(err)
 	}
+
+	if err := d.Set("description", service.Description); err != nil {
+		return nil
+	}
+	if err := d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
+		return nil
+	}
+
 	d.SetId(fullResourceName)
 	if len(service.Tags) > 0 {
 		if err = d.Set("tags", flattenTag(service.Tags)); err != nil {
