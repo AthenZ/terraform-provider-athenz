@@ -134,7 +134,6 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
-	//return diag.Errorf("terraform plan resource")
 
 	switch v := err.(type) {
 	case rdl.ResourceError:
