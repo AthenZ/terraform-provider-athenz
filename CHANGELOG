@@ -1,3 +1,6 @@
+v1.0.44 Release / Oct 25, 2024
+- Upgrade to Athenz 1.12.x release
+
 v1.0.43 Release / Sep 25, 2024
 ------------------------------
 - Fix issue with service data_source where service didn't exist in Athenz
