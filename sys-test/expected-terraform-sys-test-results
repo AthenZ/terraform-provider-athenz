@@ -23,6 +23,7 @@
           "expiration": "2022-12-29T23:59:59.000Z",
           "groupName": "terraform-provider:group.athenz_provider_foo",
           "memberName": "user.github-7654321",
+          "notifyRoles": "",
           "pendingState": ""
         }
       ],
@@ -55,6 +56,7 @@
           "auditRef": "",
           "groupName": "terraform-provider:group.athenz_provider_foo_deprecated",
           "memberName": "user.github-7654321",
+          "notifyRoles": "",
           "pendingState": ""
         }
       ],
