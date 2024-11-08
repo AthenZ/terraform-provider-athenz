@@ -213,17 +213,6 @@ func TestAccGroupBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccGroupConfigLastReviewedDate(groupName, domainName, member1, lastReviewedDate),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGroupExists(resName, &group),
-					resource.TestCheckResourceAttr(resName, "name", groupName),
-					resource.TestCheckResourceAttr(resName, "member.#", "1"),
-					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
-					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
-					resource.TestCheckResourceAttr(resName, "last_reviewed_date", lastReviewedDate),
-				),
-			},
-			{
 				Config: testAccGroupConfigSettings(groupName, domainName, member1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGroupExists(resName, &group),
@@ -232,6 +221,17 @@ func TestAccGroupBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
 					resource.TestCheckResourceAttr(resName, "settings.#", "1"),
 					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "10", "service_expiry_days": "20", "max_members": "30"}),
+				),
+			},
+			{
+				Config: testAccGroupConfigLastReviewedDate(groupName, domainName, member1, lastReviewedDate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupExists(resName, &group),
+					resource.TestCheckResourceAttr(resName, "name", groupName),
+					resource.TestCheckResourceAttr(resName, "member.#", "1"),
+					resource.TestCheckResourceAttr(resName, "member.0.expiration", "2022-12-29 23:59:59"),
+					testAccCheckCorrectTags(resName, map[string]string{"key1": "a1,a2"}),
+					resource.TestCheckResourceAttr(resName, "last_reviewed_date", lastReviewedDate),
 				),
 			},
 		},
