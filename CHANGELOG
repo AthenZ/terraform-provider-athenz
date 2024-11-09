@@ -1,4 +1,9 @@
+v1.0.45 Release / Nov 08, 2024
+------------------------------
+- Update athenz_role and athenz_group resources to correctly update last-reviewed timestamp
+
 v1.0.44 Release / Oct 25, 2024
+------------------------------
 - Upgrade to Athenz 1.12.x release
 
 v1.0.43 Release / Sep 25, 2024
@@ -7,7 +12,6 @@ v1.0.43 Release / Sep 25, 2024
 
 v1.0.42 Release / Sep 05, 2024
 ------------------------------
-
 - Update athenz_role and athenz_group resources to support all meta attributes
 - Allow update of trust attribute in the athenz_role resource
 - Allow conversion of athenz_role resource from delegated to regular role and vice versa

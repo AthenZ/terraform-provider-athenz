@@ -476,6 +476,11 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 	if err = d.Set("audit_enabled", role.AuditEnabled); err != nil {
 		return diag.FromErr(err)
 	}
+	if role.LastReviewedDate != nil {
+		if err = d.Set("last_reviewed_date", timestampToString(role.LastReviewedDate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
@@ -570,7 +575,9 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	} else {
 		role.Trust = ""
 	}
-
+	if d.HasChange("last_reviewed_date") {
+		role.LastReviewedDate = stringToTimestamp(d.Get("last_reviewed_date").(string))
+	}
 	if d.HasChange("principal_domain_filter") {
 		role.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	}

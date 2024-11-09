@@ -354,6 +354,11 @@ func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface
 	if err = d.Set("audit_enabled", group.AuditEnabled); err != nil {
 		return diag.FromErr(err)
 	}
+	if group.LastReviewedDate != nil {
+		if err = d.Set("last_reviewed_date", timestampToString(group.LastReviewedDate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return nil
 }
 
@@ -382,7 +387,9 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		tags := expandTagsMap(n.(map[string]interface{}))
 		group.Tags = tags
 	}
-
+	if d.HasChange("last_reviewed_date") {
+		group.LastReviewedDate = stringToTimestamp(d.Get("last_reviewed_date").(string))
+	}
 	if d.HasChange("settings") {
 		_, n := d.GetChange("settings")
 		if len(n.(*schema.Set).List()) != 0 {
