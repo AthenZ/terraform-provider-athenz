@@ -34,6 +34,7 @@ resource "athenz_role_meta" "role_meta" {
   user_authority_filter = "OnShore-US"
   user_authority_expiration = "ElevatedClearance"
   notify_roles = "role1,role2"
+  notify_details = "notify details"
   principal_domain_filter = "user,home,+sports,-sports.dev"
   tags = {
     key1 = "val1,val2"
@@ -65,6 +66,7 @@ resource "athenz_role_meta" "role_meta" {
 - `group_expiry_days` (Number) all groups in the role will have specified max expiry days
 - `group_review_days` (Number) all groups in the role will have specified review reminder days
 - `max_members` (Number) maximum number of members allowed in the role
+- `notify_details` (String) Set of instructions included in notifications for review and audit enabled roles
 - `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
 - `principal_domain_filter` (String) comma seperated list of domains to enforce principal membership
 - `resource_state` (Number) Bitmask of resource state flags controlling role behavior when creating or destroying the resource. 0x01: create the role if not already present, 0x02: always delete the role when destroying the resource. Default value is -1 indicating to inherit the value defined at the provider configuration level

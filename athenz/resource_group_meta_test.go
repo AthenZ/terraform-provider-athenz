@@ -47,6 +47,7 @@ func TestAccGroupMetaBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
@@ -69,6 +70,7 @@ func cleanAccTestGroupMeta(domainName, groupName string) {
 			ServiceExpiryDays:       &zero,
 			ReviewEnabled:           &disabled,
 			NotifyRoles:             "",
+			NotifyDetails:           "",
 			UserAuthorityFilter:     "",
 			UserAuthorityExpiration: "",
 			Tags:                    make(map[zms.TagKey]*zms.TagValueList),
@@ -107,6 +109,9 @@ func testAccCheckGroupMetaExists(resource string) resource.TestCheckFunc {
 		if group.NotifyRoles == "" {
 			return fmt.Errorf("does not have notify roles set")
 		}
+		if group.NotifyDetails == "" {
+			return fmt.Errorf("does not have notify details set")
+		}
 		return nil
 	}
 }
@@ -127,7 +132,10 @@ func testAccCheckGroupMetaDestroy(s *terraform.State) error {
 			return err
 		}
 		if group.NotifyRoles != "" {
-			return fmt.Errorf("athenz group meta still exists")
+			return fmt.Errorf("athenz group meta notify roles still exists")
+		}
+		if group.NotifyDetails != "" {
+			return fmt.Errorf("athenz group meta notify details still exists")
 		}
 		_ = zmsClient.DeleteGroup(dn, gn, AUDIT_REF)
 	}
@@ -149,6 +157,7 @@ resource "athenz_group_meta" "test_group_meta" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth"
   tags = {
     "zms.DisableExpirationNotifications" = "4"
@@ -191,6 +200,7 @@ func TestAccGroupMetaResourceStateDelete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
@@ -244,6 +254,7 @@ resource "athenz_group_meta" "test_group_meta_delete" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  notify_details = "notify details"
   principal_domain_filter = "user"
   tags = {
     "zms.DisableExpirationNotifications" = "4"

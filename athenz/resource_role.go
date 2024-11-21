@@ -184,6 +184,10 @@ func ResourceRole() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"notify_details": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"sign_algorithm": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -289,6 +293,7 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, meta interf
 			reviewEnabled := d.Get("review_enabled").(bool)
 			role.ReviewEnabled = &reviewEnabled
 			role.NotifyRoles = d.Get("notify_roles").(string)
+			role.NotifyDetails = d.Get("notify_details").(string)
 			role.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 			role.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
 			role.Description = d.Get("description").(string)
@@ -452,6 +457,9 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 	if err = d.Set("notify_roles", role.NotifyRoles); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("notify_details", role.NotifyDetails); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
 		return diag.FromErr(err)
 	}
@@ -594,6 +602,9 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 	if d.HasChange("notify_roles") {
 		role.NotifyRoles = d.Get("notify_roles").(string)
+	}
+	if d.HasChange("notify_details") {
+		role.NotifyDetails = d.Get("notify_details").(string)
 	}
 	if d.HasChange("user_authority_filter") {
 		role.UserAuthorityFilter = d.Get("user_authority_filter").(string)

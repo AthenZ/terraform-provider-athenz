@@ -1,3 +1,8 @@
+v1.0.46 Release / Nov 21, 2024
+------------------------------
+- Support notifyDetails attribute for athenz_role and athenz_group resources
+- Support slackChannel attribute for athenz_domain resource
+
 v1.0.45 Release / Nov 08, 2024
 ------------------------------
 - Update athenz_role and athenz_group resources to correctly update last-reviewed timestamp

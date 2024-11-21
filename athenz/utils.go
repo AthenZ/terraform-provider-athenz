@@ -179,6 +179,11 @@ func dataSourceRoleSchema() map[string]*schema.Schema {
 			Optional: true,
 			Default:  "",
 		},
+		"notify_details": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "",
+		},
 		"sign_algorithm": {
 			Type:     schema.TypeString,
 			Optional: true,

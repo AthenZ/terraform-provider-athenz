@@ -101,6 +101,11 @@ func DataSourceAllDomainDetails() *schema.Resource {
 				Description: "associated business service with domain",
 				Optional:    true,
 			},
+			"slack_channel": {
+				Type:        schema.TypeString,
+				Description: "associated slack channel for notifications",
+				Optional:    true,
+			},
 			"environment": {
 				Type:        schema.TypeString,
 				Description: "string specifying the environment this domain is used in (production, staging, etc.)",
@@ -218,6 +223,9 @@ func dataSourceAllDomainDetailsRead(ctx context.Context, d *schema.ResourceData,
 	}
 	if domain.BusinessService != "" {
 		d.Set("business_service", domain.BusinessService)
+	}
+	if domain.SlackChannel != "" {
+		d.Set("slack_channel", domain.SlackChannel)
 	}
 	if domain.Environment != "" {
 		d.Set("environment", domain.Environment)

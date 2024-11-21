@@ -90,6 +90,11 @@ func ResourceDomainMeta() *schema.Resource {
 				Description: "associated business service with domain",
 				Optional:    true,
 			},
+			"slack_channel": {
+				Type:        schema.TypeString,
+				Description: "associated slack channel for notifications",
+				Optional:    true,
+			},
 			"environment": {
 				Type:        schema.TypeString,
 				Description: "string specifying the environment this domain is used in (production, staging, etc.)",
@@ -183,6 +188,9 @@ func resourceDomainMetaRead(_ context.Context, d *schema.ResourceData, meta inte
 	if err = d.Set("business_service", domain.BusinessService); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("slack_channel", domain.SlackChannel); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("environment", domain.Environment); err != nil {
 		return diag.FromErr(err)
 	}
@@ -221,6 +229,7 @@ func resourceDomainMetaDelete(_ context.Context, d *schema.ResourceData, meta in
 		MemberPurgeExpiryDays: &zero,
 		UserAuthorityFilter:   "",
 		BusinessService:       "",
+		SlackChannel:          "",
 		Tags:                  make(map[zms.TagKey]*zms.TagValueList),
 		Contacts:              make(map[zms.SimpleName]string),
 	}
@@ -259,6 +268,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 		MemberPurgeExpiryDays: domain.MemberPurgeExpiryDays,
 		UserAuthorityFilter:   domain.UserAuthorityFilter,
 		BusinessService:       domain.BusinessService,
+		SlackChannel:          domain.SlackChannel,
 		Tags:                  domain.Tags,
 		Contacts:              domain.Contacts,
 	}
@@ -266,6 +276,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 	domainMeta.ApplicationId = d.Get("application_id").(string)
 	domainMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	domainMeta.BusinessService = d.Get("business_service").(string)
+	domainMeta.SlackChannel = d.Get("slack_channel").(string)
 	domainMeta.Environment = d.Get("environment").(string)
 	if d.HasChange("user_expiry_days") {
 		memberExpiryDays := int32(d.Get("user_expiry_days").(int))

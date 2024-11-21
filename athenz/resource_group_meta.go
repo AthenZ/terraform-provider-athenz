@@ -94,6 +94,10 @@ func ResourceGroupMeta() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"notify_details": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"audit_ref": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -176,6 +180,7 @@ func updateGroupMeta(zmsClient client.ZmsClient, dn, gn string, d *schema.Resour
 		ServiceExpiryDays:       group.ServiceExpiryDays,
 		ReviewEnabled:           group.ReviewEnabled,
 		NotifyRoles:             group.NotifyRoles,
+		NotifyDetails:           group.NotifyDetails,
 		UserAuthorityFilter:     group.UserAuthorityFilter,
 		UserAuthorityExpiration: group.UserAuthorityExpiration,
 		Tags:                    group.Tags,
@@ -198,6 +203,7 @@ func updateGroupMeta(zmsClient client.ZmsClient, dn, gn string, d *schema.Resour
 	reviewEnabled := d.Get("review_enabled").(bool)
 	groupMeta.ReviewEnabled = &reviewEnabled
 	groupMeta.NotifyRoles = d.Get("notify_roles").(string)
+	groupMeta.NotifyDetails = d.Get("notify_details").(string)
 	groupMeta.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	groupMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	groupMeta.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
@@ -251,6 +257,9 @@ func resourceGroupMetaRead(_ context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 	if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("notify_details", group.NotifyDetails); err != nil {
 		return diag.FromErr(err)
 	}
 	if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
@@ -325,6 +334,7 @@ func resourceGroupMetaDelete(_ context.Context, d *schema.ResourceData, meta int
 			ServiceExpiryDays:       &zero,
 			ReviewEnabled:           &disabled,
 			NotifyRoles:             "",
+			NotifyDetails:           "",
 			UserAuthorityFilter:     "",
 			UserAuthorityExpiration: "",
 			Tags:                    make(map[zms.TagKey]*zms.TagValueList),

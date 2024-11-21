@@ -26,6 +26,7 @@ resource "athenz_group_meta" "group_meta" {
   user_authority_filter = "OnShore-US"
   user_authority_expiration = "ElevatedClearance"
   notify_roles = "role1,role2"
+  notify_roles = "notify details"
   principal_domain_filter = "user,home,+sports,-sports.dev"
   tags = {
     key1 = "val1,val2"
@@ -53,6 +54,7 @@ resource "athenz_group_meta" "group_meta" {
 - `audit_ref` (String, Default = "done by terraform provider")  string containing audit specification or ticket number.
 - `delete_protection` (Bool) If true, ask for delete confirmation in audit and review enabled groups
 - `max_members` (Number) maximum number of members allowed in the group
+- `notify_details` (String) Set of instructions included in notifications for review and audit enabled groups
 - `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
 - `principal_domain_filter` (String) comma seperated list of domains to enforce principal membership
 - `resource_state` (Number) Bitmask of resource state flags controlling group behavior when creating or destroying the resource. 0x01: create the group if not already present, 0x02: always delete the group when destroying the resource. Default value is -1 indicating to inherit the value defined at the provider configuration level.

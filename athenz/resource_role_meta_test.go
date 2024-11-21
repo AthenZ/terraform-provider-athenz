@@ -54,6 +54,7 @@ func TestAccRoleMetaBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
@@ -81,6 +82,7 @@ func cleanAccTestRoleMeta(domainName, roleName string) {
 			ServiceReviewDays:       &zero,
 			ReviewEnabled:           &disabled,
 			NotifyRoles:             "",
+			NotifyDetails:           "",
 			UserAuthorityFilter:     "",
 			UserAuthorityExpiration: "",
 			GroupExpiryDays:         &zero,
@@ -171,6 +173,7 @@ resource "athenz_role_meta" "test_role_meta" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth"
   tags = {
     "zms.DisableExpirationNotifications" = "4"
@@ -220,6 +223,7 @@ func TestAccRoleMetaResourceStateDelete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin,security"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
 					resource.TestCheckResourceAttr(resourceName, "audit_ref", "test audit ref"),
@@ -280,6 +284,7 @@ resource "athenz_role_meta" "test_role_meta_delete" {
   delete_protection = true
   review_enabled = true
   notify_roles = "admin,security"
+  notify_details = "notify details"
   principal_domain_filter = "user"
   tags = {
     "zms.DisableExpirationNotifications" = "4"

@@ -23,12 +23,14 @@
           "expiration": "2022-12-29T23:59:59.000Z",
           "groupName": "terraform-provider:group.athenz_provider_foo",
           "memberName": "user.github-7654321",
+          "notifyDetails": "",
           "notifyRoles": "",
           "pendingState": ""
         }
       ],
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -56,12 +58,14 @@
           "auditRef": "",
           "groupName": "terraform-provider:group.athenz_provider_foo_deprecated",
           "memberName": "user.github-7654321",
+          "notifyDetails": "",
           "notifyRoles": "",
           "pendingState": ""
         }
       ],
       "modified": "XXX",
       "name": "terraform-provider:group.athenz_provider_foo_deprecated",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -204,6 +208,7 @@
       "memberReviewDays": 15,
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foobar",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -234,6 +239,7 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -268,6 +274,7 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_foo_deprecated",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -302,6 +309,7 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -328,6 +336,7 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.athenz_provider_bar_deprecated",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "resourceOwnership": {
@@ -353,6 +362,7 @@
       "description": "",
       "modified": "XXX",
       "name": "terraform-provider:role.admin",
+      "notifyDetails": "",
       "notifyRoles": "",
       "principalDomainFilter": "",
       "roleMembers": [
@@ -392,6 +402,7 @@
     }
   ],
   "signAlgorithm": "",
+  "slackChannel": "",
   "sshCertSignerKeyId": "",
   "userAuthorityFilter": "",
   "x509CertSignerKeyId": "",
