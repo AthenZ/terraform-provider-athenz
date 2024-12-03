@@ -283,6 +283,7 @@ func TestAccGroupAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resName, "notify_details", "notify details"),
 					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "20", "max_members": "30"}),
 				),
 			},
@@ -302,6 +303,7 @@ func TestAccGroupAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "delete_protection", "false"),
 					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resName, "notify_details", "notify details"),
 					testAccCheckCorrectGroupSettings(resName, map[string]string{"user_expiry_days": "15", "max_members": "20"}),
 				),
 			},
@@ -318,6 +320,7 @@ func TestAccGroupAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "notify_roles", ""),
+					resource.TestCheckResourceAttr(resName, "notify_details", ""),
 					resource.TestCheckResourceAttr(resName, "settings.#", "0"),
 				),
 			},
@@ -336,6 +339,7 @@ func TestAccGroupAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resName, "review_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "notify_roles", ""),
+					resource.TestCheckResourceAttr(resName, "notify_details", ""),
 					resource.TestCheckResourceAttr(resName, "settings.#", "0"),
 				),
 			},
@@ -379,6 +383,7 @@ func TestAccGroupReviewEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "audit_ref", AUDIT_REF),
 					resource.TestCheckResourceAttr(resName, "review_enabled", "true"),
 					resource.TestCheckResourceAttr(resName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resName, "notify_details", "notify details"),
 				),
 			},
 		},
@@ -774,6 +779,7 @@ resource "athenz_group" "groupTest" {
   domain = "%s"
   review_enabled = true
   notify_roles = "admin"
+  notify_details = "notify details"
 }
 `, name, domain)
 }
@@ -801,6 +807,7 @@ resource "athenz_group" "groupTest" {
   delete_protection = true
   review_enabled = false
   notify_roles = "admin"
+  notify_details = "notify details"
 }
 `, name, domain, member1, domain)
 }
@@ -828,6 +835,7 @@ resource "athenz_group" "groupTest" {
   delete_protection = false
   review_enabled = false
   notify_roles = "admin"
+  notify_details = "notify details"
   audit_ref = "done by someone"
 }
 `, name, domain, member1, domain)

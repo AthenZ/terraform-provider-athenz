@@ -37,6 +37,7 @@ data "athenz_group" "selected" {
 - `delete_protection` (Bool) If true, ask for delete confirmation in audit and review enabled groups
 - `last_reviewed_date` (String) Last reviewed date for the group
 - `member` (Block Set) Users or services to be added as members (see [below for nested schema](#nestedblock--member))
+- `notify_details` (String) Set of instructions included in notifications for review and audit enabled groups
 - `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
 - `principal_domain_filter` (String) comma seperated list of domains to enforce principal membership
 - `review_enabled` (Bool) Flag indicates whether group updates require another review and approval

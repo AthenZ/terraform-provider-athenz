@@ -124,6 +124,10 @@ func ResourceRoleMeta() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"notify_details": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"sign_algorithm": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -219,6 +223,7 @@ func updateRoleMeta(zmsClient client.ZmsClient, dn, rn string, d *schema.Resourc
 		ServiceReviewDays:       role.ServiceReviewDays,
 		ReviewEnabled:           role.ReviewEnabled,
 		NotifyRoles:             role.NotifyRoles,
+		NotifyDetails:           role.NotifyDetails,
 		UserAuthorityFilter:     role.UserAuthorityFilter,
 		UserAuthorityExpiration: role.UserAuthorityExpiration,
 		GroupExpiryDays:         role.GroupExpiryDays,
@@ -261,6 +266,7 @@ func updateRoleMeta(zmsClient client.ZmsClient, dn, rn string, d *schema.Resourc
 	reviewEnabled := d.Get("review_enabled").(bool)
 	roleMeta.ReviewEnabled = &reviewEnabled
 	roleMeta.NotifyRoles = d.Get("notify_roles").(string)
+	roleMeta.NotifyDetails = d.Get("notify_details").(string)
 	roleMeta.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 	roleMeta.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 	roleMeta.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
@@ -323,6 +329,9 @@ func resourceRoleMetaRead(_ context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 	if err = d.Set("notify_roles", role.NotifyRoles); err != nil {
+		return diag.FromErr(err)
+	}
+	if err = d.Set("notify_details", role.NotifyDetails); err != nil {
 		return diag.FromErr(err)
 	}
 	if err = d.Set("principal_domain_filter", role.PrincipalDomainFilter); err != nil {
@@ -438,6 +447,7 @@ func resourceRoleMetaDelete(_ context.Context, d *schema.ResourceData, meta inte
 			ServiceReviewDays:       &zero,
 			ReviewEnabled:           &disabled,
 			NotifyRoles:             "",
+			NotifyDetails:           "",
 			UserAuthorityFilter:     "",
 			UserAuthorityExpiration: "",
 			GroupExpiryDays:         &zero,

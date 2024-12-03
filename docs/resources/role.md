@@ -96,6 +96,7 @@ resource "athenz_role" "foo_role" {
 - `last_reviewed_date` (String) The last reviewed timestamp for the role
 - `member` (Block Set) A set of Athenz principal members (see [below for nested schema](#nestedblock--member))
 - `members` (Set of String, Deprecated) \*\*Deprecated** use member attribute instead (Optional) List of Athenz principal members. must be in this format: `user.<userid> or <domain>.<service> or <domain>:group.<group>`.
+- `notify_details` (String) Set of instructions included in notifications for review and audit enabled roles
 - `notify_roles` (String) comma seperated list of roles whose members should be notified for member review/approval
 - `principal_domain_filter` (String) comma seperated list of domains to enforce principal membership
 - `review_enabled` (Bool) Flag indicates whether role updates require another review and approval

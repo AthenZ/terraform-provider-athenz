@@ -112,6 +112,11 @@ func DataSourceGroup() *schema.Resource {
 				Optional: true,
 				Default:  "",
 			},
+			"notify_details": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 			"last_reviewed_date": {
 				Type:        schema.TypeString,
 				Description: "Last reviewed date for the group",
@@ -214,6 +219,11 @@ func dataSourceGroupRead(_ context.Context, d *schema.ResourceData, meta interfa
 	}
 	if group.NotifyRoles != "" {
 		if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if group.NotifyDetails != "" {
+		if err = d.Set("notify_details", group.NotifyDetails); err != nil {
 			return diag.FromErr(err)
 		}
 	}

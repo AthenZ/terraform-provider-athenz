@@ -30,6 +30,7 @@ description: |-
 - `role_cert_expiry_mins` (Number) role certs issued for this domain will have specified max timeout in mins
 - `service_cert_expiry_mins` (Number) service identity certs issued for this domain will have specified max timeout in mins
 - `service_expiry_days` (Number) all services in the domain roles will have specified max expiry days
+- `slack_channel` (String) associated slack channel for notifications
 - `tags` (Map of String) map of domain tags
 - `token_expiry_mins` (Number) tokens issued for this domain will have specified max timeout in mins
 - `user_authority_filter` (String) membership filtered based on user authority configured attributes

@@ -147,6 +147,10 @@ func ResourceGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"notify_details": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -206,6 +210,7 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, meta inter
 			reviewEnabled := d.Get("review_enabled").(bool)
 			group.ReviewEnabled = &reviewEnabled
 			group.NotifyRoles = d.Get("notify_roles").(string)
+			group.NotifyDetails = d.Get("notify_details").(string)
 			group.PrincipalDomainFilter = d.Get("principal_domain_filter").(string)
 			group.UserAuthorityFilter = d.Get("user_authority_filter").(string)
 			group.UserAuthorityExpiration = d.Get("user_authority_expiration").(string)
@@ -336,6 +341,9 @@ func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface
 	if err = d.Set("notify_roles", group.NotifyRoles); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("notify_details", group.NotifyDetails); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("principal_domain_filter", group.PrincipalDomainFilter); err != nil {
 		return diag.FromErr(err)
 	}
@@ -421,6 +429,9 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 	if d.HasChange("notify_roles") {
 		group.NotifyRoles = d.Get("notify_roles").(string)
+	}
+	if d.HasChange("notify_details") {
+		group.NotifyDetails = d.Get("notify_details").(string)
 	}
 	if d.HasChange("user_authority_filter") {
 		group.UserAuthorityFilter = d.Get("user_authority_filter").(string)

@@ -324,6 +324,7 @@ func TestAccGroupRoleAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "100"),
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth,"+domainName),
 				),
 			},
@@ -340,6 +341,7 @@ func TestAccGroupRoleAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "200"),
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth,"+domainName),
 				),
 			},
@@ -356,6 +358,7 @@ func TestAccGroupRoleAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "200"),
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth,"+domainName),
 				),
 			},
@@ -371,6 +374,7 @@ func TestAccGroupRoleAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "200"),
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth,"+domainName),
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					testAccCheckCorrectRoleSettings(resourceName, map[string]string{"token_expiry_mins": "10", "cert_expiry_mins": "20", "user_expiry_days": "30", "user_review_days": "40", "group_expiry_days": "50", "group_review_days": "60", "service_expiry_days": "70", "service_review_days": "80", "max_members": "90"}),
@@ -388,6 +392,7 @@ func TestAccGroupRoleAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_renew_mins", "300"),
 					resource.TestCheckResourceAttr(resourceName, "delete_protection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "notify_roles", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "notify_details", "notify details"),
 					resource.TestCheckResourceAttr(resourceName, "principal_domain_filter", "user,sys.auth,"+domainName),
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					testAccCheckCorrectRoleSettings(resourceName, map[string]string{"token_expiry_mins": "15", "cert_expiry_mins": "25", "user_expiry_days": "35", "user_review_days": "45", "group_expiry_days": "55", "group_review_days": "65", "service_expiry_days": "75", "service_review_days": "85", "max_members": "95"}),
@@ -1951,6 +1956,7 @@ resource "athenz_role" "roleTest" {
   self_renew_mins = 100
   delete_protection = true
   notify_roles = "admin"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth,%s"
   audit_ref="done by someone"
   tags = {
@@ -1978,6 +1984,7 @@ resource "athenz_role" "roleTest" {
   self_renew_mins = 200
   delete_protection = true
   notify_roles = "admin"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth,%s"
   audit_ref="done by someone"
   tags = {
@@ -2002,6 +2009,7 @@ resource "athenz_role" "roleTest" {
   self_renew_mins = 200
   delete_protection = true
   notify_roles = "admin"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth,%s"
   audit_ref="done by someone"
   tags = {
@@ -2023,6 +2031,7 @@ resource "athenz_role" "roleTest" {
   self_renew_mins = 200
   delete_protection = true
   notify_roles = "admin"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth,%s"
   audit_ref = "done by someone"
   tags = {
@@ -2055,6 +2064,7 @@ resource "athenz_role" "roleTest" {
   self_renew_mins = 300
   delete_protection = true
   notify_roles = "admin"
+  notify_details = "notify details"
   principal_domain_filter = "user,sys.auth,%s"
   audit_ref="done by someone else"
   tags = {

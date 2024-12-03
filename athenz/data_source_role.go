@@ -136,6 +136,11 @@ func dataSourceRoleRead(_ context.Context, d *schema.ResourceData, meta interfac
 			return diag.FromErr(err)
 		}
 	}
+	if role.NotifyDetails != "" {
+		if err = d.Set("notify_details", role.NotifyDetails); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	if role.Trust != "" {
 		if err = d.Set("trust", string(role.Trust)); err != nil {
 			return diag.FromErr(err)
