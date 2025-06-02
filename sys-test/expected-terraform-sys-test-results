@@ -382,6 +382,7 @@
   ],
   "services": [
     {
+      "creds": "",
       "description": "",
       "executable": "",
       "group": "",
@@ -398,7 +399,9 @@
         "objectOwner": "TF",
         "publicKeysOwner": "TF"
       },
-      "user": ""
+      "sshCertSignerKeyId": "",
+      "user": "",
+      "x509CertSignerKeyId": ""
     }
   ],
   "signAlgorithm": "",
