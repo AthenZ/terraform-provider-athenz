@@ -86,6 +86,7 @@ func Provider() *schema.Provider {
 			"athenz_policy":           ResourcePolicy(),
 			"athenz_policy_version":   ResourcePolicyVersion(),
 			"athenz_service":          ResourceService(),
+			"athenz_service_meta":     ResourceServiceMeta(),
 			"athenz_sub_domain":       ResourceSubDomain(),
 			"athenz_user_domain":      ResourceUserDomain(),
 			"athenz_top_level_domain": ResourceTopLevelDomain(),

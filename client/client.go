@@ -41,6 +41,7 @@ type ZmsClient interface {
 	PutGroupMembership(domain string, groupName string, memberName zms.GroupMemberName, auditRef string, membership *zms.GroupMembership) error
 	GetServiceIdentity(domain string, serviceName string) (*zms.ServiceIdentity, error)
 	PutServiceIdentity(domain string, serviceName string, auditRef string, detail *zms.ServiceIdentity) error
+	PutServiceIdentitySystemMeta(domain string, serviceName string, attribute string, auditRef string, detail *zms.ServiceIdentitySystemMeta) error
 	DeleteServiceIdentity(domain string, serviceName string, auditRef string) error
 	GetDomain(domainName string) (*zms.Domain, error)
 	PostUserDomain(domainName string, auditRef string, detail *zms.UserDomain) (*zms.Domain, error)
@@ -479,6 +480,12 @@ func (c Client) PutServiceIdentity(domain string, serviceName string, auditRef s
 		return err
 	}
 	return fmt.Errorf("too many requests, retried 3 times but still failed: %w", err)
+}
+
+func (c Client) PutServiceIdentitySystemMeta(domain string, serviceName string, attribute string, auditRef string, detail *zms.ServiceIdentitySystemMeta) error {
+	zmsClient := zms.NewClient(c.Url, c.Transport)
+	err := zmsClient.PutServiceIdentitySystemMeta(zms.DomainName(domain), zms.SimpleName(serviceName), zms.SimpleName(attribute), auditRef, detail)
+	return err
 }
 
 func (c Client) DeleteServiceIdentity(domain string, serviceName string, auditRef string) error {
