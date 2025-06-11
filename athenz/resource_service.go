@@ -239,24 +239,3 @@ func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	return nil
 }
-
-func resourceServiceProviderEndpointUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	zmsClient := meta.(client.ZmsClient)
-	domainName, serviceName, err := splitServiceId(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	shortName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
-	//longName := domainName + SERVICE_SEPARATOR + shortName
-	auditRef := d.Get("audit_ref").(string)
-	pe := d.Get("provider_endpoint").(string)
-	serviceMeta := zms.ServiceIdentitySystemMeta{
-		ProviderEndpoint: pe,
-	}
-	err = zmsClient.PutServiceIdentitySystemMeta(domainName, shortName, "providerendpoint", auditRef, &serviceMeta)
-	if err != nil {
-		return diag.Errorf("error updating service provider endpoint: %s", err)
-	}
-
-	return readAfterWrite(resourceServiceRead, ctx, d, meta)
-}
