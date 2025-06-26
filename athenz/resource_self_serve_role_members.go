@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func ResourceRoleMembers() *schema.Resource {
+func ResourceSelfServeRoleMembers() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceRoleMembersCreate,
-		ReadContext:   resourceRoleMembersRead,
-		UpdateContext: resourceRoleMembersUpdate,
-		DeleteContext: resourceRoleMembersDelete,
+		CreateContext: resourceSelfServeRoleMembersCreate,
+		ReadContext:   resourceSelfServeRoleMembersRead,
+		UpdateContext: resourceSelfServeRoleMembersUpdate,
+		DeleteContext: resourceSelfServeRoleMembersDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -32,14 +32,14 @@ func ResourceRoleMembers() *schema.Resource {
 			},
 			"name": {
 				Type:             schema.TypeString,
-				Description:      "Name of the standard group role",
+				Description:      "Name of the self-serve role",
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: validatePatternFunc(ENTITY_NAME),
 			},
 			"member": {
 				Type:        schema.TypeSet,
-				Description: "Athenz principal to be added as members",
+				Description: "Athenz principal to be added as members (only manages members defined in Terraform)",
 				Optional:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -72,7 +72,7 @@ func ResourceRoleMembers() *schema.Resource {
 	}
 }
 
-func resourceRoleMembersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceSelfServeRoleMembersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn := d.Get("domain").(string)
 	rn := d.Get("name").(string)
@@ -94,16 +94,16 @@ func resourceRoleMembersCreate(ctx context.Context, d *schema.ResourceData, meta
 			}
 			err = zmsClient.PutMembership(dn, rn, member.MemberName, auditRef, &membership)
 			if err != nil {
-				return diag.Errorf("error adding role member: %v", err)
+				return diag.Errorf("error adding self-serve role member: %v", err)
 			}
 		}
 	}
 
 	d.SetId(fullResourceName)
-	return readAfterWrite(resourceRoleMembersRead, ctx, d, meta)
+	return readAfterWrite(resourceSelfServeRoleMembersRead, ctx, d, meta)
 }
 
-func resourceRoleMembersRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceSelfServeRoleMembersRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 
 	dn, rn, err := splitRoleId(d.Id())
@@ -116,24 +116,27 @@ func resourceRoleMembersRead(_ context.Context, d *schema.ResourceData, meta int
 	if err = d.Set("name", rn); err != nil {
 		return diag.FromErr(err)
 	}
-	role, err := zmsClient.GetRole(dn, rn)
+	_, err = zmsClient.GetRole(dn, rn)
 	switch v := err.(type) {
 	case rdl.ResourceError:
 		if v.Code == 404 {
 			if !d.IsNewResource() {
-				log.Printf("[WARN] Athenz Role %s not found, removing from state", d.Id())
+				log.Printf("[WARN] Athenz self-serve role %s not found, removing from state", d.Id())
 				d.SetId("")
 				return nil
 			}
 			return diag.FromErr(err)
 		}
-		return diag.Errorf("error retrieving Athenz Role %s: %s", d.Id(), v)
+		return diag.Errorf("error retrieving Athenz self-serve role %s: %s", d.Id(), v)
 	case rdl.Any:
 		return diag.FromErr(err)
 	}
 
-	if len(role.RoleMembers) > 0 {
-		if err = d.Set("member", flattenRoleMembers(role.RoleMembers)); err != nil {
+	// For self-serve role members, we only read the members that are in the Terraform state
+	// We don't sync with the actual system members to avoid conflicts with externally managed members
+	if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
+		// Keep the existing state as is - don't sync with system
+		if err = d.Set("member", v); err != nil {
 			return diag.FromErr(err)
 		}
 	} else {
@@ -145,7 +148,7 @@ func resourceRoleMembersRead(_ context.Context, d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceRoleMembersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceSelfServeRoleMembersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, rn, err := splitRoleId(d.Id())
 	if err != nil {
@@ -174,40 +177,34 @@ func resourceRoleMembersUpdate(ctx context.Context, d *schema.ResourceData, meta
 
 	err = deleteRoleMembers(dn, rn, membersToDelete, auditRef, zmsClient, membersToNotDelete)
 	if err != nil {
-		return diag.Errorf("error updating role membership: %s", err)
+		return diag.Errorf("error updating self-serve role membership: %s", err)
 	}
 
 	err = addRoleMembers(dn, rn, membersToAdd, auditRef, zmsClient)
 	if err != nil {
-		return diag.Errorf("error updating role membership: %s", err)
+		return diag.Errorf("error updating self-serve role membership: %s", err)
 	}
 
-	return readAfterWrite(resourceRoleMembersRead, ctx, d, meta)
+	return readAfterWrite(resourceSelfServeRoleMembersRead, ctx, d, meta)
 }
 
-func resourceRoleMembersDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceSelfServeRoleMembersDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	dn, rn, err := splitRoleId(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	auditRef := d.Get("audit_ref").(string)
-	role, err := zmsClient.GetRole(dn, rn)
-	if err != nil {
-		switch v := err.(type) {
-		case rdl.ResourceError:
-			if v.Code == 404 {
-				return nil
+
+	// For self-serve role members, we only delete the members that are in the Terraform state
+	// We don't delete all members from the system to avoid affecting externally managed members
+	if v, ok := d.GetOk("member"); ok && v.(*schema.Set).Len() > 0 {
+		roleMembers := expandRoleMembers(v.(*schema.Set).List())
+		for _, member := range roleMembers {
+			err = zmsClient.DeleteMembership(dn, rn, member.MemberName, auditRef)
+			if err != nil {
+				return diag.FromErr(err)
 			}
-			return diag.FromErr(err)
-		case rdl.Any:
-			return diag.FromErr(err)
-		}
-	}
-	for _, member := range role.RoleMembers {
-		err = zmsClient.DeleteMembership(dn, rn, member.MemberName, auditRef)
-		if err != nil {
-			return diag.FromErr(err)
 		}
 	}
 	return nil

@@ -14,7 +14,7 @@ import (
 
 const (
 	DOMAIN_NAME               = "DomainName"
-	ENTTITY_NAME              = "EntityName"
+	ENTITY_NAME               = "EntityName"
 	SIMPLE_NAME               = "SimpleName"
 	MEMBER_NAME               = "MemberName"
 	GROUP_MEMBER_NAME         = "GroupMemberName"
@@ -30,7 +30,7 @@ func init() {
 	rdlSchema = zms.ZMSSchema()
 	regexValidatorCache = map[string]*regexp.Regexp{
 		DOMAIN_NAME:               buildRegexFromRdlSchema(DOMAIN_NAME),
-		ENTTITY_NAME:              buildRegexFromRdlSchema(ENTTITY_NAME),
+		ENTITY_NAME:               buildRegexFromRdlSchema(ENTITY_NAME),
 		SIMPLE_NAME:               buildRegexFromRdlSchema(SIMPLE_NAME),
 		MEMBER_NAME:               buildRegexFromRdlSchema(MEMBER_NAME),
 		GROUP_MEMBER_NAME:         buildRegexFromRdlSchema(GROUP_MEMBER_NAME),

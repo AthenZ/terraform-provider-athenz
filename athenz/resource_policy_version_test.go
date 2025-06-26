@@ -139,7 +139,7 @@ func TestAccGroupPolicyVersionInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupPolicyVersionInvalidPolicyNameConfig(),
-				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+				ExpectError: getPatternErrorRegex(ENTITY_NAME),
 			},
 			{
 				Config:      testAccGroupPolicyVersionInvalidVersionConfig(),

@@ -79,6 +79,7 @@
   ],
   "modified": "XXX",
   "name": "terraform-provider",
+  "onCall": "",
   "policies": {
     "contents": {
       "domain": "terraform-provider",
@@ -225,6 +226,7 @@
           "memberName": "user.github-7654321",
           "pendingState": "",
           "principalType": 1,
+          "requestPrincipal": "user.github-7654321",
           "reviewReminder": "2022-12-29T23:59:59.000Z"
         }
       ],
@@ -254,7 +256,8 @@
           "auditRef": "",
           "memberName": "user.github-7654321",
           "pendingState": "",
-          "principalType": 1
+          "principalType": 1,
+          "requestPrincipal": "user.github-7654321"
         }
       ],
       "signAlgorithm": "",
@@ -289,7 +292,8 @@
           "auditRef": "",
           "memberName": "user.github-7654321",
           "pendingState": "",
-          "principalType": 1
+          "principalType": 1,
+          "requestPrincipal": "user.github-7654321"
         }
       ],
       "signAlgorithm": "",
@@ -325,7 +329,8 @@
           "expiration": "2022-12-29T23:59:59.000Z",
           "memberName": "user.github-7654321",
           "pendingState": "",
-          "principalType": 1
+          "principalType": 1,
+          "requestPrincipal": "user.github-7654321"
         }
       ],
       "signAlgorithm": "",
@@ -351,7 +356,8 @@
           "auditRef": "",
           "memberName": "user.github-7654321",
           "pendingState": "",
-          "principalType": 1
+          "principalType": 1,
+          "requestPrincipal": "user.github-7654321"
         }
       ],
       "signAlgorithm": "",
@@ -372,7 +378,8 @@
           "auditRef": "",
           "memberName": "user.github-7654321",
           "pendingState": "",
-          "principalType": 1
+          "principalType": 1,
+          "requestPrincipal": "user.github-7654321"
         }
       ],
       "signAlgorithm": "",

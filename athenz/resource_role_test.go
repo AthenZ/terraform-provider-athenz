@@ -2,8 +2,6 @@ package athenz
 
 import (
 	"fmt"
-	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"reflect"
@@ -12,6 +10,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/AthenZ/terraform-provider-athenz/client"
@@ -917,7 +918,7 @@ func TestAccGroupRoleInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupRoleInvalidRoleNameConfig(),
-				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+				ExpectError: getPatternErrorRegex(ENTITY_NAME),
 			},
 			{
 				Config:      testAccGroupRoleInvalidMemberNameConfig(),

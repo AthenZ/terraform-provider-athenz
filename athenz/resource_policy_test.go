@@ -233,7 +233,7 @@ func TestAccGroupPolicyInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupPolicyInvalidPolicyNameConfig(),
-				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+				ExpectError: getPatternErrorRegex(ENTITY_NAME),
 			},
 			{
 				Config:      testAccGroupPolicyInvalidResourceNameConfig(),

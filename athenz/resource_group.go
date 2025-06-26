@@ -35,7 +35,7 @@ func ResourceGroup() *schema.Resource {
 				Description:      "Name of the standard group role",
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
+				ValidateDiagFunc: validatePatternFunc(ENTITY_NAME),
 			},
 			"members": {
 				Type:        schema.TypeSet,

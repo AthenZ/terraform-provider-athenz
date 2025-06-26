@@ -43,3 +43,5 @@ docker/sample/domain-admin/domain_admin_cert.pem
 docker/sample/domain-admin/domain_admin_key.pem
 
 manual-testing/
+.vscode/
+local.tfrc
