@@ -16,9 +16,9 @@ func TestValidateDomainName(t *testing.T) {
 
 func TestValidateEntityName(t *testing.T) {
 	entityName := "zts_post_deploy_zts3.stg.athens.gq1.yahoo.com_6366"
-	assert.Nil(t, validatePatternFunc(ENTTITY_NAME)(entityName, nil))
+	assert.Nil(t, validatePatternFunc(ENTITY_NAME)(entityName, nil))
 	invalidEntityName := "test:role"
-	assert.NotNil(t, validatePatternFunc(ENTTITY_NAME)(invalidEntityName, nil))
+	assert.NotNil(t, validatePatternFunc(ENTITY_NAME)(invalidEntityName, nil))
 }
 
 func TestValidateSimpleName(t *testing.T) {

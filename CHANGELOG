@@ -1,3 +1,7 @@
+v1.0.47 Release / Jun 26, 2025
+------------------------------
+- Support for self-serve role membership
+
 v1.0.46 Release / Nov 21, 2024
 ------------------------------
 - Support notifyDetails attribute for athenz_role and athenz_group resources

@@ -35,7 +35,7 @@ func ResourcePolicy() *schema.Resource {
 				Description:      "Name of the standard policy",
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
+				ValidateDiagFunc: validatePatternFunc(ENTITY_NAME),
 			},
 			"assertion": resourceAssertionSchema(),
 			"audit_ref": {

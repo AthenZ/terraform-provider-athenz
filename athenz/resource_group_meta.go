@@ -3,6 +3,7 @@ package athenz
 import (
 	"context"
 	"errors"
+
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -35,7 +36,7 @@ func ResourceGroupMeta() *schema.Resource {
 				Description:      "Name of the standard group",
 				Required:         true,
 				ForceNew:         true,
-				ValidateDiagFunc: validatePatternFunc(ENTTITY_NAME),
+				ValidateDiagFunc: validatePatternFunc(ENTITY_NAME),
 			},
 			"user_expiry_days": {
 				Type:         schema.TypeInt,

@@ -2,7 +2,6 @@ package athenz
 
 import (
 	"fmt"
-	"github.com/ardielle/ardielle-go/rdl"
 	"log"
 	"os"
 	"reflect"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/ardielle/ardielle-go/rdl"
 
 	"github.com/stretchr/testify/assert"
 
@@ -460,7 +461,7 @@ func TestAccGroupInvalidResource(t *testing.T) {
 			},
 			{
 				Config:      testAccGroupInvalidGroupNameConfig(),
-				ExpectError: getPatternErrorRegex(ENTTITY_NAME),
+				ExpectError: getPatternErrorRegex(ENTITY_NAME),
 			},
 			{
 				Config:      testAccGroupInvalidMemberNameConfig(),
