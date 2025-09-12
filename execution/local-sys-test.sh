@@ -97,6 +97,6 @@ fi
 cd sys-test
 terraform apply --destroy -auto-approve -var="cacert=$SYS_TEST_CA_CERT" -var="cert=$SYS_TEST_CERT" -var="key=$SYS_TEST_KEY" -var-file="variables/sys-test-policies-versions-vars.tfvars" -var-file="variables/sys-test-groups-vars.tfvars" -var-file="variables/prod.tfvars" -var-file="variables/sys-test-services-vars.tfvars" -var-file="variables/sys-test-roles-vars.tfvars" -var-file="variables/sys-test-policies-vars.tfvars"
 sed -i -e "s/version = \"$VERSION\"/version = \"x.x.x\"/g" "sys-test_provider.tf"
-rm -fr .terraform* *-e terraform* 
+rm -fr .terraform* *-e terraform*
 
 exit $EXIT_CODE

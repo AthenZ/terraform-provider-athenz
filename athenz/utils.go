@@ -378,22 +378,22 @@ func flattenPublicKeyEntryList(publicKeysEntry []*zms.PublicKeyEntry) []interfac
 	for _, val := range publicKeysEntry {
 		publicKey := map[string]interface{}{
 			"key_id":    val.Id,
-			"key_value": convertToDecodedKey(val.Key) + "\n",
+			"key_value": convertToDecodedKey(val.Key),
 		}
 		publicKeys = append(publicKeys, publicKey)
-
 	}
 	return publicKeys
 }
 
 func convertToKeyBase64(keyValue string) string {
-	keyBytes := []byte(strings.Trim(keyValue, "\n"))
+	keyBytes := []byte(keyValue)
 	encodeChars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._"
 	return b64.NewEncoding(encodeChars).WithPadding('-').EncodeToString(keyBytes)
 }
 
 func convertToDecodedKey(keyValue string) string {
-	keyBytes, _ := b64.StdEncoding.DecodeString(keyValue)
+	encodeChars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._"
+	keyBytes, _ := b64.NewEncoding(encodeChars).WithPadding('-').DecodeString(keyValue)
 	return string(keyBytes)
 }
 

@@ -1,3 +1,7 @@
+v1.0.48 Release / Sep 11, 2025
+------------------------------
+- Correct handling of public keys in athenz_service resource
+
 v1.0.47 Release / Jun 26, 2025
 ------------------------------
 - Support for self-serve role membership

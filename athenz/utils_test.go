@@ -1,12 +1,13 @@
 package athenz
 
 import (
-	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/stretchr/testify/assert"
@@ -277,7 +278,7 @@ func TestGetShortName(t *testing.T) {
 func TestFlattenPublicKeyEntryList(t *testing.T) {
 	id := "v0"
 	keyBase64 := getKeyBase64()
-	key := getDecodedKey() + "\n"
+	key := getDecodedKey()
 	ast.DeepEqual(t, flattenPublicKeyEntryList(getPublicKeysEntry(id, keyBase64)), getPublicKeys(id, key))
 }
 

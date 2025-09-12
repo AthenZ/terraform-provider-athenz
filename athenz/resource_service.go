@@ -188,11 +188,12 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	description := d.Get("description").(string)
 	shortName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
-	//longName := domainName + SERVICE_SEPARATOR + shortName
 	auditRef := d.Get("audit_ref").(string)
 	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
+	if err != nil {
+		return diag.Errorf("error retrieving service %s: %s", d.Id(), err)
+	}
 	service.Description = description
-	//service.Name = zms.ServiceName(longName)
 
 	if d.HasChange("public_keys") {
 		_, newVal := d.GetChange("public_keys")
