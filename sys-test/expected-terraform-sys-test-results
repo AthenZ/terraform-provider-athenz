@@ -2,6 +2,7 @@
   "account": "",
   "applicationId": "",
   "auditEnabled": false,
+  "autoDeleteTenantAssumeRoleAssertions": false,
   "azureClient": "",
   "azureSubscription": "",
   "azureTenant": "",
