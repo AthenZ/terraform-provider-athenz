@@ -1,3 +1,11 @@
+v1.0.50 Release / Jan 21, 2026
+------------------------------
+- Support on_call attribute for athenz_domain_meta resource
+
+v1.0.49 Release / Oct 06, 2025
+------------------------------
+- Add self-serve group members resource
+
 v1.0.48 Release / Sep 11, 2025
 ------------------------------
 - Correct handling of public keys in athenz_service resource

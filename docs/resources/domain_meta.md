@@ -27,6 +27,7 @@ description: |-
 - `environment` (String) string specifying the environment this domain is used in (production, staging, etc.)
 - `group_expiry_days` (Number) all groups in the domain roles will have specified max expiry days
 - `member_purge_expiry_days` (Number) purge role/group members with expiry date configured days in the past
+- `on_call` (String) oncall team name/id for any incidents in this domain
 - `role_cert_expiry_mins` (Number) role certs issued for this domain will have specified max timeout in mins
 - `service_cert_expiry_mins` (Number) service identity certs issued for this domain will have specified max timeout in mins
 - `service_expiry_days` (Number) all services in the domain roles will have specified max expiry days
