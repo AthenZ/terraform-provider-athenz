@@ -3,6 +3,7 @@
   "applicationId": "",
   "auditEnabled": false,
   "autoDeleteTenantAssumeRoleAssertions": false,
+  "awsAccountName": "",
   "azureClient": "",
   "azureSubscription": "",
   "azureTenant": "",
@@ -390,6 +391,7 @@
   ],
   "services": [
     {
+      "clientId": "",
       "creds": "",
       "description": "",
       "executable": "",
