@@ -100,6 +100,11 @@ func ResourceDomainMeta() *schema.Resource {
 				Description: "string specifying the environment this domain is used in (production, staging, etc.)",
 				Optional:    true,
 			},
+			"on_call": {
+				Type:        schema.TypeString,
+				Description: "oncall team name/id for any incidents in this domain",
+				Optional:    true,
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -194,6 +199,9 @@ func resourceDomainMetaRead(_ context.Context, d *schema.ResourceData, meta inte
 	if err = d.Set("environment", domain.Environment); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("on_call", domain.OnCall); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("tags", flattenTag(domain.Tags)); err != nil {
 		return diag.FromErr(err)
 	}
@@ -230,6 +238,7 @@ func resourceDomainMetaDelete(_ context.Context, d *schema.ResourceData, meta in
 		UserAuthorityFilter:   "",
 		BusinessService:       "",
 		SlackChannel:          "",
+		OnCall:                "",
 		Tags:                  make(map[zms.TagKey]*zms.TagValueList),
 		Contacts:              make(map[zms.SimpleName]string),
 	}
@@ -269,6 +278,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 		UserAuthorityFilter:   domain.UserAuthorityFilter,
 		BusinessService:       domain.BusinessService,
 		SlackChannel:          domain.SlackChannel,
+		OnCall:                domain.OnCall,
 		Tags:                  domain.Tags,
 		Contacts:              domain.Contacts,
 	}
@@ -278,6 +288,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 	domainMeta.BusinessService = d.Get("business_service").(string)
 	domainMeta.SlackChannel = d.Get("slack_channel").(string)
 	domainMeta.Environment = d.Get("environment").(string)
+	domainMeta.OnCall = d.Get("on_call").(string)
 	if d.HasChange("user_expiry_days") {
 		memberExpiryDays := int32(d.Get("user_expiry_days").(int))
 		domainMeta.MemberExpiryDays = &memberExpiryDays

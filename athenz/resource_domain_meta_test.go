@@ -44,6 +44,7 @@ func TestAccGroupDomainMetaBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "business_service", "test-service"),
 					resource.TestCheckResourceAttr(resourceName, "slack_channel", "athenz"),
 					resource.TestCheckResourceAttr(resourceName, "environment", "production"),
+					resource.TestCheckResourceAttr(resourceName, "on_call", "oncall-team"),
 					resource.TestCheckResourceAttr(resourceName, "contacts.security-contact", "user.joe"),
 					resource.TestCheckResourceAttr(resourceName, "contacts.pe-contact", "user.jack"),
 					resource.TestCheckResourceAttr(resourceName, "tags.zms.DisableExpirationNotifications", "4"),
@@ -73,6 +74,7 @@ func cleanAccTestDomainMeta(domainName string) {
 			UserAuthorityFilter:   "",
 			BusinessService:       "",
 			SlackChannel:          "",
+			OnCall:                "",
 			Tags:                  make(map[zms.TagKey]*zms.TagValueList),
 			Contacts:              make(map[zms.SimpleName]string),
 		}
@@ -136,6 +138,7 @@ resource "athenz_domain_meta" "test_domain_meta" {
   business_service = "test-service"
   slack_channel = "athenz"
   environment = "production"
+  on_call = "oncall-team"
   contacts = {
     "security-contact" = "user.joe",
     "pe-contact" = "user.jack"
