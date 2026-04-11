@@ -1,3 +1,7 @@
+v1.0.51 Release / Apr 11, 2026
+------------------------------
+- support external members in roles and groups
+
 v1.0.50 Release / Jan 21, 2026
 ------------------------------
 - Support on_call attribute for athenz_domain_meta resource
