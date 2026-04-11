@@ -13,6 +13,7 @@
   "enabled": true,
   "entities": [],
   "environment": "",
+  "externalMemberValidator": "",
   "gcpProject": "",
   "gcpProjectNumber": "",
   "groups": [
