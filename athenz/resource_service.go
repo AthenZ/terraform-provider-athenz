@@ -64,6 +64,13 @@ func ResourceService() *schema.Resource {
 					},
 				},
 			},
+			"hosts": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -95,6 +102,9 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 				Name:        zms.ServiceName(longName),
 				Description: description,
 				PublicKeys:  publicKeyList,
+			}
+			if v, ok := d.GetOk("hosts"); ok {
+				service.Hosts = expandStringSet(v.(*schema.Set))
 			}
 			if v, ok := d.GetOk("tags"); ok {
 				service.Tags = expandTagsMap(v.(map[string]interface{}))
@@ -156,6 +166,9 @@ func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	if err = d.Set("description", service.Description); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("hosts", service.Hosts); err != nil {
+		return diag.FromErr(err)
+	}
 	if len(service.PublicKeys) > 0 {
 		if err = d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
 			return diag.FromErr(err)
@@ -194,6 +207,16 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.Errorf("error retrieving service %s: %s", d.Id(), err)
 	}
 	service.Description = description
+
+	if d.HasChange("hosts") {
+		_, newVal := d.GetChange("hosts")
+		if newVal == nil {
+			newVal = new(schema.Set)
+		}
+		service.Hosts = expandStringSet(newVal.(*schema.Set))
+	} else {
+		service.Hosts = expandStringSet(d.Get("hosts").(*schema.Set))
+	}
 
 	if d.HasChange("public_keys") {
 		_, newVal := d.GetChange("public_keys")

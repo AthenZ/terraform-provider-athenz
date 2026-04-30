@@ -42,6 +42,9 @@ func TestAccGroupServiceDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "public_keys.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "public_keys.0.key_id", dataSourceName, "public_keys.0.key_id"),
 					resource.TestCheckResourceAttrPair(resourceName, "public_keys.0.key_value", dataSourceName, "public_keys.0.key_value"),
+					resource.TestCheckResourceAttr(dataSourceName, "hosts.#", "2"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "hosts.*", "host1.example.com"),
+					resource.TestCheckTypeSetElemAttr(dataSourceName, "hosts.*", "host2.example.com"),
 				),
 			},
 		},
@@ -55,6 +58,7 @@ resource "athenz_service" "serviceTest" {
   domain = "%s"
   description = "test service"
   audit_ref = "done by someone"
+  hosts = ["host1.example.com", "host2.example.com"]
   public_keys = [{
 		key_id = "v0"
 		key_value = <<EOK

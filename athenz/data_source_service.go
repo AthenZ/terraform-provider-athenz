@@ -44,6 +44,11 @@ func dataSourceService() *schema.Resource {
 					},
 				},
 			},
+			"hosts": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"tags": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -75,6 +80,9 @@ func dataSourceServiceRead(ctx context.Context, d *schema.ResourceData, meta int
 
 	if err := d.Set("description", service.Description); err != nil {
 		return nil
+	}
+	if err := d.Set("hosts", service.Hosts); err != nil {
+		return diag.FromErr(err)
 	}
 	if err := d.Set("public_keys", flattenPublicKeyEntryList(service.PublicKeys)); err != nil {
 		return nil
