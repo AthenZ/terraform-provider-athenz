@@ -85,6 +85,25 @@ func TestAccGroupServiceBasic(t *testing.T) {
 					testAccCheckCorrectTags(resourceName, map[string]string{"key1": "a1,a2"}),
 				),
 			},
+			{
+				Config: testAccServiceConfigAddHosts(serviceName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					resource.TestCheckResourceAttr(resourceName, "hosts.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "hosts.*", "host1.example.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "hosts.*", "host2.example.com"),
+				),
+			},
+			{
+				Config: testAccServiceConfigRemoveHosts(serviceName, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGroupServiceExists(resourceName, &service),
+					resource.TestCheckResourceAttr(resourceName, "name", serviceName),
+					resource.TestCheckResourceAttr(resourceName, "hosts.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "hosts.*", "host1.example.com"),
+				),
+			},
 		},
 	})
 }
@@ -263,6 +282,26 @@ resource "athenz_service" "serviceTest" {
 tags = {
 	key1 = "a1,a2"
   }
+}
+`, name, domain)
+}
+
+func testAccServiceConfigAddHosts(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+  name   = "%s"
+  domain = "%s"
+  hosts  = ["host1.example.com", "host2.example.com"]
+}
+`, name, domain)
+}
+
+func testAccServiceConfigRemoveHosts(name, domain string) string {
+	return fmt.Sprintf(`
+resource "athenz_service" "serviceTest" {
+  name   = "%s"
+  domain = "%s"
+  hosts  = ["host1.example.com"]
 }
 `, name, domain)
 }

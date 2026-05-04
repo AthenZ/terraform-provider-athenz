@@ -668,6 +668,15 @@ func isAllHosts(instances string) bool {
 	return false
 }
 
+func expandStringSet(set *schema.Set) []string {
+	list := set.List()
+	result := make([]string, 0, len(list))
+	for _, v := range list {
+		result = append(result, v.(string))
+	}
+	return result
+}
+
 func isSharedHostsBetweenConditionInstances(instances1, instances2 string) bool {
 	if isAllHosts(instances1) || isAllHosts(instances2) {
 		// If one of the instances includes all host, any host listed on the other condition will be shared with it.
