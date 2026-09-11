@@ -819,18 +819,28 @@ func NewClient(zmsConfig *ZmsConfig) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	transport := http.Transport{
-		TLSClientConfig: tlsConfig,
+	transport := clonedTransport(http.DefaultTransport)
+	if transport == nil {
+		transport = &http.Transport{}
 	}
+	transport.TLSClientConfig = tlsConfig
 	client := &Client{
 		Url:                    zmsConfig.Url,
-		Transport:              &transport,
+		Transport:              transport,
 		ResourceOwner:          zmsConfig.ResourceOwner,
 		RoleMetaResourceState:  zmsConfig.RoleMetaResourceState,
 		GroupMetaResourceState: zmsConfig.GroupMetaResourceState,
 		AuditRef:               zmsConfig.AuditRef,
 	}
 	return client, err
+}
+
+func clonedTransport(rt http.RoundTripper) *http.Transport {
+	t, ok := rt.(*http.Transport)
+	if !ok || t == nil {
+		return nil
+	}
+	return t.Clone()
 }
 
 func getTLSConfigFromFiles(certFile, keyFile string, caCert string) (*tls.Config, error) {
