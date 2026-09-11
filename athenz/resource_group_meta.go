@@ -226,7 +226,7 @@ func updateGroupMeta(zmsClient client.ZmsClient, dn, gn string, d *schema.Resour
 	}
 	auditEnabled := d.Get("audit_enabled").(bool)
 	groupMeta.AuditEnabled = &auditEnabled
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.PutGroupMeta(dn, gn, auditRef, &groupMeta)
 	if err != nil {
 		return diag.FromErr(err)
@@ -322,7 +322,7 @@ func resourceGroupMetaDelete(_ context.Context, d *schema.ResourceData, meta int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	if zmsClient.GetGroupMetaResourceState(d.Get("resource_state").(int), client.StateAlwaysDelete) {
 		err = zmsClient.DeleteGroup(dn, gn, auditRef)
 	} else {

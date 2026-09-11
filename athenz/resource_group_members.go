@@ -147,7 +147,7 @@ func resourceGroupMembersUpdate(ctx context.Context, d *schema.ResourceData, met
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	membersToDelete := make([]*zms.GroupMember, 0)
 	membersToAdd := make([]*zms.GroupMember, 0)
 
@@ -176,7 +176,7 @@ func resourceGroupMembersDelete(_ context.Context, d *schema.ResourceData, meta 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	group, err := zmsClient.GetGroup(dn, gn, nil)
 	if err != nil {
 		switch v := err.(type) {

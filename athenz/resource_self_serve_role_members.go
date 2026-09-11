@@ -154,7 +154,7 @@ func resourceSelfServeRoleMembersUpdate(ctx context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	membersToDelete := make([]*zms.RoleMember, 0)
 	membersToAdd := make([]*zms.RoleMember, 0)
 
@@ -194,7 +194,7 @@ func resourceSelfServeRoleMembersDelete(_ context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 
 	// For self-serve role members, we only delete the members that are in the Terraform state
 	// We don't delete all members from the system to avoid affecting externally managed members

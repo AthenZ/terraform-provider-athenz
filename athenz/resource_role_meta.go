@@ -298,7 +298,7 @@ func updateRoleMeta(zmsClient client.ZmsClient, dn, rn string, d *schema.Resourc
 	}
 	auditEnabled := d.Get("audit_enabled").(bool)
 	roleMeta.AuditEnabled = &auditEnabled
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.PutRoleMeta(dn, rn, auditRef, &roleMeta)
 	if err != nil {
 		return diag.FromErr(err)
@@ -430,7 +430,7 @@ func resourceRoleMetaDelete(_ context.Context, d *schema.ResourceData, meta inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	if zmsClient.GetRoleMetaResourceState(d.Get("resource_state").(int), client.StateAlwaysDelete) {
 		err = zmsClient.DeleteRole(dn, rn, auditRef)
 	} else {

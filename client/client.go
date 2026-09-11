@@ -68,6 +68,7 @@ type ZmsClient interface {
 	PutRoleMeta(domain string, roleName string, auditRef string, group *zms.RoleMeta) error
 	GetRoleMetaResourceState(roleMetaResourceState, requestedState int) bool
 	GetGroupMetaResourceState(groupMetaResourceState, requestedState int) bool
+	GetAuditRef() string
 }
 
 type Client struct {
@@ -76,6 +77,7 @@ type Client struct {
 	ResourceOwner          string
 	RoleMetaResourceState  int
 	GroupMetaResourceState int
+	AuditRef               string
 }
 
 type ZmsConfig struct {
@@ -86,6 +88,7 @@ type ZmsConfig struct {
 	ResourceOwner          string
 	RoleMetaResourceState  int
 	GroupMetaResourceState int
+	AuditRef               string
 }
 
 func (c Client) GetPolicies(domainName string, assertions bool, includeNonActive bool) (*zms.Policies, error) {
@@ -797,6 +800,10 @@ func (c Client) GetGroupMetaResourceState(groupMetaResourceState, requestedState
 	return getResourceState(groupMetaResourceState, c.GroupMetaResourceState, requestedState)
 }
 
+func (c Client) GetAuditRef() string {
+	return c.AuditRef
+}
+
 func getResourceState(resourceState, clientState, requestedState int) bool {
 	if resourceState == -1 {
 		resourceState = clientState
@@ -821,6 +828,7 @@ func NewClient(zmsConfig *ZmsConfig) (*Client, error) {
 		ResourceOwner:          zmsConfig.ResourceOwner,
 		RoleMetaResourceState:  zmsConfig.RoleMetaResourceState,
 		GroupMetaResourceState: zmsConfig.GroupMetaResourceState,
+		AuditRef:               zmsConfig.AuditRef,
 	}
 	return client, err
 }

@@ -185,7 +185,7 @@ func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	policy, err := zmsClient.GetPolicy(dn, pn)
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	if err != nil {
 		return diag.Errorf("error retrieving Athenz Policy: %s", err)
 	}
@@ -218,7 +218,7 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.DeletePolicy(dn, pn, auditRef)
 
 	switch v := err.(type) {

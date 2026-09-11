@@ -115,7 +115,7 @@ func resourceTopLevelDomainRead(ctx context.Context, d *schema.ResourceData, met
 func resourceTopLevelDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := d.Id()
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err := zmsClient.DeleteTopLevelDomain(domainName, auditRef)
 	switch v := err.(type) {
 	case rdl.ResourceError:

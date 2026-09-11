@@ -17,6 +17,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// getAuditRef returns the resource's configured audit_ref, falling back to the
+// provider-level default when the state value is empty. This covers resources
+// imported into state, whose audit_ref is never populated by import and is
+// often pinned to null by lifecycle.ignore_changes, which otherwise causes
+// ZMS to reject updates/deletes in audit-enabled domains.
+func getAuditRef(d *schema.ResourceData, zmsClient client.ZmsClient) string {
+	if auditRef := d.Get("audit_ref").(string); auditRef != "" {
+		return auditRef
+	}
+	return zmsClient.GetAuditRef()
+}
+
 type MemberType uint8
 
 const (

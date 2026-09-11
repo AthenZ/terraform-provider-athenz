@@ -208,7 +208,7 @@ func resourcePolicyVersionUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 	activeVersion := d.Get("active_version").(string)
 	versions := d.Get("version").(*schema.Set).List()
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	if err = validateSchema(activeVersion, versions); err != nil {
 		return diag.FromErr(err)
 	}
@@ -276,7 +276,7 @@ func resourcePolicyVersionDelete(ctx context.Context, d *schema.ResourceData, me
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.DeletePolicy(dn, pn, auditRef)
 
 	switch v := err.(type) {

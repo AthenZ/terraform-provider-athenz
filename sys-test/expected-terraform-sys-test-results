@@ -9,6 +9,7 @@
   "azureTenant": "",
   "businessService": "",
   "certDnsDomain": "",
+  "clientIdSelfUpdate": false,
   "costCenter": "",
   "description": "",
   "enabled": true,

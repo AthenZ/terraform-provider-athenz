@@ -63,6 +63,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_GROUP_META_RESOURCE_STATE", client.StateCreateIfNecessary),
 			},
+			"audit_ref": {
+				Type:        schema.TypeString,
+				Description: fmt.Sprintf("Default audit reference used when a resource's own audit_ref is empty, e.g. resources imported into state"),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ATHENZ_AUDIT_REF", AUDIT_REF),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -106,6 +112,7 @@ func configProvider(ctx context.Context, d *schema.ResourceData) (interface{}, d
 		CaCert:                 d.Get("cacert").(string),
 		RoleMetaResourceState:  d.Get("role_meta_resource_state").(int),
 		GroupMetaResourceState: d.Get("group_meta_resource_state").(int),
+		AuditRef:               d.Get("audit_ref").(string),
 	}
 	// if resource ownership is not disabled, then load the resource owner
 	if !d.Get("disable_resource_ownership").(bool) {

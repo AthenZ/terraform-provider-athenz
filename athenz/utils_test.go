@@ -8,8 +8,10 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/terraform-provider-athenz/client"
 	"github.com/stretchr/testify/assert"
 	ast "gotest.tools/assert"
 )
@@ -24,6 +26,20 @@ func getZmsRoleMembersDeprecated() []*zms.RoleMember {
 }
 func getFlattedRoleMembersDeprecated() []interface{} {
 	return []interface{}{"member1", "member2"}
+}
+
+func TestGetAuditRef(t *testing.T) {
+	r := ResourceRole()
+	zmsClient := client.Client{AuditRef: "provider-default-ref"}
+
+	// resource has an explicit audit_ref set in state -> use it
+	d := r.Data(&terraform.InstanceState{Attributes: map[string]string{"audit_ref": "explicit-ref"}})
+	ast.Equal(t, getAuditRef(d, zmsClient), "explicit-ref")
+
+	// resource has an empty audit_ref in state (e.g. imported via terraform import,
+	// which never populates it) -> fall back to the provider default
+	d = r.Data(&terraform.InstanceState{Attributes: map[string]string{"audit_ref": ""}})
+	ast.Equal(t, getAuditRef(d, zmsClient), "provider-default-ref")
 }
 
 func TestFlattenDeprecatedRoleMembers(t *testing.T) {

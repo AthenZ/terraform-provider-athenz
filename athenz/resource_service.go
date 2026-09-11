@@ -201,7 +201,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	description := d.Get("description").(string)
 	shortName := getShortName(domainName, serviceName, SERVICE_SEPARATOR)
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	service, err := zmsClient.GetServiceIdentity(domainName, serviceName)
 	if err != nil {
 		return diag.Errorf("error retrieving service %s: %s", d.Id(), err)
@@ -249,7 +249,7 @@ func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.DeleteServiceIdentity(domainName, serviceName, auditRef)
 
 	switch v := err.(type) {

@@ -222,7 +222,7 @@ func resourceDomainMetaUpdate(ctx context.Context, d *schema.ResourceData, meta 
 
 func resourceDomainMetaDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	var zero int32
 	zero = 0
 	domainMeta := zms.DomainMeta{
@@ -325,7 +325,7 @@ func updateDomainMeta(zmsClient client.ZmsClient, dn string, d *schema.ResourceD
 		_, n := d.GetChange("contacts")
 		domainMeta.Contacts = expandContactsMap(n.(map[string]interface{}))
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.PutDomainMeta(dn, auditRef, &domainMeta)
 	if err != nil {
 		return diag.FromErr(err)

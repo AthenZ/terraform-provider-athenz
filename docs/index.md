@@ -62,6 +62,7 @@ provider "athenz" {
   key                        = "<key-path>"
   disable_resource_ownership = false
   resource_owner             = "resource-owner"
+  audit_ref                  = "default audit reference"
 }
 ```
 
@@ -82,3 +83,4 @@ provider "athenz" {
 - `resource_owner` (String) Resource owner. Default is "TF"
 - `role_meta_resource_state` (Number) Bitmask of object state flags controlling role behavior when creating or destroying role_meta resources. 0x01: create the role if not already present, 0x02: always delete the role when destroying the resource. Default value is 1. The value is used when the resource_state attribute at the athenz_role_meta level is set to -1
 - `group_meta_resource_state` (Number) Bitmask of object state flags controlling group behavior when creating or destroying group_meta resources. 0x01: create the group if not already present, 0x02: always delete the group when destroying the resource. Default value is 1. The value is used when the resource_state attribute at the athenz_group_meta level is set to -1
+- `audit_ref` (String) Default audit reference used for a resource's update/delete operations when that resource's own `audit_ref` attribute is empty in state, e.g. for resources imported via `terraform import`. Default is "done by terraform provider"

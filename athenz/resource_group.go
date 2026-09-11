@@ -376,7 +376,7 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	group, err := zmsClient.GetGroup(dn, gn, nil)
 
 	if err != nil {
@@ -470,7 +470,7 @@ func resourceGroupDelete(_ context.Context, d *schema.ResourceData, meta interfa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.DeleteGroup(dn, gn, auditRef)
 
 	switch v := err.(type) {

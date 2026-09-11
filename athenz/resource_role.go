@@ -519,7 +519,7 @@ func resourceRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 
 	role, err := zmsClient.GetRole(dn, rn, nil, nil)
 	if err != nil {
@@ -646,7 +646,7 @@ func resourceRoleDelete(_ context.Context, d *schema.ResourceData, meta interfac
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err = zmsClient.DeleteRole(dn, rn, auditRef)
 
 	switch v := err.(type) {

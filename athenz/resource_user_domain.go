@@ -89,7 +89,7 @@ func resourceUserDomainRead(ctx context.Context, d *schema.ResourceData, meta in
 func resourceUserDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	zmsClient := meta.(client.ZmsClient)
 	domainName := getShortName("", d.Id(), PREFIX_USER_DOMAIN)
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	err := zmsClient.DeleteUserDomain(domainName, auditRef)
 	switch v := err.(type) {
 	case rdl.ResourceError:

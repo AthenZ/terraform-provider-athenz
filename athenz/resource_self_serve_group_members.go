@@ -147,7 +147,7 @@ func resourceSelfServeGroupMembersUpdate(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 	membersToDelete := make([]*zms.GroupMember, 0)
 	membersToAdd := make([]*zms.GroupMember, 0)
 
@@ -176,7 +176,7 @@ func resourceSelfServeGroupMembersDelete(_ context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	auditRef := d.Get("audit_ref").(string)
+	auditRef := getAuditRef(d, zmsClient)
 
 	// For self-serve group members, we only delete the members that are in the Terraform state
 	// We don't delete all members from the system to avoid affecting externally managed members
