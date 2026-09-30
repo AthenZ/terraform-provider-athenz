@@ -1,7 +1,5 @@
 GOPKGNAME = github.com/AthenZ/terraform-provider-athenz
 
-export GOPATH ?= $(shell /usr/local/go/bin/go env GOPATH)
-
 BINARY=terraform-provider-athenz
 FMT_LOG=/tmp/fmt.log
 GOIMPORTS_LOG=/tmp/goimports.log
@@ -51,7 +49,7 @@ install_local:
 	mv ${BINARY} ~/.terraform.d/plugins/yahoo/provider/athenz/${VERSION}/${OS_ARCH}
 
 unit: vet fmt
-	export TF_ACC=false ; $(GO) test -v $(GOPKGNAME)/...
+	export TF_ACC=false ; $(GO) test -skip '^TestAcc' -v $(GOPKGNAME)/...
 
 acc_test: vet fmt
 	@echo acc_test: cacert: $(SYS_TEST_CA_CERT)

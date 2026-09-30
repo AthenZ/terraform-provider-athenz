@@ -12,7 +12,7 @@
 [release-badge]: https://img.shields.io/static/v1.svg?label=latest-release&message=terraform&color=blue
 [docs-badge]: https://img.shields.io/static/v1.svg?label=documentation&message=terraform&color=blue
 
-Pull requests run unit and acceptance tests. A push to `main` publishes a prerelease, tests that Registry build, then tags the next stable release. The same job can be started by hand from the Certify Provider workflow, including with the upgrade test turned off.
+Pull requests run the acceptance tests, which include the Go unit tests. A push to `main` publishes a prerelease, tests that Registry build, then tags the next stable release. The same job can be started by hand from the Certify Provider workflow, including with the upgrade test turned off.
 
 # Generating terraform docs
 

@@ -101,9 +101,6 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Test the published provider
         env:
           UPGRADE_TEST: ${{ needs.tag-prerelease.outputs.upgrade_test }}

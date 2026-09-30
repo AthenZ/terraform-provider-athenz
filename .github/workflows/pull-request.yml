@@ -22,11 +22,5 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Unit tests
-        run: make unit
-
       - name: Acceptance tests
         run: ./execution/pr-acc-test.sh
