@@ -1,0 +1,136 @@
+# Replaces the Screwdriver certify-provider job.
+#
+# On a push to main this workflow:
+#   1. tags a prerelease (vX.Y.Z-<shortsha>) and publishes it
+#   2. optionally applies the previous stable provider, then the prerelease
+#   3. tags the next stable patch and publishes that
+#
+# Publishing uses release.yml. Tags are pushed with the default GITHUB_TOKEN,
+# which does not start the tag-push trigger, so a release is published once.
+name: Certify Provider
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      upgrade_test:
+        description: Apply the previous provider version before certifying this commit
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: certify-provider
+  cancel-in-progress: false
+
+jobs:
+  tag-prerelease:
+    if: github.repository == 'AthenZ/terraform-provider-athenz' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.version.outputs.skip }}
+      previous: ${{ steps.version.outputs.previous }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      stable: ${{ steps.version.outputs.stable }}
+      upgrade_test: ${{ steps.version.outputs.upgrade_test }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag prerelease
+        id: version
+        run: |
+          set -euo pipefail
+          if git tag --points-at HEAD | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "HEAD already has a stable release tag; nothing to certify"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          previous="$(./scripts/version.sh show)"
+          prerelease="$(./scripts/version.sh prerelease)"
+          stable="$(./scripts/version.sh patch)"
+          echo "previous=${previous}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+          echo "stable=${stable}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "upgrade_test=${{ inputs.upgrade_test }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "upgrade_test=true" >> "$GITHUB_OUTPUT"
+          fi
+          git fetch origin --tags
+          if git rev-parse -q --verify "refs/tags/${prerelease}" >/dev/null; then
+            echo "prerelease tag ${prerelease} already exists"
+          else
+            git tag "${prerelease}"
+            git push origin "refs/tags/${prerelease}"
+          fi
+
+  publish-prerelease:
+    needs: tag-prerelease
+    if: needs.tag-prerelease.result == 'success' && needs.tag-prerelease.outputs.skip == 'false'
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.tag-prerelease.outputs.prerelease }}
+    secrets: inherit
+
+  test-and-certify:
+    needs: [tag-prerelease, publish-prerelease]
+    if: needs.tag-prerelease.result == 'success' && needs.tag-prerelease.outputs.skip == 'false' && needs.publish-prerelease.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      stable: ${{ needs.tag-prerelease.outputs.stable }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Test the published provider
+        env:
+          UPGRADE_TEST: ${{ needs.tag-prerelease.outputs.upgrade_test }}
+          PREVIOUS_VERSION: ${{ needs.tag-prerelease.outputs.previous }}
+          PRERELEASE_VERSION: ${{ needs.tag-prerelease.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          if [[ "${UPGRADE_TEST}" == "true" ]]; then
+            echo "about to perform upgrade test using previous version: ${PREVIOUS_VERSION}"
+            ./execution/sys-test.sh "${PREVIOUS_VERSION}"
+          fi
+          ./scripts/wait-for-prerelease-version.sh "${PRERELEASE_VERSION}"
+          ./execution/sys-test.sh "${PRERELEASE_VERSION}" "${UPGRADE_TEST}"
+
+      - name: Tag stable release
+        run: |
+          set -euo pipefail
+          stable="${{ needs.tag-prerelease.outputs.stable }}"
+          git fetch origin --tags
+          if git rev-parse -q --verify "refs/tags/${stable}" >/dev/null; then
+            echo "stable tag ${stable} already exists"
+          else
+            git tag "${stable}"
+            git push origin "refs/tags/${stable}"
+          fi
+
+  publish-stable:
+    needs: [tag-prerelease, test-and-certify]
+    if: needs.tag-prerelease.result == 'success' && needs.tag-prerelease.outputs.skip == 'false' && needs.test-and-certify.result == 'success'
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.test-and-certify.outputs.stable }}
+    secrets: inherit

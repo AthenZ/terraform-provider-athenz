@@ -4,16 +4,15 @@
 
 # Athenz Terraform Provider
 
-[![Pipeline Status][status-image]][status-url]
-[![Publish Status][publish-status-image]][status-url]
+[![Pull Request](https://github.com/AthenZ/terraform-provider-athenz/actions/workflows/pull-request.yml/badge.svg)](https://github.com/AthenZ/terraform-provider-athenz/actions/workflows/pull-request.yml)
+[![Certify Provider](https://github.com/AthenZ/terraform-provider-athenz/actions/workflows/certify.yml/badge.svg)](https://github.com/AthenZ/terraform-provider-athenz/actions/workflows/certify.yml)
 [![Terraform release][release-badge]](https://registry.terraform.io/providers/AthenZ/athenz/latest)
 [![Terraform docs][docs-badge]](https://registry.terraform.io/providers/AthenZ/athenz/latest/docs)
 
 [release-badge]: https://img.shields.io/static/v1.svg?label=latest-release&message=terraform&color=blue
 [docs-badge]: https://img.shields.io/static/v1.svg?label=documentation&message=terraform&color=blue
-[status-image]: https://cd.screwdriver.cd/pipelines/8033/badge
-[publish-status-image]: https://cd.screwdriver.cd/pipelines/8033/certify-provider/badge
-[status-url]: https://cd.screwdriver.cd/pipelines/8033
+
+Pull requests run the acceptance tests, which include the Go unit tests. A push to `main` publishes a prerelease, tests that Registry build, then tags the next stable release. The same job can be started by hand from the Certify Provider workflow, including with the upgrade test turned off.
 
 # Generating terraform docs
 
