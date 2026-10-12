@@ -4,6 +4,9 @@
 # the certify workflow calls this one directly after it pushes a tag. A tag
 # pushed by a person or a personal access token still publishes through the
 # push trigger below.
+#
+# github.event_name inside this called workflow is the caller's event (push),
+# not workflow_call. Prefer inputs.tag whenever certify passed one.
 name: release
 on:
   push:
@@ -26,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_call' && inputs.tag || github.ref }}
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
 
       - name: Set up Go
@@ -45,7 +48,7 @@ jobs:
         id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event_name == 'workflow_call' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Release $RELEASE_TAG already exists"
@@ -63,4 +66,4 @@ jobs:
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.event_name == 'workflow_call' && inputs.tag || github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ inputs.tag || github.ref_name }}
