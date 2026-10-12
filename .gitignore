@@ -43,5 +43,6 @@ docker/sample/domain-admin/domain_admin_cert.pem
 docker/sample/domain-admin/domain_admin_key.pem
 
 manual-testing/
+sys-test/terraform-sys-test-results
 .vscode/
 local.tfrc

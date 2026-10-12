@@ -3,6 +3,13 @@
 set -eux
 set -o pipefail
 
+# GitHub Actions has no TTY. Passing -t makes docker run fail there.
+if [[ -t 1 ]]; then
+    DOCKER_TTY="-t"
+else
+    DOCKER_TTY=""
+fi
+
 # to script directory
 cd "$(dirname "$0")"
 
@@ -67,7 +74,7 @@ docker run -d -h "${ZMS_DB_HOST}" \
 
 echo "wait for ZMS DB to be ready, DOCKER_DIR: ${DOCKER_DIR}"
 
-docker run --rm -it \
+docker run --rm ${DOCKER_TTY} \
       --network="${DOCKER_NETWORK}" \
       --user mysql:mysql \
       -v "${DOCKER_DIR}/deploy-scripts/common/wait-for-mysql/wait-for-mysql.sh:/bin/wait-for-mysql.sh" \
@@ -98,7 +105,7 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo "4. start ZMS ZMS_HOST : ${ZMS_HOST}, ZMS_PORT: ${ZMS_PORT}, LOCAL_ENV_NS: ${LOCAL_ENV_NS}, DOCKER_NETWORK: ${DOCKER_NETWORK}, DOCKER_DNS: ${DOCKER_DNS}" | colored_cat g
-docker run -t -h "${ZMS_HOST}" \
+docker run ${DOCKER_TTY} -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
