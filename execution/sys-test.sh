@@ -53,15 +53,38 @@ if ! command -v zms-cli >/dev/null 2>&1; then
 fi
 
 cd sys-test
-rm -rf .terraform .terraform.lock.hcl
 TF_INIT_ARG=""
 if [[ "${UPGRADE_TEST}" == "true" ]]; then
   TF_INIT_ARG="-upgrade"
 fi
-if ! terraform init ${TF_INIT_ARG}; then
-  echo "terraform init failed!"
-  EXIT_CODE=1
-fi
+# The registry versions document is cached for up to 30 minutes
+# (CloudFront stale-while-revalidate). A curl of that document can already
+# list this version while terraform init still receives the previous copy.
+init_deadline="$(( $(date +%s) + 30 * 60 ))"
+init_log="$(mktemp)"
+while true; do
+  rm -rf .terraform .terraform.lock.hcl
+  set +e
+  terraform init ${TF_INIT_ARG} 2>&1 | tee "${init_log}"
+  init_status="${PIPESTATUS[0]}"
+  set -e
+  if [[ "${init_status}" -eq 0 ]]; then
+    break
+  fi
+  if ! grep -q 'no available releases match' "${init_log}"; then
+    echo "terraform init failed!"
+    EXIT_CODE=1
+    break
+  fi
+  if (( $(date +%s) > init_deadline )); then
+    echo "terraform init failed!"
+    EXIT_CODE=1
+    break
+  fi
+  echo "$(date) - Terraform did not see ${PROVIDER_VERSION} in the registry versions list yet. Retrying."
+  sleep 30
+done
+rm -f "${init_log}"
 if ! terraform apply -auto-approve \
   -var="cacert=${SYS_TEST_CA_CERT}" \
   -var="cert=${SYS_TEST_CERT}" \

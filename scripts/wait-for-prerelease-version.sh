@@ -5,6 +5,9 @@ PRERELEASE_VERSION=$(echo $PRERELEASE_VERSION_WITH_PREFIX | sed 's/v//g')
 
 # terraform init reads this versions list, then the download endpoint.
 # The registry v2 API can list a version before either of these is ready.
+# A successful check here is not enough on its own: CloudFront can keep
+# serving terraform init a stale versions document for up to 30 minutes.
+# sys-test.sh retries init until Terraform itself can see the version.
 REGISTRY_VERSIONS_URL="https://registry.terraform.io/v1/providers/athenz/athenz/versions"
 REGISTRY_DOWNLOAD_URL="https://registry.terraform.io/v1/providers/athenz/athenz/${PRERELEASE_VERSION}/download/linux/amd64"
 
