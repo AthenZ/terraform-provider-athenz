@@ -353,6 +353,11 @@ func resourceGroupRead(_ context.Context, d *schema.ResourceData, meta interface
 	if err = d.Set("self_renew", group.SelfRenew); err != nil {
 		return diag.FromErr(err)
 	}
+	if group.SelfRenewMins != nil {
+		if err = d.Set("self_renew_mins", group.SelfRenewMins); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	if err = d.Set("delete_protection", group.DeleteProtection); err != nil {
 		return diag.FromErr(err)
 	}
