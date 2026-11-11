@@ -149,6 +149,9 @@ func resourceDomainMetaRead(_ context.Context, d *schema.ResourceData, meta inte
 	if err = d.Set("domain", domain.Name); err != nil {
 		return diag.FromErr(err)
 	}
+	if err = d.Set("description", domain.Description); err != nil {
+		return diag.FromErr(err)
+	}
 	if err = d.Set("application_id", domain.ApplicationId); err != nil {
 		return diag.FromErr(err)
 	}

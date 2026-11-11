@@ -1,6 +1,7 @@
 package athenz
 
 import (
+	"context"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"log"
@@ -8,9 +9,34 @@ import (
 	"testing"
 
 	"github.com/AthenZ/terraform-provider-athenz/client"
+	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	ast "gotest.tools/assert"
 )
+
+// TestDomainMetaReadDescription verifies that the domain description is
+// refreshed from ZMS, so out-of-band changes are detected as drift and the
+// value is populated on terraform import.
+func TestDomainMetaReadDescription(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	clientMock := client.NewMockZmsClient(mockCtrl)
+	clientMock.EXPECT().GetDomain(dName).Return(&zms.Domain{
+		Name:        zms.DomainName(dName),
+		Description: "description from zms",
+	}, nil)
+
+	d := schema.TestResourceDataRaw(t, ResourceDomainMeta().Schema, map[string]interface{}{
+		"domain":      dName,
+		"description": "description in state",
+	})
+	d.SetId(dName)
+
+	diags := resourceDomainMetaRead(context.Background(), d, clientMock)
+	ast.Assert(t, !diags.HasError(), diags)
+	ast.Equal(t, d.Get("description").(string), "description from zms")
+}
 
 func TestAccGroupDomainMetaBasic(t *testing.T) {
 	if v := os.Getenv("TF_ACC"); v != "1" && v != "true" {
