@@ -475,6 +475,11 @@ func resourceRoleRead(_ context.Context, d *schema.ResourceData, meta interface{
 	if err = d.Set("self_renew", role.SelfRenew); err != nil {
 		return diag.FromErr(err)
 	}
+	if role.SelfRenewMins != nil {
+		if err = d.Set("self_renew_mins", role.SelfRenewMins); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	if err = d.Set("delete_protection", role.DeleteProtection); err != nil {
 		return diag.FromErr(err)
 	}
